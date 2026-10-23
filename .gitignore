@@ -13,6 +13,7 @@
 !/attest/
 !/docs/
 !/deploy/
+!/scripts/
 !/llms.txt
 !/requirements-runtime.txt
 !/rome-2star/

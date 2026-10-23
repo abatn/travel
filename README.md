@@ -33,6 +33,16 @@ python3 -m venv .venv
 
 Danach: <http://127.0.0.1:8077>
 
+## CI
+
+* GitHub Actions: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+* Lokal (gleiche Prüfungen): `./scripts/ci.sh`
+
+> GitHub-hosted Runner benötigen ein aktives Actions-Guthaben. Meldet GitHub
+> „recent account payments have failed …", ist das ein Billing-Thema im
+> Account (Settings → Billing & plans), kein Fehler im Workflow. Der Workflow
+> ist mit `./scripts/ci.sh` lokal reproduzierbar.
+
 ## Tests
 
 ```bash

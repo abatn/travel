@@ -27,26 +27,5 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-runtime.txt
 
-      - name: Compile
-        run: python -m compileall -q ui providers seo resolver affiliate alerts bundling attest
-
-      - name: Unit tests (signature, config switch, billing)
-        run: python -m unittest attest.tests.test_attest_unit attest.tests.test_billing -v
-
-      - name: x402 end-to-end (mock facilitator)
-        run: python attest/tests/test_x402_flow.py
-
-      - name: Legal pages (noindex/index)
-        run: python attest/tests/test_legal.py
-
-      - name: Discovery (llms.txt, agent-payments.json, register)
-        run: python attest/tests/test_discovery.py
-
-      - name: Resolver
-        run: python resolver/tests/test_resolver.py
-
-      - name: Affiliate
-        run: python affiliate/tests/test_affiliate.py
-
-      - name: SEO
-        run: python seo/tests/test_seo.py
+      - name: Run CI suite
+        run: bash scripts/ci.sh
