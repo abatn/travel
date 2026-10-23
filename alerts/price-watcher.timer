@@ -1,0 +1,12 @@
+[Unit]
+Description=Preiswächter (Trip-Agent) – stündlicher Preis-Snapshot
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=1h
+# OnCalendar=*:0/30    # Alternative: halbstündlich
+Persistent=true
+Unit=price-watcher.service
+
+[Install]
+WantedBy=timers.target

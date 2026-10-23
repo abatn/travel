@@ -1,0 +1,149 @@
+# Preiswächter-Konfiguration (Beispiel, anpassbar).
+#
+# Der Wächter ist quellen- UND kategorien-agnostisch: "request.categories" legt fest,
+# welche Reisearten beobachtet werden (flights, hotels, ferries, cruises), je Kategorie
+# gelten eigene Regeln ("rules_by_category"). Leere Liste = alle Quellen der Kategorie.
+
+registry: /home/batnini/mimo-agents/providers/registry.yaml
+
+request:
+  category: flights            # Einzelkategorie …
+  categories:                   # … oder mehrere (Komma-Liste), je Kategorie ein eigener Lauf
+    - flights
+    # - ferries
+    # - cruises
+  origin: BER
+  destination: FCO
+  depart_date: "2026-10-31"
+  return_date: "2026-11-02"
+  adults: 2
+  currency: EUR
+  max_stops: one_stop
+
+# Kategorie-spezifische Anfragen (z. B. Faehre: Hafen, Fahrzeug; Kreuzfahrt: Zeitraum)
+requests:
+  ferries:
+    origin: CPH
+    destination: OSL
+    depart_date: "2026-10-31"
+    return_date: "2026-11-02"
+    adults: 2
+    vehicle: car
+  cruises:
+    origin: HAM
+    destination: MIA
+    depart_date: "2026-11-07"
+    return_date: "2026-11-21"
+    adults: 2
+
+# Welche Quellen beobachtet werden (leer = alle der Kategorie).
+providers: []            # z. B. [trvl_flights, fli_flights, skiplagged_flights]
+providers_by_category:
+  ferries: []
+  cruises: []
+
+rules:
+  use: all_in            # all_in = Endpreis inkl. Gepäck/Steuern, wenn die Quelle ihn liefert; price = Basispreis
+  budget: 400.0          # Alarm, sobald der Preis <= Budget (in EUR)
+  budget_scope: total    # total = Budget für die ganze Reise; per_person = je Person
+  coverage:
+    # Datenlage-Gate: history-abhaengige Regeln (Tiefpunkt, Preissturz) feuern nur,
+    # wenn die Beobachtungsbasis trägt. Ausgefallene Quellen verzerren sonst den Median.
+    min_sources: 2              # mindestens N verschiedene Quellen im Beobachtungsfenster
+    max_snapshot_age_hours: 6   # jüngster Wert im Fenster höchstens X Stunden alt
+    min_success_ratio: 0.5      # mindestens X Anteil erfolgreicher Quellen im letzten Lauf
+  trough:
+    enabled: true
+    lookback_days: 7     # Beobachtungsfenster
+    mode: median_x       # median_x | min_over_lookback | percentile
+    factor: 0.95         # Tiefpunkt: Preis <= 95 % des Medians im Fenster
+    percentile: 10        # nur bei mode: percentile
+    min_drop_pct: 3      # zusätzlich: mindestens x % unter dem Median
+    min_observations: 2  # Coverage-Gate: unterhalb dieser Anzahl Beobachtungen kein Tiefpunkt-Alarm
+  drop_pct:
+    enabled: true        # Preissturz gegen die Hochwasser-Marke (persistiert, je Kategorie)
+    percent: 10          # Alarm, wenn der Preis >= 10 % unter der Hochwasser-Marke liegt
+  cooldown_hours: 24     # kein erneuter Alarm innerhalb dieser Zeit …
+  alert_on_improvement_pct: 3   # … außer der Preis sank um mindestens x %
+
+# Regeln je Kategorie (überschreiben "rules" für diese Kategorie)
+rules_by_category:
+  ferries:
+    budget: 180.0
+    budget_scope: total
+    trough:
+      mode: min_over_lookback
+      factor: 0
+      min_observations: 2
+  cruises:
+    budget: 1400.0
+    budget_scope: per_person
+    trough:
+      mode: median_x
+      factor: 0.9
+      min_observations: 1
+    drop_pct:
+      enabled: true
+      percent: 15
+
+state:
+  history: /home/batnini/mimo-agents/alerts/state/history.jsonl
+  history_backend: jsonl     # jsonl (Standard, grep-freundlich) | sqlite (Index, ab ~1000 Punkten schneller)
+  history_db: /home/batnini/mimo-agents/alerts/state/history.db
+  history_max_entries: 5000   # Ringpuffer: die Verlaufsdatei wird gekuerzt
+  alerts: /home/batnini/mimo-agents/alerts/state/alerts.jsonl
+  last_alert: /home/batnini/mimo-agents/alerts/state/last_alert.json
+  pending: /home/batnini/mimo-agents/alerts/state/alerts_pending.jsonl   # durable Outbox
+  delivery_backoff_minutes: [5, 15, 60]   # erneute Zustellversuche der Outbox
+
+# Optionale Zusatzsignale (Kontext im Snapshot).
+# trvl bringt native Preisüberwachung mit: `trvl watch add <ORIG> <DEST> --depart .. --return ..
+# --below <Zielpreis> [--webhook <URL>]` legt einen persistenten Wächter an (Historie in ~/.trvl/watch.db),
+# `trvl watch list|history|check` liefert Zustand/Historie/Deal-Events, `trvl rate-status` den
+# Provider-Cooldown-Status.
+context_commands:
+  - name: trvl_watch_list
+    command: ["/home/batnini/.local/bin/trvl", "watch", "list", "--format", "json"]
+    timeout: 60
+  - name: trvl_rate_status
+    command: ["/home/batnini/.local/bin/trvl", "rate-status"]
+    timeout: 90
+
+# Nativer Provider-Wächter (optional): legt zusätzlich einen persistenten trvl-Wächter
+# mit Zielpreis an. Der eigene Watcher bleibt maßgeblich (Mehrquellen-Vergleich + Regeln),
+# der native Wächter liefert Historie über Prozessneustarts hinweg.
+# native_watch:
+#   enabled: false
+#   binary: /home/batnini/.local/bin/trvl
+#   command: ["/home/batnini/.local/bin/trvl", "watch", "add", "{origin}", "{destination}",
+#             "--depart", "{depart_date}", "--return", "{return_date}", "--below", "150", "--currency", "EUR"]
+
+schedule:
+  jitter_pct: 10          # eigener Scheduler: Abstand +/- x % (verhindert gleiche Lastspitzen)
+
+notify:
+  # Alarmkanäle. Jeder Kanal bekommt den Alarm als JSON; der Status je Kanal
+  # steht in alerts_pending.jsonl - ein fehlgeschlagener Kanal wird einzeln
+  # erneut versucht, ohne die anderen erneut zu belasten.
+  #
+  #   type: command  -> Kommando, JSON auf stdin
+  #   type: webhook  -> HTTP POST (JSON), optional HMAC-signiert
+  #   type: slack    -> Slack-Webhook (Textblock)
+  #   type: ntfy     -> ntfy-Push (Topic-URL)
+  #   type: gotify   -> gotify-Push (Token-URL)
+  #   type: telegram -> Bot-API (token + chat_id)
+  #   type: email    -> SMTP (host/port/user/password, to, from, subject)
+  #
+  # Signatur: HMAC-SHA256 über Nutzlast + Zeitstempel, gesendet als
+  # "X-Signature: sha256=<hex>" und "X-Timestamp" (Empfänger kann damit
+  # Fälschungen und Wiederholungen erkennen).
+  channels: []
+  #   - {type: command, name: lokal, command: ["/usr/local/bin/alarm", "--json"]}
+  #   - {type: webhook, name: hook, url: "https://example.org/hook", secret: "<HMAC-Schluessel>"}
+  #   - {type: ntfy,    name: push, url: "https://ntfy.sh/mein-thema", priority: 4}
+  #   - {type: telegram, name: tg, token: "<bot-token>", chat_id: "<chat-id>"}
+  #   - {type: email,   name: mail, host: "smtp.example.org", port: 587, starttls: true,
+  #      user: "<user>", password: "<passwort>", to: "mich@example.org", from: "waechter@example.org"}
+  secret: ""                  # globaler HMAC-Schluessel (pro Kanal uebersteuerbar)
+  command: []                 # Kurzform: ein einzelnes Kommando (bleibt unterstuetzt)
+  timeout: 30

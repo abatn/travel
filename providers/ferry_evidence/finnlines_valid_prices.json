@@ -1,0 +1,185 @@
+{
+ "FINLI-SEKPS_2026-10-23": {
+  "http": 200,
+  "json": {
+   "data": {
+    "listTimeTableAvailability": [
+     {
+      "sailingCode": "NLIKPS202610231000",
+      "departureDate": "2026-10-23",
+      "departureTime": "10:00",
+      "arrivalDate": "2026-10-23",
+      "arrivalTime": "17:45",
+      "departurePort": "FINLI",
+      "arrivalPort": "SEKPS",
+      "isAvailable": true,
+      "shipName": "FINNCANOPUS",
+      "crossingTime": "7:45",
+      "chargeTotal": 1880
+     },
+     {
+      "sailingCode": "NLIKPS202610232245",
+      "departureDate": "2026-10-23",
+      "departureTime": "22:45",
+      "arrivalDate": "2026-10-24",
+      "arrivalTime": "06:30",
+      "departurePort": "FINLI",
+      "arrivalPort": "SEKPS",
+      "isAvailable": false,
+      "shipName": "FINNSIRIUS",
+      "crossingTime": "7:45",
+      "chargeTotal": null
+     },
+     {
+      "sailingCode": "NLIKPS202610241000",
+      "departureDate": "2026-10-24",
+      "departureTime": "10:00",
+      "arrivalDate": "2026-10-24",
+      "arrivalTime": "17:45",
+      "departurePort": "FINLI",
+      "arrivalPort": "SEKPS",
+      "isAvailable": true,
+      "shipName": "FINNCANOPUS",
+      "crossingTime": "7:45",
+      "chargeTotal": 1880
+     },
+     {
+      "sailingCode": "NLIKPS202610242245",
+      "departureDate": "2026-10-24",
+      "departureTime": "22:45",
+      "arrivalDate": "2026-10-25",
+      "arrivalTime": "06:30",
+      "departurePort": "FINLI",
+      "arrivalPort": "SEKPS",
+      "isAvailable": false,
+      "shipName": "FINNSIRIUS",
+      "crossingTime": "7:45",
+      "chargeTotal": null
+     }
+    ]
+   }
+  }
+ },
+ "FINLI-SEKPS_2026-10-27": {
+  "http": 200,
+  "json": {
+   "data": {
+    "listTimeTableAvailability": [
+     {
+      "sailingCode": "NLIKPS202610271045",
+      "departureDate": "2026-10-27",
+      "departureTime": "10:45",
+      "arrivalDate": "2026-10-27",
+      "arrivalTime": "18:30",
+      "departurePort": "FINLI",
+      "arrivalPort": "SEKPS",
+      "isAvailable": true,
+      "shipName": "FINNCANOPUS",
+      "crossingTime": "7:45",
+      "chargeTotal": 1880
+     },
+     {
+      "sailingCode": "NLIKPS202610272245",
+      "departureDate": "2026-10-27",
+      "departureTime": "22:45",
+      "arrivalDate": "2026-10-28",
+      "arrivalTime": "06:15",
+      "departurePort": "FINLI",
+      "arrivalPort": "SEKPS",
+      "isAvailable": false,
+      "shipName": "FINNSIRIUS",
+      "crossingTime": "7:30",
+      "chargeTotal": null
+     },
+     {
+      "sailingCode": "NLIKPS202610281000",
+      "departureDate": "2026-10-28",
+      "departureTime": "10:00",
+      "arrivalDate": "2026-10-28",
+      "arrivalTime": "17:45",
+      "departurePort": "FINLI",
+      "arrivalPort": "SEKPS",
+      "isAvailable": true,
+      "shipName": "FINNCANOPUS",
+      "crossingTime": "7:45",
+      "chargeTotal": 1760
+     },
+     {
+      "sailingCode": "NLIKPS202610282245",
+      "departureDate": "2026-10-28",
+      "departureTime": "22:45",
+      "arrivalDate": "2026-10-29",
+      "arrivalTime": "06:15",
+      "departurePort": "FINLI",
+      "arrivalPort": "SEKPS",
+      "isAvailable": false,
+      "shipName": "FINNSIRIUS",
+      "crossingTime": "7:30",
+      "chargeTotal": null
+     }
+    ]
+   }
+  }
+ },
+ "FINLI-SEKPS_2026-11-05": {
+  "http": 200,
+  "json": {
+   "data": {
+    "listTimeTableAvailability": [
+     {
+      "sailingCode": "NLIKPS202611051000",
+      "departureDate": "2026-11-05",
+      "departureTime": "10:00",
+      "arrivalDate": "2026-11-05",
+      "arrivalTime": "17:45",
+      "departurePort": "FINLI",
+      "arrivalPort": "SEKPS",
+      "isAvailable": true,
+      "shipName": "FINNCANOPUS",
+      "crossingTime": "7:45",
+      "chargeTotal": 1760
+     },
+     {
+      "sailingCode": "NLIKPS202611052245",
+      "departureDate": "2026-11-05",
+      "departureTime": "22:45",
+      "arrivalDate": "2026-11-06",
+      "arrivalTime": "06:15",
+      "departurePort": "FINLI",
+      "arrivalPort": "SEKPS",
+      "isAvailable": false,
+      "shipName": "FINNSIRIUS",
+      "crossingTime": "7:30",
+      "chargeTotal": null
+     },
+     {
+      "sailingCode": "NLIKPS202611061000",
+      "departureDate": "2026-11-06",
+      "departureTime": "10:00",
+      "arrivalDate": "2026-11-06",
+      "arrivalTime": "17:45",
+      "departurePort": "FINLI",
+      "arrivalPort": "SEKPS",
+      "isAvailable": true,
+      "shipName": "FINNCANOPUS",
+      "crossingTime": "7:45",
+      "chargeTotal": 1760
+     },
+     {
+      "sailingCode": "NLIKPS202611062245",
+      "departureDate": "2026-11-06",
+      "departureTime": "22:45",
+      "arrivalDate": "2026-11-07",
+      "arrivalTime": "06:30",
+      "departurePort": "FINLI",
+      "arrivalPort": "SEKPS",
+      "isAvailable": false,
+      "shipName": "FINNSIRIUS",
+      "crossingTime": "7:45",
+      "chargeTotal": null
+     }
+    ]
+   }
+  }
+ }
+}

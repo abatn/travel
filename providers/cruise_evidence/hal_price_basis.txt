@@ -1,0 +1,3 @@
+country=US locale=en_US -> currencyCode=USD bestAvailable.price=999 tax=150 basePrice=849 taxAndFeesCombined=True classification=restricted
+country=NL locale=nl_NL -> currencyCode=EUR bestAvailable.price=934 tax=237.16 basePrice=696.84 taxAndFeesCombined=True classification=restricted
+HAL nennt keine Personenzahl im Preis-Request: die Preise sind definitionsgemaess PRO PERSON (Site-i18n: priceUnit='per Person' / 'pro Person').

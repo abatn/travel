@@ -1,0 +1,247 @@
+# =============================================================================
+# ALERT_CONFIG.example.yaml — Beispielkonfiguration für den Preiswächter
+# =============================================================================
+# Zweck:   Schema-Referenz für das Regelwerk aus alerts/alert_design.json
+#          (rule_schema) — Budget-Alarm UND Tiefpunkt-Erkennung, konfigurierbare
+#          Provider-Liste, Cooldown/State.
+# Status:  BEISPIEL / SCHEMA-REFERENZ — KEINE Produktivimplementierung.
+#
+# ACHTUNG (Namenskollision vermeiden):
+#   * Diese Datei (GROSSBUCHSTABEN) spiegelt alert_design.json -> rule_schema.
+#   * Die LAUFZEIT-Konfiguration des bereits vorhandenen Watchers
+#     (alerts/watcher.py) ist alerts/alert_config.example.yaml (klein geschrieben).
+#     Beide Dateien existieren bewusst nebeneinander: die eine ist die
+#     Schema-Spezifikation, die andere die laufende Config.
+#
+# Hinweis:  Die Quelle der Preise ist das lokale Binary
+#          /home/batnini/.local/bin/trvl (bzw. dessen MCP-Server) und die
+#          Provider-Registry /home/batnini/mimo-agents/providers/registry.yaml.
+#          Es wird keine Website fest verdrahtet; `providers` ist optional und
+#          konfigurierbar.
+# =============================================================================
+
+version: 1
+
+# Verzeichnis der Provider-Registry (optional). Leer = die Standard-Registry.
+# Neue Quelle = ein YAML-Eintrag dort, kein Code.
+registry: /home/batnini/mimo-agents/providers/registry.yaml
+
+defaults:
+  currency: EUR
+  lookback_days: 7              # Fenster der eigenen Tages-Snapshots
+  min_observations: 7           # Coverage-Gate: darunter KEINE Statistik-Alarme
+  cooldown_hours: 24            # Zeit-Cooldown je (rule_id, source_key)
+  epsilon: 0.5                  # Mindest-Preisdifferenz fuer "neues Tief"
+  provider_min_interval_minutes: 15
+  notification_channels:
+    - type: stdout
+      enabled: true
+    - type: ntfy
+      enabled: false
+      url: https://ntfy.sh/trvl-price-alerts
+    - type: webhook
+      enabled: false
+      url: https://alert.example.internal/hooks/trvl
+      headers:
+        X-Token: CHANGE_ME
+    # - type: command
+    #   enabled: false
+    #   command: /usr/local/bin/notify-price '{alert_json}'
+
+# -----------------------------------------------------------------------------
+# QUELLEN  (konfigurierbar; beliebig viele, beliebige Art)
+# -----------------------------------------------------------------------------
+sources:
+  - id: ber-fco
+    kind: flight
+    origin: BER
+    destination: FCO
+    depart_date: "2026-12-01"
+    return_date: "2026-12-08"
+    currency: EUR
+    budget: 150                  # -> wird als natives 'trvl watch --below 150'
+    adults: 2
+    max_stops: one_stop
+    providers: []                # [] = alle aktiven Registry-Quellen der Kategorie
+                                # alternativ: [trvl_flights, fli_flights, skiplagged_flights]
+    native_watch:
+      create: true
+      watch_id: ""               # beim ersten Lauf leer lassen -> wird befuellt
+      alert_drop_pct: 12         # natives Drop-Signal in Prozent
+      alert_drop_abs: 0
+      webhook: ""                # optional: lokaler Receiver fuer JSON-Events
+    note: "Weihnachtsflug Berlin-Rom, Roundtrip"
+
+  - id: muc-lhr
+    kind: flight
+    origin: MUC
+    destination: LHR
+    depart_from: "2026-11-01"    # Datumsfenster: billigster Tag im Fenster
+    depart_to: "2026-11-30"
+    currency: EUR
+    budget: 220
+    providers: []
+    native_watch:
+      create: true
+      watch_id: ""
+
+  - id: hotel-rome
+    kind: hotel
+    hotel_name: "Hotel Lella, Rome"
+    check_in: "2026-10-31"
+    check_out: "2026-11-01"
+    currency: EUR
+    budget: 80                   # Preis pro Nacht
+    providers: []                # z.B. [stays_hotels, rome_hotel_taxes]
+    native_watch:
+      create: true
+      watch_id: ""
+
+  - id: window-next-30
+    kind: dates_window
+    origin: BER
+    destination: FCO
+    window_from: next_30d
+    window_to: next_60d
+    currency: EUR
+    budget: 180
+    note: "Rollierendes Fenster: billigster Tag der naechsten 60 Tage"
+
+  - id: favs-opportunity
+    kind: opportunity
+    favourites: [FCO, CDG]
+    window_from: next_30d
+    window_to: next_90d
+    currency: EUR
+    native_watch:
+      create: true
+      watch_id: ""
+
+# -----------------------------------------------------------------------------
+# REGELN
+#   Typen:
+#     budget             -> price <= budget
+#     budget_drop        -> price <= baseline*(1-drop_pct/100)  ODER  <= baseline-drop_abs
+#     lowpoint_median    -> price <= median(fenster)*(1-drop_pct/100)
+#     lowpoint_percentile-> price <= perzentil p der Fensterserie
+#     lowpoint_window    -> price == min(fenster) UND neues Tief
+#     lowpoint_band      -> natives price_position.band == 'low' (verdict 'buy')
+#     native_drop        -> exakt die native Semantik (internal/pricealert)
+#     native_forecast    -> trvl forecast CommitNowConfidence >= X
+#     score              -> Opportunity-Score >= min_score
+# -----------------------------------------------------------------------------
+rules:
+  # 1) BUDGET — feuert, sobald der Preis das Budget unterschreitet.
+  - id: budget:ber-fco
+    type: budget
+    source_id: ber-fco
+    currency: EUR
+    budget: 150
+    cooldown_hours: 24
+    force_repeat: false
+    channels: [stdout]
+    message: "BUDGET erreicht: {route} {price} {currency} <= 150 {currency}"
+
+  # 2) BUDGET mit erneutem Alarm bei weiterem Preisverfall.
+  - id: budget:ber-fco-repeat
+    type: budget
+    source_id: ber-fco
+    budget: 150
+    cooldown_hours: 12
+    force_repeat: true
+
+  # 3) TIEFPUNKT ueber den 7-Tage-Median der eigenen Tages-Snapshots.
+  - id: lowpoint:ber-fco-median
+    type: lowpoint_median
+    source_id: ber-fco
+    drop_pct: 10                # >= 10 % unter dem 7-Tage-Median
+    lookback_days: 7
+    min_observations: 7
+    cooldown_hours: 24
+    channels: [stdout]
+    message: "TIEFPUNKT: {route} {price} {currency} = {vs_median_pct}% unter 7-Tage-Median"
+
+  # 4) TIEFPUNKT als 10. Perzentil der Fensterserie (Muster price-tracker).
+  - id: lowpoint:ber-fco-p10
+    type: lowpoint_percentile
+    source_id: ber-fco
+    percentile: 10
+    lookback_days: 7
+    min_observations: 7
+    cooldown_hours: 24
+
+  # 5) TIEFPUNKT im rollierenden Datumsfenster (billigster Tag).
+  - id: lowpoint:window-next-30
+    type: lowpoint_window
+    source_id: window-next-30
+    lookback_days: 7
+    min_observations: 3
+    cooldown_hours: 24
+
+  # 6) NATIVE Drop-Signal (High-Water-Marke + Preis-Dedup in trvl selbst).
+  - id: native_drop:ber-fco
+    type: native_drop
+    source_id: ber-fco
+    drop_pct: 12
+    cooldown_hours: 12
+
+  # 7) NATIVE Statistik-Band (price_position) als Tiefpunkt-Bestaetigung.
+  - id: lowpoint:ber-fco-band
+    type: lowpoint_band
+    source_id: ber-fco
+    min_observations: 10         # native Confidence-Floor (DefaultConfidenceFloor)
+    cooldown_hours: 24
+
+  # 8) KAUF-JETZT vs WARTEN (empirische CDF, braucht >= 30 Samples / 90 Tage).
+  - id: forecast:ber-fco
+    type: native_forecast
+    source_id: ber-fco
+    commit_now_confidence: 80
+    cooldown_hours: 24
+
+  # 9) Weitere Quellen: Hotel-Budget und Opportunity-Score.
+  - id: budget:hotel-rome
+    type: budget
+    source_id: hotel-rome
+    currency: EUR
+    budget: 80
+    cooldown_hours: 24
+
+  - id: score:favs-opportunity
+    type: score
+    source_id: favs-opportunity
+    min_score: 90
+    cooldown_hours: 24
+
+# -----------------------------------------------------------------------------
+# ALARM-POLICY
+# -----------------------------------------------------------------------------
+alerts:
+  require_rule_match: true       # Alarm NUR bei Regelerfuellung
+  suppress_status_messages: true # 'Flight ...' / '---' / 'ERR' sind Status, kein Alarm
+  group_by_source_key: true      # mehrere Provider mit gleichem Preis => EIN Alarm
+  channels: []                   # [] = defaults.notification_channels
+  include_booking_url: true
+
+# -----------------------------------------------------------------------------
+# SCHEDULER
+# -----------------------------------------------------------------------------
+scheduler:
+  kind: systemd                  # systemd | cron | manual
+  interval_minutes: 360          # alle 6 Stunden
+  on_calendar: "*-*-* 00/6:17:00"
+  randomized_delay_sec: 1200     # Last streuen (Google-/Provider-Limits)
+  persistent: true               # verpasste Laeufe nachholen
+  run_native_daemon: false       # true nur, wenn KEIN 'trvl mcp' laeuft
+                                 # (Singleton-Lock ~/.trvl/scheduler.lock)
+  timezone: Europe/Berlin
+
+# -----------------------------------------------------------------------------
+# Pfade (nur zur Doku; die Implementierung liest sie aus alert_design.json)
+# -----------------------------------------------------------------------------
+paths:
+  config: /home/batnini/mimo-agents/alerts/ALERT_CONFIG.yaml
+  state: /home/batnini/mimo-agents/alerts/state/alert_state.json
+  snapshots: /home/batnini/mimo-agents/alerts/state/snapshots.jsonl
+  lock: /home/batnini/mimo-agents/alerts/state/.runner.lock
+  log: /home/batnini/mimo-agents/alerts/runner.log

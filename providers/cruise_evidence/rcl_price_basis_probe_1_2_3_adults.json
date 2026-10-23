@@ -1,0 +1,88 @@
+{
+ "adults=1": {
+  "http_status": 200,
+  "invoice": {
+   "cruiseFare": 426,
+   "total": 561.15,
+   "other": [],
+   "potentialBeveragePackage": false,
+   "subtotal": 426,
+   "taxesAndFees": 135.15
+  },
+  "perPersonAmount": 561.15,
+  "currencyCode": "USD"
+ },
+ "adults=2": {
+  "http_status": 200,
+  "invoice": {
+   "cruiseFare": 426,
+   "total": 696.3,
+   "other": [],
+   "potentialBeveragePackage": false,
+   "subtotal": 426,
+   "taxesAndFees": 270.3
+  },
+  "perPersonAmount": 348.15,
+  "currencyCode": "USD"
+ },
+ "adults=3": {
+  "http_status": 200,
+  "invoice": {
+   "cruiseFare": 1150,
+   "total": 1060.45,
+   "other": [],
+   "discount": {
+    "amount": -495,
+    "items": [
+     {
+      "amount": -125,
+      "description": "Scary Good Deals",
+      "code": "CO",
+      "fareCode": "JQ212684",
+      "type": "flash_sale",
+      "qualifier": {
+       "category": "standard",
+       "description": "Up to $750 off & + Up to $100 off on short getaways thru April 2027 & + 3rd and 4th guests sail free"
+      }
+     },
+     {
+      "amount": 0,
+      "description": "3rd & 4th Guests Sail Free",
+      "code": "MC",
+      "fareCode": "HN344722",
+      "type": "free_3rd_4th",
+      "qualifier": {
+       "category": "standard"
+      }
+     },
+     {
+      "amount": -25,
+      "description": "All Short Sailings Kicker",
+      "code": "SO",
+      "fareCode": "JR688761",
+      "type": "kicker",
+      "qualifier": {
+       "category": "standard"
+      }
+     },
+     {
+      "amount": -345,
+      "description": "60% Off Second Guest",
+      "code": "SG",
+      "fareCode": "CD381350",
+      "type": "monthly",
+      "qualifier": {
+       "category": "standard",
+       "description": "60% OFF SECOND GUEST + KIDS SAIL FREE"
+      }
+     }
+    ]
+   },
+   "potentialBeveragePackage": false,
+   "subtotal": 655,
+   "taxesAndFees": 405.45000000000005
+  },
+  "perPersonAmount": 353.48,
+  "currencyCode": "USD"
+ }
+}

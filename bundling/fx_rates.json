@@ -1,0 +1,4 @@
+{
+  "_comment": "Belegte Wechselkurse fuer den Vergleich. Ohne Eintrag wird NICHT umgerechnet, sondern die Abweichung ausgewiesen. Bitte Kurs + Quelle + Stand eintragen, bevor er verwendet wird.",
+  "rates": {}
+}

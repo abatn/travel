@@ -1,0 +1,35 @@
+{
+ "timetable_1adult": {
+  "http_status": 403,
+  "json": {
+   "errors": [
+    {
+     "errorType": "WAFForbiddenException",
+     "message": "403 Forbidden"
+    }
+   ]
+  }
+ },
+ "timetable_2adults": {
+  "http_status": 403,
+  "json": {
+   "errors": [
+    {
+     "errorType": "WAFForbiddenException",
+     "message": "403 Forbidden"
+    }
+   ]
+  }
+ },
+ "products": {
+  "http_status": 403,
+  "json": {
+   "errors": [
+    {
+     "errorType": "WAFForbiddenException",
+     "message": "403 Forbidden"
+    }
+   ]
+  }
+ }
+}

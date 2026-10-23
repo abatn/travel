@@ -1,0 +1,63 @@
+{
+  "generated_at": "2026-10-21",
+  "topic": "Buchungsbedingungen von Schiffsreisen (Kreuzfahrt/Fähre) gegenüber Flügen und Hotels",
+  "note": "Diese Eintraege beschreiben, WORAUS sich die Unterschiede ergeben. Sie stammen entweder aus einem Werkzeugfeld (tool) oder aus der Dokumentation der Quelle (source). Sie sind KEINE Marktstudien und tragen keine Prozent-/Euroaussage.",
+  "conditions": [
+    {
+      "id": "S1",
+      "scope": "cruise",
+      "claim": "Kreuzfahrtpreise sind Personentpreise fuer die gesamte Reise (Kabine + Naechte an Bord), nicht je Nacht und nicht je Zimmer.",
+      "provenance": "tool",
+      "effect": "Ein Hotel darf fuer die Reisenachten NICHT zusatzlich gerechnet werden - die Naechte sind im Kreuzfahrtpreis enthalten.",
+      "compare_note": "Vergleich cruise_only gegen flight+hotel (ohne Hotel), sonst wird die Variante systematisch zu teuer gerechnet."
+    },
+    {
+      "id": "S2",
+      "scope": "cruise",
+      "claim": "Was der Kreuzfahrtpreis enthaelt, haengt von der Kabinenkategorie und der Board-Option ab (Zimmer, Verpflegung, Getraenke); All-Inclusive ist eine Option, nicht der Standard.",
+      "provenance": "source",
+      "effect": "Ein All-Inclusive-Preis darf nicht mit einem Hotel plus Verpflegung gleichgesetzt werden, ohne dass die Board-Option beider Seiten bekannt ist.",
+      "compare_note": "Die Ausgabe weist darauf hin, dass die Vergleichbarkeit der Gesamtkosten nur gilt, wenn die Board-Optionen vergleichbar sind."
+    },
+    {
+      "id": "S3",
+      "scope": "cruise",
+      "claim": "Hafengebuehren, Steuern, Trinkgelder und Ausfluege koennen je nach Reederei und Hafen zusaetzlich anfallen und sind im beworbenen Kabinenpreis oft nicht enthalten.",
+      "provenance": "source",
+      "effect": "Der ausgewiesene Endpreis kann unter dem tatsaechlich zahlbaren Betrag liegen.",
+      "compare_note": "Die Ausgabe nennt die Endpreisart (Kabinenpreis) und weist auf Zuschläge hin."
+    },
+    {
+      "id": "S4",
+      "scope": "cruise",
+      "claim": "Kreuzfahrten werden häufig nur ab zwei Personen angeboten; Einzelbelegung kann unmoeglich oder teurer sein.",
+      "provenance": "source",
+      "effect": "Bei 1 Person ist der Kreuzfahrtpreis nicht direkt vergleichbar.",
+      "compare_note": "Bei Reisendenzahl 1 wird die Variante als 'nicht vergleichbar (Mindestbelegung)' gekennzeichnet."
+    },
+    {
+      "id": "S5",
+      "scope": "cruise",
+      "claim": "Storno- und Umbuchungsbedingungen von Kreuzfahrten sind strenger als bei Einzeltickets; der Verzicht auf die Passage verursacht hohe Kosten.",
+      "provenance": "source",
+      "effect": "Ein nominell billigerer Kreuzfahrtpreis kann bei Aenderung des Reisedatums teurer werden als Flug plus Hotel.",
+      "compare_note": "Die Empfehlung weist auf die abweichende Aenderungskostenlage hin."
+    },
+    {
+      "id": "S6",
+      "scope": "ferry",
+      "claim": "Faehrpreise werden je Fahrzeug und/oder je Person berechnet; ein Fahrzeugtarif deckt die ganze Reisegruppe ab, ein Personentarif wird pro Fahrgast berechnet.",
+      "provenance": "tool",
+      "effect": "Ein Fahrzeugtarif darf nicht noch einmal mit der Personenzahl multipliziert werden.",
+      "compare_note": "Der Preis-Scope der Quelle entscheidet, ob multipliziert wird - der Abruf normalisiert das bereits."
+    },
+    {
+      "id": "S7",
+      "scope": "ferry",
+      "claim": "Eine Faehre ersetzt eine Flugstrecke, kein Hotel: die Reisezeit im Schiff ist keine Woh night am Zielort.",
+      "provenance": "tool",
+      "effect": "Die Variante 'Flug + Faehre + Hotel' ist nur dann sinnvoll, wenn die Faehre ein Zubringer zu einem Inselziel ist, fuer das ein Hotel gebucht wird.",
+      "compare_note": "Die Variante nennt, ob die Faehre als Zubringer (Hotel noetig) oder als Ersatz (kein Hotel) gedacht ist."
+    }
+  ]
+}

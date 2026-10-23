@@ -1,0 +1,27 @@
+{
+ "http_status": 200,
+ "session_id": null,
+ "tools": [
+  "get_ports",
+  "get_disruptions",
+  "get_direct_connections_for_ports",
+  "search_trips",
+  "search_ferry_trips",
+  "trip_details"
+ ],
+ "call": {
+  "result": {
+   "content": [
+    {
+     "type": "text",
+     "text": "Leg 1: No route found between requested locations."
+    }
+   ],
+   "isError": true
+  },
+  "jsonrpc": "2.0",
+  "id": 3
+ },
+ "raw_call_text": "",
+ "_note": "tool_schemas entfernt (Groesse); vollstaendig via tools/list abrufbar"
+}

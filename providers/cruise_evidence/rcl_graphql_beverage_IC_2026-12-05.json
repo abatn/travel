@@ -1,0 +1,122 @@
+{
+ "data": {
+  "products": {
+   "commerceProducts": [
+    {
+     "id": "0814",
+     "title": "Classic Soda Package",
+     "price": [
+      {
+       "currency": "USD",
+       "promotionalPrice": "13.99",
+       "shipboardPrice": null,
+       "formattedPromotionalPrice": "$13.99",
+       "formattedBasePrice": "$18.00",
+       "formattedDailyPrice": "$18.00",
+       "salesUnit": {
+        "code": "perNight",
+        "name": "Per Night",
+        "label": "Per Guest Per Day"
+       }
+      }
+     ]
+    },
+    {
+     "id": "Y8TT",
+     "title": "San Pellegrino Sparkling Water Delivery (8 or 12 Bottles)",
+     "price": [
+      {
+       "currency": "USD",
+       "promotionalPrice": "16.99",
+       "shipboardPrice": null,
+       "formattedPromotionalPrice": "$16.99",
+       "formattedBasePrice": "$22.00",
+       "formattedDailyPrice": null,
+       "salesUnit": {
+        "code": "perUnit",
+        "name": "Per Person",
+        "label": "Per Package"
+       }
+      }
+     ]
+    },
+    {
+     "id": "0902",
+     "title": "Evian Water Delivery (12 or 24 Bottles)",
+     "price": [
+      {
+       "currency": "USD",
+       "promotionalPrice": "26.99",
+       "shipboardPrice": null,
+       "formattedPromotionalPrice": "$26.99",
+       "formattedBasePrice": "$45.00",
+       "formattedDailyPrice": null,
+       "salesUnit": {
+        "code": "perUnit",
+        "name": "Per Person",
+        "label": "Per Package"
+       }
+      }
+     ]
+    },
+    {
+     "id": "0812",
+     "title": "Refreshment Package",
+     "price": [
+      {
+       "currency": "USD",
+       "promotionalPrice": "32.99",
+       "shipboardPrice": null,
+       "formattedPromotionalPrice": "$32.99",
+       "formattedBasePrice": "$42.00",
+       "formattedDailyPrice": "$42.00",
+       "salesUnit": {
+        "code": "perNight",
+        "name": "Per Night",
+        "label": "Per Guest Per Day"
+       }
+      }
+     ]
+    },
+    {
+     "id": "0816",
+     "title": "Specialty Coffee Card",
+     "price": [
+      {
+       "currency": "USD",
+       "promotionalPrice": "33.99",
+       "shipboardPrice": null,
+       "formattedPromotionalPrice": "$33.99",
+       "formattedBasePrice": "$40.00",
+       "formattedDailyPrice": null,
+       "salesUnit": {
+        "code": "perPackage",
+        "name": "Per Package",
+        "label": "Per Package"
+       }
+      }
+     ]
+    },
+    {
+     "id": "Y78K",
+     "title": "Women of Wine Tasting Experience",
+     "price": [
+      {
+       "currency": "USD",
+       "promotionalPrice": "36.99",
+       "shipboardPrice": null,
+       "formattedPromotionalPrice": "$36.99",
+       "formattedBasePrice": "$50.00",
+       "formattedDailyPrice": null,
+       "salesUnit": {
+        "code": "perSeat",
+        "name": "Per Seat",
+        "label": "Per Adult"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

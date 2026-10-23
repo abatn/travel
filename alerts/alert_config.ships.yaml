@@ -1,0 +1,106 @@
+registry: /home/batnini/mimo-agents/providers/registry.yaml
+request:
+  category: flights
+  categories:
+  - ferries
+  - cruises
+  origin: Barcelona
+  destination: Palma de Mallorca
+  depart_date: '2026-11-05'
+  return_date: '2026-11-08'
+  adults: 2
+  currency: EUR
+  max_stops: one_stop
+requests:
+  ferries:
+    category: flights
+    origin: Barcelona
+    destination: Palma de Mallorca
+    depart_date: '2026-11-05'
+    return_date: '2026-11-08'
+    adults: 2
+    currency: EUR
+    max_stops: one_stop
+  cruises:
+    origin: MIA
+    destination: BAHAM
+    depart_date: '2026-11-01'
+    return_date: '2027-06-30'
+    adults: 2
+    children: 0
+    currency: EUR
+providers: []
+providers_by_category:
+  ferries: []
+  cruises: []
+rules:
+  use: all_in
+  budget: 400.0
+  budget_scope: total
+  coverage:
+    # Datenlage-Gate: geschichtsabhaengige Regeln feuern nur, wenn die Beobachtungsbasis traegt
+    min_sources: 1
+    max_snapshot_age_hours: 12
+    min_success_ratio: 0.5
+  trough:
+    enabled: true
+    lookback_days: 7
+    mode: median_x
+    factor: 0.95
+    percentile: 10
+    min_drop_pct: 3
+    min_observations: 2
+  drop_pct:
+    enabled: true
+    percent: 10
+  cooldown_hours: 24
+  alert_on_improvement_pct: 3
+rules_by_category:
+  ferries:
+    budget: 120.0
+    budget_scope: total
+    trough:
+      mode: min_over_lookback
+      factor: 0
+      min_observations: 1
+  cruises:
+    budget: 600.0
+    budget_scope: per_person
+    trough:
+      mode: median_x
+      factor: 0.95
+      min_observations: 1
+    drop_pct:
+      enabled: true
+      percent: 15
+state:
+  history: /home/batnini/mimo-agents/alerts/state_ship/history.jsonl
+  history_backend: jsonl     # jsonl | sqlite
+  history_db: /home/batnini/mimo-agents/alerts/state_ship/history.db
+  alerts: /home/batnini/mimo-agents/alerts/state_ship/alerts.jsonl
+  last_alert: /home/batnini/mimo-agents/alerts/state_ship/last_alert.json
+  pending: /home/batnini/mimo-agents/alerts/state_ship/alerts_pending.jsonl   # durable Outbox
+  delivery_backoff_minutes: [5, 15, 60]   # erneute Zustellversuche der Outbox
+context_commands:
+- name: trvl_watch_list
+  command:
+  - /home/batnini/.local/bin/trvl
+  - watch
+  - list
+  - --format
+  - json
+  timeout: 60
+- name: trvl_rate_status
+  command:
+  - /home/batnini/.local/bin/trvl
+  - rate-status
+  timeout: 90
+notify:
+  # Alarmkanäle (je Kanal eigener Status in alerts_pending.jsonl).
+  # Typen: command | webhook | slack | ntfy | gotify | telegram | email
+  # HMAC-Signatur (X-Signature / X-Timestamp) fuer webhook-ähnliche Kanäle.
+  channels: []
+  #   - {type: webhook, name: hook, url: "https://example.org/hook", secret: "<HMAC-Schluessel>"}
+  secret: ""
+  command: []
+  timeout: 30

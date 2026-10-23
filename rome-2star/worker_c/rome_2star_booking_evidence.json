@@ -1,0 +1,268 @@
+{
+ "query": {
+  "city": "Rome",
+  "check_in": "2026-10-31",
+  "check_out": "2026-11-01",
+  "adults": 1,
+  "currency": "EUR",
+  "max_hotels": 8,
+  "out": "/home/batnini/mimo-agents/rome-2star/worker_c/rome_2star_booking_evidence.json"
+ },
+ "results": [
+  {
+   "google": {
+    "name": "San Lorenzo Guest House",
+    "stars": 2,
+    "rating": 3.0,
+    "lat": 41.8958556,
+    "lng": 12.516915899999999
+   },
+   "booking_url": "https://www.booking.com/hotel/it/misa-guest-house-san-lorenzo.html",
+   "booking_name": "Misa Guest House San Lorenzo",
+   "booking_stars": 0,
+   "booking_accommodation_type_id": 216,
+   "breakdowns": 2,
+   "cheapest_breakdown": {
+    "net_room_price": 106.03640000000009,
+    "tax_lines": [
+     {
+      "label": "10 % VAT",
+      "kind": "percentage__included",
+      "amount": 10.60360000000009,
+      "display": "\u20ac\u00a010.60",
+      "display_rounded": "\u20ac\u00a011"
+     },
+     {
+      "label": "City tax",
+      "kind": "per_person_per_night__included",
+      "amount": 5.00000000000009,
+      "display": "\u20ac\u00a05",
+      "display_rounded": "\u20ac\u00a05"
+     }
+    ],
+    "tax_total": 15.6,
+    "sum_included_charges": 15.6036,
+    "total_price": 121.64,
+    "includes_taxes_and_fees": true,
+    "line_copy": "Includes taxes and fees",
+    "conditional_charges": [],
+    "nonmandatory_charges": []
+   }
+  },
+  {
+   "google": {
+    "name": "Melting Pot Rome",
+    "stars": 2,
+    "rating": 4.0,
+    "lat": 41.892967399999996,
+    "lng": 12.508580799999999
+   },
+   "booking_url": "https://www.booking.com/hotel/it/melting-pot-rome.html",
+   "booking_name": "Melting Pot Rome",
+   "booking_stars": 0,
+   "booking_accommodation_type_id": 203,
+   "breakdowns": 4,
+   "cheapest_breakdown": {
+    "net_room_price": 44.181800000000095,
+    "tax_lines": [
+     {
+      "label": "10 % VAT",
+      "kind": "percentage__included",
+      "amount": 4.418200000000089,
+      "display": "\u20ac\u00a04.42",
+      "display_rounded": "\u20ac\u00a04"
+     },
+     {
+      "label": "City tax",
+      "kind": "per_person_per_night__included",
+      "amount": 3.50000000000009,
+      "display": "\u20ac\u00a03.50",
+      "display_rounded": "\u20ac\u00a04"
+     }
+    ],
+    "tax_total": 7.92,
+    "sum_included_charges": 7.9182,
+    "total_price": 52.1000000000001,
+    "includes_taxes_and_fees": true,
+    "line_copy": "Includes taxes and fees",
+    "conditional_charges": [],
+    "nonmandatory_charges": []
+   }
+  },
+  {
+   "google": {
+    "name": "Hostel Castello Maggiore",
+    "stars": 2,
+    "rating": 2.5,
+    "lat": 41.892399999999995,
+    "lng": 12.5146628
+   },
+   "booking_url": "https://www.booking.com/hotel/it/castello-maggiore.html",
+   "booking_name": "Hostel Castello Maggiore",
+   "booking_stars": 0,
+   "booking_accommodation_type_id": 216,
+   "breakdowns": 1,
+   "cheapest_breakdown": {
+    "net_room_price": 34.081800000000094,
+    "tax_lines": [
+     {
+      "label": "10 % VAT",
+      "kind": "percentage__included",
+      "amount": 3.40820000000009,
+      "display": "\u20ac\u00a03.41",
+      "display_rounded": "\u20ac\u00a03"
+     },
+     {
+      "label": "City tax",
+      "kind": "per_person_per_night__included",
+      "amount": 3.50000000000009,
+      "display": "\u20ac\u00a03.50",
+      "display_rounded": "\u20ac\u00a04"
+     }
+    ],
+    "tax_total": 6.91,
+    "sum_included_charges": 6.9082,
+    "total_price": 40.9900000000001,
+    "includes_taxes_and_fees": true,
+    "line_copy": "Includes taxes and fees",
+    "conditional_charges": [],
+    "nonmandatory_charges": []
+   }
+  },
+  {
+   "google": {
+    "name": "Hotel Demetra Capitolina Roma",
+    "stars": 2,
+    "rating": 2.9,
+    "lat": 41.8992438,
+    "lng": 12.499794699999999
+   },
+   "booking_url": "https://www.booking.com/hotel/it/terni.html",
+   "booking_name": "Hotel Demetra Capitolina",
+   "booking_stars": 2,
+   "booking_accommodation_type_id": 204,
+   "breakdowns": 2,
+   "cheapest_breakdown": {
+    "net_room_price": 86.36360000000009,
+    "tax_lines": [
+     {
+      "label": "10 % VAT",
+      "kind": "percentage__included",
+      "amount": 8.63640000000009,
+      "display": "\u20ac\u00a08.64",
+      "display_rounded": "\u20ac\u00a09"
+     },
+     {
+      "label": "City tax",
+      "kind": "per_person_per_night__included",
+      "amount": 5.00000000000009,
+      "display": "\u20ac\u00a05",
+      "display_rounded": "\u20ac\u00a05"
+     }
+    ],
+    "tax_total": 13.64,
+    "sum_included_charges": 13.6364,
+    "total_price": 100.0,
+    "includes_taxes_and_fees": true,
+    "line_copy": "Includes taxes and fees",
+    "conditional_charges": [],
+    "nonmandatory_charges": []
+   }
+  },
+  {
+   "google": {
+    "name": "Hotel Lodi",
+    "stars": 2,
+    "rating": 4.2,
+    "lat": 41.8860531,
+    "lng": 12.5228526
+   },
+   "booking_url": "https://www.booking.com/hotel/it/lodi.html",
+   "booking_name": "Hotel Lodi",
+   "booking_stars": 2,
+   "booking_accommodation_type_id": 204,
+   "breakdowns": 8,
+   "cheapest_breakdown": {
+    "net_room_price": 107.41820000000008,
+    "tax_lines": [
+     {
+      "label": "10 % VAT",
+      "kind": "percentage__included",
+      "amount": 10.74180000000009,
+      "display": "\u20ac\u00a010.74",
+      "display_rounded": "\u20ac\u00a011"
+     },
+     {
+      "label": "City tax",
+      "kind": "per_person_per_night__included",
+      "amount": 5.00000000000009,
+      "display": "\u20ac\u00a05",
+      "display_rounded": "\u20ac\u00a05"
+     }
+    ],
+    "tax_total": 15.74,
+    "sum_included_charges": 15.7418,
+    "total_price": 123.16,
+    "includes_taxes_and_fees": true,
+    "line_copy": "Includes taxes and fees",
+    "conditional_charges": [],
+    "nonmandatory_charges": []
+   }
+  },
+  {
+   "google": {
+    "name": "La Casa di Nazareth",
+    "stars": 2,
+    "rating": 4.4,
+    "lat": 41.9053848,
+    "lng": 12.421496999999999
+   },
+   "booking_url": "https://www.booking.com/hotel/it/la-casa-di-nazareth.html",
+   "booking_name": "La Casa di Nazareth",
+   "booking_stars": 0,
+   "booking_accommodation_type_id": 204,
+   "breakdowns": 2,
+   "cheapest_breakdown": {
+    "net_room_price": 86.36360000000009,
+    "tax_lines": [
+     {
+      "label": "10 % VAT",
+      "kind": "percentage__included",
+      "amount": 8.63640000000009,
+      "display": "\u20ac\u00a08.64",
+      "display_rounded": "\u20ac\u00a09"
+     },
+     {
+      "label": "City tax",
+      "kind": "per_person_per_night__included",
+      "amount": 6.00000000000009,
+      "display": "\u20ac\u00a06",
+      "display_rounded": "\u20ac\u00a06"
+     }
+    ],
+    "tax_total": 14.64,
+    "sum_included_charges": 14.6364,
+    "total_price": 101.0,
+    "includes_taxes_and_fees": true,
+    "line_copy": "Includes taxes and fees",
+    "conditional_charges": [],
+    "nonmandatory_charges": []
+   }
+  },
+  {
+   "google": {
+    "name": "Hotel Ferraro",
+    "stars": 2,
+    "rating": 3.9,
+    "lat": 41.8937636,
+    "lng": 12.4901191
+   },
+   "booking_url": "https://www.booking.com/hotel/it/ferraro.html",
+   "booking_name": "Hotel Ferraro",
+   "booking_stars": 2,
+   "booking_accommodation_type_id": 204,
+   "breakdowns": 0,
+   "cheapest_breakdown": null
+  }
+ ]
+}

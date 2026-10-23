@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<nav class="crumbs" aria-label="Brotkrumennavigation">
+  <a href="/">Start</a> › <a href="/preisvergleich">Preisvergleich</a>
+</nav>
+
+<h1>Reise-Preisvergleich</h1>
+<p class="lead">Wir fragen über 20 Quellen parallel ab – Flüge, Hotels, Fähren und Kreuzfahrten – und
+zeigen den günstigsten Preis mit Endpreis, Steuerstatus und der Lage der Quellen. Kein Aufschlag,
+keine Anmeldung.</p>
+
+<section class="card">
+  <h2>Kategorien</h2>
+  <ul class="linklist">
+    {% for slug, c in categories %}
+    <li><a href="/{{ slug }}">{{ c.h1 }}</a>
+      <span class="muted small">{{ c.description }}</span></li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="card">
+  <h2>So funktioniert der Vergleich</h2>
+  <ol class="steps">
+    <li><b>Alle Quellen gleichzeitig:</b> jede Quelle wird direkt beim Anbieter abgefragt – kein
+      zwischengeschalteter Aufschlag.</li>
+    <li><b>Endpreis statt Lockpreis:</b> wo die Quelle es ausweist, nennen wir den Preis inklusive
+      Gepäck und Steuern. Fehlt der Beleg, steht „nicht verfügbar“.</li>
+    <li><b>Ehrliche Lücken:</b> blockierte Quellen und unplausible Preise (z. B. 0,01 €) werden
+      verworfen und ausgewiesen – nicht geglättet.</li>
+    <li><b>Weiterleitung statt Verkauf:</b> gebucht wird beim Anbieter; wir vermitteln nur.</li>
+  </ol>
+</section>
+
+<section class="card">
+  <h2>Direkt suchen</h2>
+  <form class="search" method="post" action="/api/search" id="searchform">
+    <div class="grid">
+      <label>Start<input name="origin" value="BER" placeholder="BER" required></label>
+      <label>Ziel<input name="destination" value="FCO" placeholder="FCO" required></label>
+      <label>Abreise<input type="date" name="depart_date" value="{{ default_depart }}" required></label>
+      <label>Rückkehr<input type="date" name="return_date" value="{{ default_return }}"></label>
+      <label>Personen<input type="number" name="adults" min="1" value="1"></label>
+      <label>Währung<input name="currency" value="EUR" maxlength="3"></label>
+    </div>
+    <fieldset class="cats">
+      <legend>Was suchen?</legend>
+      {% for slug, c in categories %}
+      <label class="cat"><input type="checkbox" name="categories" value="{{ c.key }}"
+        {% if loop.first %}checked{% endif %}> {{ c.h1 }}</label>
+      {% endfor %}
+    </fieldset>
+    <button type="submit" class="primary">Suche starten</button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,29 @@
+# UI-Testkonfiguration: Demo-Partner für die real vorkommenden Buchungs-Domains.
+# Nur für ui/tests/e2e_affiliate_test.py - enthält eine fiktive Kennung.
+version: 1
+
+settings:
+  verify_before_show: true
+  verify_timeout_seconds: 6
+  verify_cache_seconds: 120
+
+partners: {}
+
+demo:
+  network: "TESTNETZWERK (nur Test)"
+  categories: [flights, hotels, ferries, cruises]
+  enabled: true
+  id: "TESTMARKER-0000"
+  parameter: ref
+  link_template: "{target}?ref={id}&campaign={campaign}"
+  campaign: "TESTCAMPAIGN"
+  domains:
+    - ryanair.com
+    - octotrip.app
+    - mcp.octotrip.app
+    - skiplagged.com
+    - booking.com
+    - example.invalid
+  cookie_days: 0
+  commission: "keine (Test)"
+  source: "Testkonfiguration UI"

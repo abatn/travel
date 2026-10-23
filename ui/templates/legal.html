@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ meta.title }}</title>
+  <meta name="description" content="{{ meta.description }}">
+  <link rel="canonical" href="{{ meta.canonical }}">
+  <meta name="robots" content="{{ meta.robots }}">
+  <link rel="stylesheet" href="/static/app.css?v={{ asset_v('app.css') }}">
+</head>
+<body>
+<header class="topbar"><a class="brand" href="/">✈ Reise-Agent</a></header>
+<main class="wrap">
+<h1>{{ title }}</h1>
+{% if not configured %}
+<div class="card legal">
+  <p class="alert warn"><b>Noch nicht konfiguriert.</b> Die Betreiberangaben fehlen in
+    <code>ui/legal.yaml</code>. Diese Seite ist deshalb auf <code>noindex</code> gesetzt und
+    sollte vor dem Livegang vervollständigt werden.</p>
+  <p class="muted">Benötigt werden: Name/Firma, Anschrift, E-Mail, ggf. Telefon und
+    Umsatzsteuer-ID sowie – für die Datenschutzerklärung – Hoster und Aufbewahrungsfristen.
+    Erfundene Angaben sind keine Option.</p>
+  {% if missing %}
+  <p class="muted"><b>Fehlende Pflichtfelder:</b></p>
+  <ul class="muted">
+    {% for field in missing %}<li>{{ field }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+</div>
+{% else %}
+<div class="card legal">
+  {{ content | safe }}
+</div>
+{% endif %}
+<p><a href="/">← zurück zur Suche</a></p>
+</main>
+<footer class="foot"><p>Affiliate-Hinweis: Buchungslinks können Affiliate-Links sein („Anzeige“).
+  Wir sind Reisevermittler, nicht Reiseveranstalter.</p></footer>
+</body>
+</html>

@@ -1,0 +1,70 @@
+{
+ "category": "ferries",
+ "context": {
+  "origin": "FINLI",
+  "destination": "SEKPS",
+  "depart_date": "2026-11-05",
+  "return_date": "2026-11-08",
+  "adults": "2",
+  "currency": "EUR",
+  "max_stops": "one_stop"
+ },
+ "providers": [
+  {
+   "source": "ferryhopper_mcp",
+   "status": "ok",
+   "error": null,
+   "items": 0,
+   "elapsed_s": 1.14,
+   "dropped_zero_price": 0
+  },
+  {
+   "source": "finnlines_ferry",
+   "status": "ok",
+   "error": null,
+   "items": 2,
+   "elapsed_s": 0.42,
+   "dropped_zero_price": 0
+  },
+  {
+   "source": "trvl_ferries",
+   "status": "ok",
+   "error": null,
+   "items": 0,
+   "elapsed_s": 0.51,
+   "dropped_zero_price": 0
+  }
+ ],
+ "totals": {
+  "providers": 3,
+  "ok": 3,
+  "failed": 0,
+  "items": 1
+ },
+ "ranked": [
+  {
+   "source": "finnlines_ferry",
+   "category": "ferries",
+   "name": "FINNCANOPUS",
+   "price_raw": 17.6,
+   "price": 17.6,
+   "currency": "EUR",
+   "all_in": null,
+   "bag_breakdown": null,
+   "stops": null,
+   "stars": null,
+   "provider": null,
+   "booking_url": null,
+   "warnings": [],
+   "legs": [],
+   "lat": null,
+   "lon": null,
+   "entity_key": null,
+   "price_scope": "per_person",
+   "price_scope_confidence": "confirmed",
+   "rankable": true,
+   "price_total": 35.2,
+   "price_per_person": 17.6
+  }
+ ]
+}

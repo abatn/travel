@@ -1,0 +1,85 @@
+{
+ "ecker_adults1": {
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "request": {
+   "form_key": "nLXL9HM40hpgFUVB",
+   "date": "2026-11-05",
+   "district": "outward",
+   "earliest": "",
+   "latest": "",
+   "timeType": "",
+   "productCode": "ELI_STD",
+   "vehicle1": "",
+   "vehicle2": "",
+   "withCar": false,
+   "adults": 1,
+   "children": 0,
+   "infants": 0
+  },
+  "url": "https://www.eckeroline.fi/checkout/bookingBar/getdepartures",
+  "text": ""
+ },
+ "ecker_adults2": {
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "request": {
+   "form_key": "nLXL9HM40hpgFUVB",
+   "date": "2026-11-05",
+   "district": "outward",
+   "earliest": "",
+   "latest": "",
+   "timeType": "",
+   "productCode": "ELI_STD",
+   "vehicle1": "",
+   "vehicle2": "",
+   "withCar": false,
+   "adults": 2,
+   "children": 0,
+   "infants": 0
+  },
+  "url": "https://www.eckeroline.fi/checkout/bookingBar/getdepartures",
+  "text": ""
+ },
+ "ecker_car": {
+  "status": 200,
+  "content_type": "text/html; charset=UTF-8",
+  "request": {
+   "form_key": "nLXL9HM40hpgFUVB",
+   "date": "2026-11-05",
+   "district": "outward",
+   "earliest": "",
+   "latest": "",
+   "timeType": "",
+   "productCode": "ELI_STD",
+   "vehicle1": "",
+   "vehicle2": "",
+   "withCar": true,
+   "adults": 1,
+   "children": 0,
+   "infants": 0
+  },
+  "url": "https://www.eckeroline.fi/checkout/bookingBar/getdepartures",
+  "text": ""
+ },
+ "dfds_cph_osl": {
+  "status": 200,
+  "url": "https://travel-search-prod.dfds-pax-web.com/api/available-travel-dates?direction=outbound&salesOwner=19&numberOfAdults=1&vehicleType=NCAR&route=DKCPH-NOOSL&date=2026-11-05",
+  "content_type": "application/json",
+  "json": {
+   "dates": {},
+   "disabledDates": [],
+   "offerDates": []
+  }
+ },
+ "dfds_osl_cph": {
+  "status": 200,
+  "url": "https://travel-search-prod.dfds-pax-web.com/api/available-travel-dates?direction=outbound&salesOwner=19&numberOfAdults=1&vehicleType=NCAR&route=NOOSL-DKCPH&date=2026-11-05",
+  "content_type": "application/json",
+  "json": {
+   "dates": {},
+   "disabledDates": [],
+   "offerDates": []
+  }
+ }
+}

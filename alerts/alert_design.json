@@ -1,0 +1,637 @@
+{
+  "generated_at": "2026-10-21T18:12:00+02:00",
+  "generator": {
+    "tool": "trvl",
+    "version": "1.27.0",
+    "binary": "/home/batnini/.local/bin/trvl",
+    "host": "linux, systemd 255, user session active (batnini)",
+    "trvl_license": "PolyForm Noncommercial 1.0.0 (source-available, not OSI-OSS)",
+    "note": "Alle native_signals wurden am 2026-10-21 gegen die lokale Installation verifiziert. Der externe Watcher baut KEINEN eigenen Scraper: er liest die nativen Signale, ergaenzt Tages-Snapshots und wertet das Regelwerk aus."
+  },
+  "design_principles": [
+    "No vendor lock-in: die einzige Datenquelle ist das lokale trvl-Binary + dessen MCP-Server; keine SaaS, kein Cloud-Account, kein fremder Provider-Zwang.",
+    "Provider-Liste ist konfigurierbar (providers[]); das Regelwerk referenziert Quellen ueber source_key, nicht ueber eine fest verdrahtete Website.",
+    "Alarm nur bei Regelerfuellung. Jeder Alarm nennt die ausgeloeste Regel (rule_id) und deren Messwert.",
+    "Alarm nur bei Erfuellung UND nicht innerhalb des Cooldowns UND nur als echtes neues Tief (last_alerted_price).",
+    "Robust gegen Rate-Limits: eigener Provider-Cooldown, Respektierung des trvl-Google-Cooldowns (nicht pollen, waehrend Cooldown aktiv), flock gegen Parallel-Laeufe, atomisches State-Write."
+  ],
+
+  "native_signals": [
+    {
+      "name": "watch_state",
+      "purpose": "Zustand aller Preis-Watches inkl. Budget-Schwelle, aktuellem Preis, Tief und Baseline (High-Water-Marke).",
+      "command": "trvl watch list --format json",
+      "fields": [
+        "id", "type", "origin", "destination", "depart_date", "return_date",
+        "depart_from", "depart_to", "below_price", "currency", "created_at",
+        "last_check", "last_price", "lowest_price", "cheapest_date", "renewed_at",
+        "baseline_price", "alert_drop_pct", "alert_drop_abs", "last_alerted_price",
+        "webhook_url", "last_minute_mode", "last_minute_drop_pct", "hotel_name",
+        "room_keywords", "favourites", "window_from", "window_to", "min_score",
+        "min_nights", "max_nights"
+      ],
+      "path_or_db": "~/.trvl/watch.db (bbolt; bucket 'meta' -> key 'watches' = JSON-Array)",
+      "sample_output": "[\n  {\n    \"id\": \"f5f53ed0\",\n    \"type\": \"flight\",\n    \"origin\": \"BER\",\n    \"destination\": \"FCO\",\n    \"depart_date\": \"2026-12-01\",\n    \"return_date\": \"2026-12-08\",\n    \"below_price\": 150,\n    \"currency\": \"EUR\",\n    \"created_at\": \"2026-10-21T17:52:14.553358601+02:00\",\n    \"last_check\": \"2026-10-21T17:52:57.624395126+02:00\",\n    \"last_price\": 126.9,\n    \"lowest_price\": 126.9,\n    \"cheapest_date\": \"2026-12-01\",\n    \"renewed_at\": \"2026-10-21T17:52:14.553358601+02:00\",\n    \"last_minute_drop_pct\": 25,\n    \"baseline_price\": 126.9\n  }\n]",
+      "notes": "Reine Local-Datei, kein Netzwerkzugriff. Laesst sich gefahrlos parallel lesen (nur der Store-Write ist gelockt).",
+      "used_by_rules": ["budget", "budget_drop", "lowpoint_window", "native_drop"]
+    },
+    {
+      "name": "watch_price_history",
+      "purpose": "Preisbeobachtungsserie je Watch (watch-keyed points). Basis fuer Median/Perzentil und 'neues Tief'.",
+      "command": "trvl watch history <watch_id> --format json",
+      "fields": ["watch_id", "price", "currency", "timestamp"],
+      "path_or_db": "~/.trvl/watch.db (bbolt; bucket 'history-watch/<watch_id>', key = unix-nanos, value = JSON)",
+      "sample_output": "[\n  {\n    \"watch_id\": \"f5f53ed0\",\n    \"price\": 126.9,\n    \"currency\": \"EUR\",\n    \"timestamp\": \"2026-10-21T17:52:57.624416996+02:00\"\n  }\n]",
+      "notes": "Ein Punkt je Poll (nicht je Tag). Fuer '7 Tage' wird deshalb ein eigener Tages-Snapshot gefuehrt.",
+      "used_by_rules": ["lowpoint_median", "lowpoint_percentile", "lowpoint_window"]
+    },
+    {
+      "name": "watch_check_events",
+      "purpose": "Native Budget-/Drop-Events. Budget-Alarm und proaktiver Preisrueckgang werden hier emittiert.",
+      "command": "trvl watch check   (kein --format json vorhanden: Textausgabe auf stdout, Provider-Warnungen auf stderr)",
+      "fields": [
+        "stdout: 'DEAL  <route>  <price> <CUR> (below <goal> <CUR> goal!)' + '      Book: <url>'",
+        "stdout: 'PRICE DROP  <route>  <price> <CUR> (<pct>% below baseline <baseline> <CUR>)' + '      Book: <url>'",
+        "stdout: 'LAST-MINUTE  <route>  <price> <CUR> (<pct>% below last seen)'",
+        "stdout: 'Flight <route>  <price> <CUR> (<delta>)  lowest: <n>  <advice>'",
+        "stdout: 'CURRENCY CHANGED  <route>  now quoted in <CUR> -- your price alert threshold was cleared, re-watch to set a new one'",
+        "stderr: 'WARN <provider> ... HTTP 429 / InvalidMarket / blocked' (Storno-/Nebenmeldungen, KEIN Alarm)"
+      ],
+      "path_or_db": "~/.trvl/watch.db (Write) + stdout/stderr des Prozesses",
+      "sample_output": "DEAL  BER -> FCO  127 EUR (below 150 EUR goal!)\n      Book: https://www.google.com/travel/flights?q=Flights+to+FCO+from+BER+on+2026-12-01",
+      "notes": "Sparsame Verarbeitung: nur Zeilen mit DEAL/PRICE DROP/LAST-MINUTE sind Alarme; 'Flight ...' ist ein Status, kein Alarm. Stdout und stderr getrennt auswerten. CheckAll pausiert 3s je Watch.",
+      "used_by_rules": ["budget", "native_drop", "last_minute"]
+    },
+    {
+      "name": "watch_webhook_payload",
+      "purpose": "Push-Schnittstelle: JSON-POST an eine konfigurierte URL, sobald ein Preis rueckgaengig ist. Maschinenlesbarer Ersatz fuer das Text-Parsing von 'trvl watch check'.",
+      "command": "trvl watch add BER FCO --depart 2026-12-01 --return 2026-12-08 --below 150 --webhook https://alert.example/hook   bzw.   trvl watch update <id> --webhook <url>",
+      "fields": [
+        "watch_id", "type", "origin", "destination", "hotel_name", "new_price",
+        "prev_price", "currency", "price_drop", "below_goal",
+        "last_minute_deal", "last_minute_discount_percent", "timestamp"
+      ],
+      "path_or_db": "HTTP POST (fire-and-forget, 10s Timeout, nur http/https erlaubt)",
+      "sample_output": "{\"watch_id\":\"f5f53ed0\",\"type\":\"flight\",\"origin\":\"BER\",\"destination\":\"FCO\",\"new_price\":126.9,\"prev_price\":149.0,\"currency\":\"EUR\",\"price_drop\":-22.1,\"below_goal\":true,\"timestamp\":\"2026-10-21T17:52:57+02:00\"}",
+      "notes": "Der Watcher kann sich als lokaler HTTP-Receiver eintragen lassen (z.B. 127.0.0.1:8765) und damit alle nativen Drop-Events strukturiert empfangen.",
+      "used_by_rules": ["budget", "native_drop", "last_minute"]
+    },
+    {
+      "name": "price_position",
+      "purpose": "Statistik-Signal: wo liegt der aktuelle Preis in der eigenen Historie der Route (Median/Tertile) + Kauf-/Warten-Verdikt.",
+      "command": "trvl flights BER FCO 2026-12-01 --provider skiplagged --format json   (Feld price_position auf Top-Level des Ergebnisses); hotel-seitig: trvl prices <hotel_id> --checkin .. --checkout .. --format json; Quelllogik internal/pricesignal/pricesignal.go",
+      "fields": [
+        "band", "verdict", "current", "low", "high", "median",
+        "vs_median_pct", "observations", "confident"
+      ],
+      "path_or_db": "~/.trvl/watch.db (bbolt; bucket 'history-route/<ROUTE_KEY>' + 'history-route-all')",
+      "sample_output": "{\n  \"success\": true,\n  \"count\": 12,\n  \"trip_type\": \"one-way\",\n  \"flights\": [\n    {\n      \"price\": 82,\n      \"currency\": \"USD\",\n      \"duration\": 1335,\n      \"stops\": 1,\n      \"provider\": \"skiplagged\",\n      \"warnings\": [\n        \"standard\",\n        \"one-stop\"\n      ],\n      \"legs\": [\n        {\n          \"departure_airport\": { \"code\": \"BER\", \"name\": \"\" },\n          \"arrival_airport\": { \"code\": \"FCO\", \"name\": \"\" },\n          \"departure_time\": \"2026-12-01T12:30:00+01:00\",\n          \"arrival_time\": \"2026-12-02T10:45:00+01:00\",\n          \"airline\": \"Norwegian Air Sweden AOC\"\n        }\n      ],\n      \"booking_url\": \"https://skiplagged.com/flights/BER/FCO/2026-12-01?…\"\n    }\n  ],\n  \"completeness\": { \"state\": \"\", \"queried\": 0, \"succeeded\": 0 },\n  \"destination\": { \"location\": \"Aeroporto di Roma-Fiumicino, …\", \"weather\": { } },\n  \"price_position\": {\n    \"band\": \"unknown\",\n    \"verdict\": \"unknown\",\n    \"current\": 82,\n    \"low\": 82,\n    \"high\": 82,\n    \"median\": 82,\n    \"observations\": 1,\n    \"confident\": false\n  }\n}",
+      "notes": "Confidence-Floor = 10 Beobachtungen (DefaultConfidenceFloor); darunter band/verdict='unknown', confident=false, aber low/high/median/vs_median_pct bleiben befuellt. Terzile: current<=q33 -> band=low/verdict=buy; current>=q67 -> band=high/verdict=wait. Waehrung strikt: RoutePrices filtert exakt nach currency (leerer currency wuerde die Serie verunreinigen).",
+      "used_by_rules": ["lowpoint_median", "lowpoint_band"]
+    },
+    {
+      "name": "provider_prices_and_quality",
+      "purpose": "Provider-Anteile, Preisqualitaet und Frische einer Beobachtung - Grundlage fuer die konfigurierbare Provider-Liste und Qualitaets-Gates.",
+      "command": "trvl hotels \"Rome\" --checkin 2026-10-31 --checkout 2026-11-01 --format json   (Felder sources[], price_confidence, freshness, price_basis, confidence)",
+      "fields": [
+        "hotels[].price", "hotels[].currency", "hotels[].comparable_price",
+        "hotels[].sources[].provider", "hotels[].sources[].price",
+        "hotels[].sources[].currency", "hotels[].sources[].booking_url",
+        "hotels[].sources[].price_basis", "hotels[].sources[].price_confidence",
+        "hotels[].sources[].retrieved_at", "hotels[].sources[].freshness",
+        "hotels[].price_basis (lead_in|room_nightly|room_total|tax_inclusive_total)",
+        "hotels[].price_confidence (verified|room_level|unverified)",
+        "hotels[].freshness (live|recent|stale)",
+        "hotels[].confidence.{rated,score,label,basis,signals[]}",
+        "provider_statuses[]", "completeness.{state,queried,succeeded}"
+      ],
+      "path_or_db": "HTTP (agoda/booking/trivago/…); Snapshot landet in ~/.trvl/watch.db (bbolt)",
+      "sample_output": "{\n  \"success\": true,\n  \"count\": 172,\n  \"hotels\": [\n    {\n      \"name\": \"Ibis Roma Fiera\",\n      \"hotel_id\": \"74494\",\n      \"price\": 60.18,\n      \"currency\": \"EUR\",\n      \"comparable_price\": 60.18,\n      \"room_types\": [\n        { \"name\": \"Agoda room rate\", \"price\": 60.18, \"nightly_price\": 60.18,\n          \"total_price\": 78.2, \"taxes_and_fees\": 18.02, \"currency\": \"EUR\",\n          \"provider\": \"agoda\", \"price_basis\": \"tax_inclusive_total\",\n          \"price_confidence\": \"verified\", \"refundable\": false }\n      ],\n      \"sources\": [\n        { \"provider\": \"agoda\", \"price\": 60.18, \"currency\": \"EUR\",\n          \"price_basis\": \"room_nightly\", \"price_confidence\": \"unverified\",\n          \"retrieved_at\": \"2026-10-21T18:19:10.99043579+02:00\", \"freshness\": \"live\" }\n      ],\n      \"price_basis\": \"room_nightly\",\n      \"price_confidence\": \"unverified\",\n      \"freshness\": \"live\",\n      \"confidence\": { \"rated\": true, \"score\": 0.7428, \"label\": \"medium\",\n                      \"freshness\": \"live\",\n                      \"basis\": \"74% likely bookable — live price, 1-source corroboration\",\n                      \"signals\": [\"freshness:live\", \"sources:1\", \"verification:unverified\"] }\n    }\n  ],\n  \"provider_statuses\": [],\n  \"completeness\": {},\n  \"destination\": {}\n}",
+      "notes": "Realer Beleg fuer Provider-Redundanz: im selben Zeitfenster war Google-Flights im Quota-Refusal, der Hotel-Pfad lieferte trotzdem 172 Hotels ueber Agoda. 'unverified'/'stale' sollten KEINEN Alarm ausloesen (Qualitaets-Gate).",
+      "used_by_rules": ["budget", "lowpoint_median", "lowpoint_band"]
+    },
+    {
+      "name": "forecast",
+      "purpose": "Empirische CDF ueber das 90-Tage-Fenster: Wahrscheinlichkeit fuer einen noch niedrigeren Preis im Horizont (Kauf-jetzt-vs-warten).",
+      "command": "trvl forecast BER-FCO --kind flight --price 127 --horizon 7 --format json  (Alias: 'trvl forecast amsterdam-rome --kind hotel --price 95')",
+      "fields": [
+        "route", "kind", "season", "price", "samples",
+        "forecast.CommitNowConfidence", "forecast.DropProbability",
+        "forecast.HorizonProbability", "forecast.ExpectedSavingsIfWait",
+        "forecast.HorizonDays", "forecast.InsufficientData", "forecast.Reason",
+        "curve.Min", "curve.Max", "curve.Buckets", "curve.Threshold"
+      ],
+      "path_or_db": "~/.trvl/deal-history.json (Samples: {route, season, date, price, kind}) -- derzeit NICHT vorhanden; Override via --history-path",
+      "sample_output": "{\"route\":\"BER-FCO\",\"kind\":\"flight\",\"season\":\"Q4\",\"price\":127,\"forecast\":{\"CommitNowConfidence\":50,\"DropProbability\":0,\"HorizonProbability\":0,\"ExpectedSavingsIfWait\":0,\"HorizonDays\":7,\"Samples\":0,\"InsufficientData\":true,\"Reason\":\"insufficient history (0/30 samples)\"},\"curve\":{\"Min\":0,\"Max\":0,\"Buckets\":null,\"Threshold\":127},\"samples\":0}",
+      "notes": "Mindestdaten MinSamplesForForecast=30, Fenster HistoryWindowDays=90, Horizont DefaultHorizonDays=7. Bei insufficient data KEINE Empfehlung.",
+      "used_by_rules": ["native_forecast"]
+    },
+    {
+      "name": "dates_grid_suggest",
+      "purpose": "Datumsfenster-Optimierung: billigster Tag im Fenster, Abflug x Rueckflug-Raster, Datumsvorschlaege.",
+      "command": "trvl dates BER FCO --from 2026-11-02 --to 2026-11-06 --format json  |  trvl dates BER FCO --from .. --to .. --round-trip --duration 7 --format json  |  trvl grid BER FCO --depart-from .. --depart-to .. --return-from .. --return-to .. --format json  |  trvl suggest BER FCO --around 2026-07-15 --flex 7 --format json",
+      "fields": [
+        "dates: success, count, trip_type (one_way|round_trip), date_range, dates[] (je Tag: date, price, currency, return_date)",
+        "grid: route_key, currency, points[{date, return_date, price, currency}], updated_at",
+        "suggest: suggestion/date, price, insights (weekday/weekend savings)"
+      ],
+      "path_or_db": "~/.trvl/date-grids.json (grid-Persistenz; im Testfenster wegen Google-Cooldown noch nicht angelegt) + ~/.trvl/last_search.json (letzte Suche)",
+      "sample_output": "{\n  \"success\": true,\n  \"count\": 0,\n  \"trip_type\": \"one_way\",\n  \"date_range\": \"2026-11-02 to 2026-11-06\",\n  \"dates\": null\n}\n\n# trvl grid im selben Fenster blockiert:\nError: city resolution request: google refused further requests until the cooldown ends",
+      "notes": "trvl dates nutzt per Default Googles CalendarGraph (1 Request) und faellt sonst auf Per-Date-Suche zurueck (--legacy). WICHTIG: 'count: 0' und 'dates: null' bedeuten Datenmangel (aktiver Google-Quota-Refusal), nicht '0 EUR gefunden'. Der Watcher MUSS das als status='no_data' behandeln und darf daraus keinen Alarm ableiten. Fuer 'billigster Tag im Fenster' ist ein Fallback noetig (eigene Tages-Snapshots).",
+      "used_by_rules": ["lowpoint_window", "budget"]
+    },
+    {
+      "name": "opportunities",
+      "purpose": "Rollierende Opportunity-Watches (Favoriten-Ziele, Zeitfenster, Mindest-Score) als Quellenliste.",
+      "command": "trvl opportunities create --favourites \"FCO,CDG\" --window-from next_30d --window-to next_90d --min-score 90   |   trvl opportunities --format json",
+      "fields": ["id", "type", "favourites", "window_from", "window_to", "min_score", "min_nights", "max_nights", "last_check", "last_price", "lowest_price"],
+      "path_or_db": "~/.trvl/watch.db (bbolt; bucket 'meta' -> 'watches', type='opportunity')",
+      "sample_output": "[\n  {\n    \"id\": \"465e336c\",\n    \"type\": \"opportunity\",\n    \"below_price\": 0,\n    \"currency\": \"\",\n    \"last_check\": \"0001-01-01T00:00:00Z\",\n    \"last_price\": 0,\n    \"lowest_price\": 0,\n    \"favourites\": [\n    \"FCO\",\n    \"CDG\"\n  ],\n  \"window_from\": \"next_30d\",\n  \"window_to\": \"next_90d\",\n  \"min_score\": 90,\n  \"min_nights\": 3,\n  \"max_nights\": 14\n  }\n]",
+      "notes": "Liefert die Favoriten-/Ziel-Liste (konfigurierbare Provider-/Quellenliste) ohne sie im Code festzuschreiben.",
+      "used_by_rules": ["score"]
+    },
+    {
+      "name": "rate_status_and_cooldown",
+      "purpose": "Rate-Limit-/Cooldown-Status und Provider-Health, damit der Watcher im Cooldown nicht pollt (sonst verlaengert er die Sperre selbst).",
+      "command": "trvl rate-status  |  trvl status --format json  |  cat ~/.trvl/cache/google-refusal",
+      "fields": [
+        "rate-status: google/booking/trivago -> requests, recent 429s, backoff",
+        "status: providers[].{provider,total_calls,success_count,error_count,success_rate,avg_latency_ms,last_error,last_error_class,last_hint_code,circuit_state,freshness}",
+        "google-refusal: ISO-Deadline des Cooldowns"
+      ],
+      "path_or_db": "~/.trvl/cache/google-refusal (Deadline, cross-process) ; ~/.trvl/health.jsonl (JSONL-Health-Log)",
+      "sample_output": "=== Rate Limit Status ===\n\ngoogle:    OK\n  Requests:    0\n  Recent 429s: 0\n  Backoff:    1s\n\nbooking:   OK\n  Requests:    0\n  Recent 429s: 0\n  Backoff:    1s\n\ntrivago:   OK\n  Requests:    0\n  Recent 429s: 0\n  Backoff:    1s\n\n~/.trvl/cache/google-refusal -> 2026-10-21T18:18:03.202661547+02:00\n\n# echter Refusal:\n2026/10/21 18:18:42 WARN google_refused status=200 cooldown_s=900\nError: google flights quota refusal (code 13): upstream provider rate-limited or temporarily unavailable",
+      "notes": "Google-Cooldown: Floor 60s (HTTP 429), Long/Cap 15min (wrb.fr status 13). Der Cooldown ist self-extending: jeder Probe-Versuch verlaengert die Deadline (im Test 18:02:52 -> 18:18:03). Bei aktivem Cooldown keine google-Quellen pollen, sondern andere Provider nutzen.",
+      "used_by_rules": ["__scheduling__"]
+    },
+    {
+      "name": "mcp_travel",
+      "purpose": "Agenten-/MCP-Zugriff auf dieselben Signale. Ein Meta-Tool 'travel'; Legacy-Toolnamen bleiben als intent gueltig.",
+      "command": "trvl mcp   (stdio)   |   travel {\"intent\":\"list_watches\"}   |   travel {\"intent\":\"watch_price\",\"action\":\"describe\"}   |   travel {\"intent\":\"search_dates\",\"params\":{...}}",
+      "fields": [
+        "intent (u.a. watch_price, list_watches, check_watches, search_dates, suggest_dates, trip_cost, optimize_booking, search_flights, watch_opportunities, get_preferences)",
+        "params (z.B. type, origin, destination, date, target_price, alert_drop, alert_drop_abs, currency, webhook, start_date, end_date, is_round_trip, trip_duration, target_date, flex_days)",
+        "action (describe | list | create | remove)"
+      ],
+      "path_or_db": "stdio-JSON-RPC (MCP); liest dieselben Dateien unter ~/.trvl/",
+      "sample_output": "1 active watch(es):\n  [f5f53ed0] BER->FCO 2026-12-01->2026-12-08 -- target: 150 EUR, last: 127\nUse check_watches to re-check prices now.",
+      "notes": "Jeder 'trvl mcp'-Prozess startet einen eigenen Preis-Scheduler, der den Singleton-Lock ~/.trvl/scheduler.lock haelt. Der externe Watcher darf deshalb KEINEN 'trvl watch daemon' starten, sondern nur einmalige 'trvl watch check' Laeufe.",
+      "used_by_rules": ["__all__"]
+    }
+  ],
+
+  "rule_schema": {
+    "type": "object",
+    "required": ["version", "sources", "rules", "alerts"],
+    "additionalProperties": false,
+    "properties": {
+      "version": {"type": "integer", "const": 1, "description": "Schema-Version der Config."},
+      "registry": {
+        "type": "string",
+        "description": "Optionaler Pfad zur Provider-Registry (YAML). Leere Liste in 'sources[].providers' = alle aktiven Quellen der Kategorie. Eine neue Quelle = ein Registry-Eintrag, kein Code.",
+        "default": "/home/batnini/mimo-agents/providers/registry.yaml"
+      },
+      "defaults": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "currency": {"type": "string", "default": "EUR"},
+          "lookback_days": {"type": "integer", "default": 7, "minimum": 1, "description": "Fenster der eigenen Tages-Snapshot-Serie."},
+          "min_observations": {"type": "integer", "default": 7, "minimum": 1, "description": "Mindestanzahl Tages-Snapshots, bevor eine Statistikregel feuern darf (Coverage-Gate)."},
+          "cooldown_hours": {"type": "number", "default": 24, "minimum": 0},
+          "epsilon": {"type": "number", "default": 0.5, "description": "Mindest-Preisdifferenz, damit ein 'neues Tief' nicht due to Rundung erneut feuert."},
+          "provider_min_interval_minutes": {"type": "integer", "default": 15, "minimum": 1},
+          "notification_channels": {
+            "type": "array",
+            "default": [{"type": "stdout", "enabled": true}],
+            "items": {
+              "type": "object",
+              "required": ["type"],
+              "additionalProperties": false,
+              "properties": {
+                "type": {"type": "string", "enum": ["stdout", "webhook", "ntfy", "email", "command"]},
+                "enabled": {"type": "boolean", "default": true},
+                "url": {"type": "string", "description": "webhook/ntfy-Ziel."},
+                "command": {"type": "string", "description": "Shell-Kommando fuer den channel 'command'; {alert_json} wird substituiert."},
+                "headers": {"type": "object", "additionalProperties": {"type": "string"}}
+              }
+            }
+          }
+        }
+      },
+      "sources": {
+        "type": "array",
+        "description": "Beobachtbare Quellen. Die Liste ist frei konfigurierbar (kein fest verdrahteter Anbieter).",
+        "items": {
+          "type": "object",
+          "required": ["id", "kind"],
+          "additionalProperties": false,
+          "properties": {
+            "id": {"type": "string", "description": "Stabile Quellen-ID; Teil des source_key."},
+            "kind": {"type": "string", "enum": ["flight", "hotel", "room", "opportunity", "dates_window", "grid"]},
+            "enabled": {"type": "boolean", "default": true},
+            "origin": {"type": "string", "description": "IATA (z.B. BER)."},
+            "destination": {"type": "string", "description": "IATA oder Hotel-ID."},
+            "depart_date": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+            "return_date": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+            "depart_from": {"type": "string"},
+            "depart_to": {"type": "string"},
+            "check_in": {"type": "string"},
+            "check_out": {"type": "string"},
+            "hotel_name": {"type": "string"},
+            "keywords": {"type": "array", "items": {"type": "string"}},
+            "favourites": {"type": "array", "items": {"type": "string"}},
+            "window_from": {"type": "string"},
+            "window_to": {"type": "string"},
+            "currency": {"type": "string"},
+            "adults": {"type": "integer", "default": 1, "minimum": 1},
+            "children": {"type": "integer", "default": 0, "minimum": 0},
+            "max_stops": {"type": "string", "enum": ["any", "nonstop", "one_stop", "two_plus"], "default": "any"},
+            "cabin_class": {"type": "string", "enum": ["economy", "premium_economy", "business", "first"], "default": "economy"},
+            "budget": {"type": "number", "exclusiveMinimum": 0, "description": "Budget-Schwelle in currency; entspricht 'trvl watch --below'."},
+            "budget_scope": {"type": "string", "enum": ["total", "per_person"], "default": "total", "description": "Budget fuer die ganze Reise oder je Person."},
+            "price_basis": {"type": "string", "description": "Erwartete Preisbasis der Quelle, z.B. lead_in|room_nightly|room_total|tax_inclusive_total - sonst wird gegen die falsche Basis verglichen."},
+            "min_price_confidence": {"type": "string", "enum": ["verified", "room_level", "unverified"], "default": "verified", "description": "Qualitaets-Gate: Beobachtungen unterhalb dieser Stufe loesen keinen Alarm aus."},
+            "providers": {
+              "type": "array",
+              "description": "Optionale Provider-Filterliste je Quelle; leer = alle von trvl genutzten Provider.",
+              "items": {"type": "string"},
+              "examples": [["google", "skiplagged", "wizzair"], ["booking", "trivago"]]
+            },
+            "native_watch": {
+              "type": "object",
+              "description": "Verknuepfung mit einem nativen trvl-Watch.",
+              "additionalProperties": false,
+              "properties": {
+                "create": {"type": "boolean", "default": true, "description": "Watch beim ersten Lauf via 'trvl watch add' anlegen."},
+                "watch_id": {"type": "string", "description": "Bekannte Watch-ID, falls bereits vorhanden."},
+                "alert_drop_pct": {"type": "number", "description": "Natives Drop-Signal in Prozent."},
+                "alert_drop_abs": {"type": "number", "description": "Natives Drop-Signal absolut."},
+                "webhook": {"type": "string", "description": "Optionale URL fuer den nativen Watch (JSON-POST)."}
+              }
+            },
+            "note": {"type": "string"}
+          }
+        }
+      },
+      "rules": {
+        "type": "array",
+        "description": "Regelwerk. Jede Regel nennt eine Quelle (oder source_pattern) und einen Alarm-Typ.",
+        "items": {
+          "type": "object",
+          "required": ["id", "type"],
+          "additionalProperties": false,
+          "properties": {
+            "id": {"type": "string", "description": "Eindeutige Regel-ID; Teil des Cooldown-Keys."},
+            "type": {
+              "type": "string",
+              "enum": ["budget", "budget_drop", "lowpoint_median", "lowpoint_percentile", "lowpoint_window", "lowpoint_band", "native_drop", "native_forecast", "score"]
+            },
+            "enabled": {"type": "boolean", "default": true},
+            "source_id": {"type": "string", "description": "Genau eine Quelle."},
+            "source_pattern": {"type": "string", "description": "Glob auf source_id, wenn die Regel mehrere Quellen treffen soll."},
+            "currency": {"type": "string"},
+            "budget": {"type": "number", "exclusiveMinimum": 0, "description": "Typ budget: Preis <= budget (in currency)."},
+            "drop_pct": {"type": "number", "minimum": 0, "maximum": 100, "description": "Typ budget_drop/lowpoint_median: Prozent unter (Median|Baseline)."},
+            "drop_abs": {"type": "number", "minimum": 0, "description": "Typ budget_drop: absoluter Abfall unter Baseline."},
+            "percentile": {"type": "number", "minimum": 0, "maximum": 100, "default": 10, "description": "Typ lowpoint_percentile: Preis <= Perzentil p der Fenster-Serie."},
+            "lookback_days": {"type": "integer", "minimum": 1, "description": "Override des Fensters."},
+            "min_observations": {"type": "integer", "minimum": 1, "description": "Coverage-Gate: unterhalb keine Auswertung."},
+            "min_score": {"type": "integer", "minimum": 0, "maximum": 100, "description": "Typ score: Opportunity-Score."},
+            "commit_now_confidence": {"type": "integer", "minimum": 0, "maximum": 100, "description": "Typ native_forecast."},
+            "cooldown_hours": {"type": "number", "minimum": 0, "description": "Override des Cooldowns."},
+            "force_repeat": {"type": "boolean", "default": false, "description": "true: bei erneutem Unterschreiten des Budgets erneut melden (Cooldown bypass)."},
+            "channels": {"type": "array", "items": {"type": "string"}, "description": "Kanal-Overrides (Namen aus defaults.notification_channels)."},
+            "message": {"type": "string", "description": "Optionales Template mit {route},{price},{currency},{rule},{reason},{booking_url}."},
+            "enabled_on": {
+              "type": "array",
+              "description": "Optionale Wochentags-/Zeitfenster-Beschraenkung.",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "days": {"type": "array", "items": {"type": "integer", "minimum": 0, "maximum": 6}},
+                  "from": {"type": "string", "pattern": "^\\d{2}:\\d{2}$"},
+                  "to": {"type": "string", "pattern": "^\\d{2}:\\d{2}$"}
+                }
+              }
+            }
+          }
+        }
+      },
+      "alerts": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Alarm-Policy.",
+        "properties": {
+          "require_rule_match": {"type": "boolean", "default": true, "description": "true = Alarm NUR bei Regelerfuellung (kein Alarm bei Statusaenderungen)."},
+          "suppress_status_messages": {"type": "boolean", "default": true, "description": "'Flight ...'/'---'/'ERR'-Zeilen aus 'trvl watch check' sind Status, kein Alarm."},
+          "group_by_source_key": {"type": "boolean", "default": true, "description": "Mehrere Provider mit demselben Preis ergeben EINEN Alarm."},
+          "channels": {"type": "array", "items": {"type": "string"}, "description": "Standard-Kanaele; leer = defaults."},
+          "include_booking_url": {"type": "boolean", "default": true}
+        }
+      },
+      "scheduler": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "kind": {"type": "string", "enum": ["systemd", "cron", "manual"], "default": "systemd"},
+          "interval_minutes": {"type": "integer", "default": 360, "minimum": 5},
+          "on_calendar": {"type": "string", "description": "systemd OnCalendar-Ausdruck, z.B. '*-*-* 00/6:17:00'."},
+          "randomized_delay_sec": {"type": "integer", "default": 1200},
+          "persistent": {"type": "boolean", "default": true},
+          "run_native_daemon": {"type": "boolean", "default": false, "description": "true = 'trvl watch daemon' starten (blockiert den Singleton-Lock ~/.trvl/scheduler.lock). Nur bei KEINEM laufenden trvl mcp."},
+          "timezone": {"type": "string", "default": "Europe/Berlin"}
+        }
+      },
+      "paths": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Optionale Pfadueberschreibungen (nur Doku/Default).",
+        "properties": {
+          "config": {"type": "string"},
+          "state": {"type": "string"},
+          "snapshots": {"type": "string"},
+          "lock": {"type": "string"},
+          "log": {"type": "string"}
+        }
+      }
+    },
+    "semantics": {
+      "source_key": "source_key = kind + ':' + origin + ':' + destination + ':' + datum (z.B. 'flight:BER:FCO:2026-12-01'). Gruppierung und Cooldown happen per source_key, nicht pro Provider.",
+      "budget": "fire = price > 0 && currency == rule.currency && price <= budget. Cooldown gilt, ausser force_repeat oder price < last_alerted_price - epsilon.",
+      "lowpoint_median": "fire = price <= median(window) * (1 - drop_pct/100) && n >= min_observations && confident. Fenster = eigene Tages-Snapshots (lookback_days).",
+      "lowpoint_percentile": "fire = price <= percentile(window, p) && n >= min_observations. nearest-rank-Interpolation wie trvl pricesignal.quantile.",
+      "lowpoint_window": "fire = price <= min(window) && price < last_alerted_price - epsilon. Fenster = billigster Tag im Datumsfenster (trvl dates/grid).",
+      "native_drop": "fire = price < baseline && (drop_pct >= rule.drop_pct || drop_abs >= rule.drop_abs) && price < last_alerted_price. Identisch zu internal/pricealert.Evaluate.",
+      "cooldown": "fire_allowed = rule_fired && (now - rules_fired[rule_id] >= cooldown_hours*3600) && (price < last_alerted_price - epsilon || rule.force_repeat).",
+      "baseline": "baseline = max(baseline, price) bei jedem Poll (High-Water-Marke). Preis-Erholung re-armt den Dedup (last_alerted_price wird NICHT zurueckgesetzt, aber die Bedingung price<last_alerted_price verhindert erneutes Feuern).",
+      "state_update": "last_alerted_price und rules_fired[rule_id] werden NUR bei ausgeloestem Alarm aktualisiert; baseline/last_price/observations immer.",
+      "channel_dedup": "pro Alarm fuehrt der Watcher delivered_to[channel]; ein Kanal, der den Alarm bereits bestaetigt hat, bekommt ihn nicht erneut.",
+      "insufficient_data": "Wenn n < min_observations oder native price_position.confident=false oder forecast.InsufficientData=true: KEIN Alarm, sondern Status 'insufficient_data' in den Snapshot (Coverage-Gate)."
+    }
+  },
+
+  "scheduler": {
+    "recommended": "systemd",
+    "recommendation_reason": "Linux-Host mit systemd 255; User-Timer-Support aktiv (systemctl --user list-timers zeigt laufende Timer), User-Session 'batnini' ist aktiv und hat RuntimePath /run/user/1000. systemd liefert Persistent=true (verpasste Laeufe werden nachgeholt), RandomizedDelaySec (Laststreuung gegen Google-Rate-Limits), Journal-Logging (journalctl --user -u ...) und OnFailure-Hooks ohne Zusatz-Dienst. cron ist die vollwertige Alternative, aber ohne Retry/Persistenz/Logging; Docker waere eine unnoetige Abhaengigkeit. Hinweis: ~/.trvl und das trvl-Binary gehoeren dem Benutzer -> User-Timer statt System-Timer (kein sudo).",
+    "prerequisites": [
+      "loginctl enable-linger batnini   # User-Timer ohne angemeldete Session",
+      "systemctl --user daemon-reload",
+      "systemctl --user enable --now trvl-price-alert.timer"
+    ],
+    "example_unit": "[Unit]\nDescription=trvl Preiswächter — Snapshot + Regelprüfung\nDocumentation=file:///home/batnini/mimo-agents/docs/ALERT_RESEARCH.md\nAfter=network-online.target\nWants=network-online.target\n\n[Service]\nType=oneshot\nWorkingDirectory=/home/batnini/mimo-agents/alerts\nEnvironment=TRVL=/home/batnini/.local/bin/trvl\nEnvironment=ALERT_CONFIG=/home/batnini/mimo-agents/alerts/ALERT_CONFIG.yaml\nEnvironment=ALERT_STATE=/home/batnini/mimo-agents/alerts/state/alert_state.json\nExecStart=/home/batnini/mimo-agents/alerts/alert_runner.sh\nTimeoutStartSec=15min\nNice=10\nIOSchedulingClass=idle\nStandardOutput=journal\nStandardError=journal\n\n[Install]\nWantedBy=default.target\n",
+    "example_timer": "[Unit]\nDescription=trvl Preiswächter — alle 6 Stunden\n\n[Timer]\nOnCalendar=*-*-* 00/6:17:00\nRandomizedDelaySec=20min\nPersistent=true\nAccuracySec=1min\nUnit=trvl-price-alert.service\n\n[Install]\nWantedBy=timers.target\n",
+    "example_cron": "17 */6 * * * /home/batnini/mimo-agents/alerts/alert_runner.sh >> /home/batnini/mimo-agents/alerts/runner.log 2>&1\n",
+    "example_runner_script": "#!/usr/bin/env bash\nset -euo pipefail\nBASE=/home/batnini/mimo-agents/alerts\nmkdir -p \"$BASE/state\"\nexec 9>\"$BASE/state/.runner.lock\"\nflock -n 9 || { echo \"run already in progress\"; exit 0; }\nexec /usr/bin/python3 \"$BASE/alert_runner.py\" --config \"$BASE/ALERT_CONFIG.yaml\" --state \"$BASE/state/alert_state.json\"\n",
+    "paths": {
+      "config": "/home/batnini/mimo-agents/alerts/ALERT_CONFIG.yaml",
+      "state": "/home/batnini/mimo-agents/alerts/state/alert_state.json",
+      "snapshots": "/home/batnini/mimo-agents/alerts/state/snapshots.jsonl",
+      "runner": "/home/batnini/mimo-agents/alerts/alert_runner.sh",
+      "lock": "/home/batnini/mimo-agents/alerts/state/.runner.lock",
+      "log": "/home/batnini/mimo-agents/alerts/runner.log",
+      "systemd_user_unit": "~/.config/systemd/user/trvl-price-alert.service",
+      "systemd_user_timer": "~/.config/systemd/user/trvl-price-alert.timer",
+      "native_store": "~/.trvl/watch.db",
+      "native_lock": "~/.trvl/scheduler.lock",
+      "native_cooldown": "~/.trvl/cache/google-refusal"
+    }
+  },
+
+  "state_file": {
+    "path": "/home/batnini/mimo-agents/alerts/state/alert_state.json",
+    "format": "JSON, UTF-8, atomar geschrieben (tmp-Datei + rename)",
+    "schema": {
+      "type": "object",
+      "required": ["version", "sources", "alerts"],
+      "additionalProperties": false,
+      "properties": {
+        "version": {"type": "integer", "const": 1},
+        "updated_at": {"type": "string", "format": "date-time"},
+        "sources": {
+          "type": "object",
+          "description": "Je source_key. source_key = kind:origin:destination:datum.",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "currency": {"type": "string"},
+              "baseline": {"type": "number", "description": "High-Water-Marke (Preisreferenz)."},
+              "last_price": {"type": "number"},
+              "last_alerted_price": {"type": "number", "description": "Preis des letzten ausgeloesten Alarms (Preis-Dedup)."},
+              "last_fired_at": {"type": "string", "format": "date-time"},
+              "observations": {"type": "integer", "description": "Anzahl Beobachtungen in der Fenster-Serie."},
+              "last_snapshot_date": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "description": "Datum des letzten Tages-Snapshots (Idempotenz: 1 Snapshot/Tag/Route)."},
+              "lowest_price": {"type": "number"},
+              "median": {"type": "number"},
+              "percentile_p10": {"type": "number"},
+              "rules_fired": {
+                "type": "object",
+                "description": "rule_id -> Timestamp des letzten Alarms (Zeit-Cooldown je Regel und Quelle).",
+                "additionalProperties": {"type": "string", "format": "date-time"}
+              },
+              "delivered_to": {
+                "type": "object",
+                "description": "channel -> Timestamp (Channel-Dedup: ein Kanal bekommt ein Ereignis nur einmal).",
+                "additionalProperties": {"type": "string", "format": "date-time"}
+              },
+              "providers": {
+                "type": "object",
+                "description": "provider -> {price, currency, ts} des letzten Poll je Provider.",
+                "additionalProperties": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "price": {"type": "number"},
+                    "currency": {"type": "string"},
+                    "ts": {"type": "string", "format": "date-time"}
+                  }
+                }
+              },
+              "last_provider_poll": {
+                "type": "object",
+                "description": "provider -> Timestamp (Provider-Cooldown / Rate-Limit-Gate).",
+                "additionalProperties": {"type": "string", "format": "date-time"}
+              }
+            }
+          }
+        },
+        "alerts": {
+          "type": "array",
+          "description": "Alert-Log (append-only, wird gekuerzt auf max_alerts).",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "ts": {"type": "string", "format": "date-time"},
+              "rule_id": {"type": "string"},
+              "rule_type": {"type": "string"},
+              "source_id": {"type": "string"},
+              "source_key": {"type": "string"},
+              "price": {"type": "number"},
+              "currency": {"type": "string"},
+              "baseline": {"type": "number"},
+              "median": {"type": "number"},
+              "threshold": {"type": "number"},
+              "reason": {"type": "string", "description": "Menschlesbare Begruendung, z.B. 'price 126.90 <= budget 150' oder 'price 126.90 <= median 146.00 * 0.9'."},
+              "booking_url": {"type": "string"},
+              "channels": {"type": "array", "items": {"type": "string"}}
+            }
+          }
+        },
+        "cooldowns": {
+          "type": "object",
+          "description": "Globale Cooldowns, z.B. provider -> Zeitpunkt des naechsten erlaubten Polls.",
+          "additionalProperties": {"type": "string", "format": "date-time"}
+        },
+        "meta": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "last_run_at": {"type": "string", "format": "date-time"},
+            "last_run_status": {"type": "string", "description": "ok | skipped_cooldown | insufficient_data | error"},
+            "last_error": {"type": "string"},
+            "trvl_version": {"type": "string"},
+            "native_watch_ids": {
+              "type": "object",
+              "description": "source_id -> native trvl watch id.",
+              "additionalProperties": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "example": {
+      "version": 1,
+      "updated_at": "2026-10-21T18:05:00+02:00",
+      "sources": {
+        "flight:BER:FCO:2026-12-01": {
+          "currency": "EUR",
+          "baseline": 268.0,
+          "last_price": 126.9,
+          "last_alerted_price": 126.9,
+          "last_fired_at": "2026-10-21T17:52:57+02:00",
+          "observations": 42,
+          "last_snapshot_date": "2026-10-21",
+          "lowest_price": 126.9,
+          "median": 146.0,
+          "percentile_p10": 132.0,
+          "rules_fired": {"budget:ber-fco": "2026-10-21T17:52:57+02:00"},
+          "delivered_to": {"stdout": "2026-10-21T17:52:57+02:00"},
+          "providers": {"google": {"price": 126.9, "currency": "EUR", "ts": "2026-10-21T17:52:57+02:00"}},
+          "last_provider_poll": {"google": "2026-10-21T17:52:57+02:00"}
+        }
+      },
+      "alerts": [
+        {
+          "ts": "2026-10-21T17:52:57+02:00",
+          "rule_id": "budget:ber-fco",
+          "rule_type": "budget",
+          "source_id": "ber-fco",
+          "source_key": "flight:BER:FCO:2026-12-01",
+          "price": 126.9,
+          "currency": "EUR",
+          "baseline": 268.0,
+          "median": 146.0,
+          "threshold": 150.0,
+          "reason": "price 126.90 <= budget 150.00 EUR",
+          "booking_url": "https://www.google.com/travel/flights?q=Flights+to+FCO+from+BER+on+2026-12-01",
+          "channels": ["stdout"]
+        }
+      ],
+      "cooldowns": {"google": "2026-10-21T18:20:00+02:00"},
+      "meta": {
+        "last_run_at": "2026-10-21T18:05:00+02:00",
+        "last_run_status": "ok",
+        "trvl_version": "1.27.0",
+        "native_watch_ids": {"ber-fco": "f5f53ed0"}
+      }
+    }
+  },
+
+  "snapshot_store": {
+    "path": "/home/batnini/mimo-agents/alerts/state/snapshots.jsonl",
+    "format": "JSON Lines, eine Zeile je (source_key, datum)",
+    "purpose": "Ergänzt die native Polldichte (ein Punkt je Poll) um einen Punkt je Tag; Basis fuer 7-Tage-Median/Perzentil.",
+    "record_schema": {
+      "type": "object",
+      "required": ["date", "source_key", "price"],
+      "additionalProperties": false,
+      "properties": {
+        "date": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+        "ts": {"type": "string", "format": "date-time"},
+        "source_key": {"type": "string"},
+        "source_id": {"type": "string"},
+        "price": {"type": "number"},
+        "currency": {"type": "string"},
+        "provider": {"type": "string"},
+        "native_watch_id": {"type": "string"},
+        "price_position": {
+          "type": "object",
+          "description": "Rohes natives Signal, unveraendert gespeichert.",
+          "additionalProperties": false,
+          "properties": {
+            "band": {"type": "string"},
+            "verdict": {"type": "string"},
+            "current": {"type": "number"},
+            "low": {"type": "number"},
+            "high": {"type": "number"},
+            "median": {"type": "number"},
+            "vs_median_pct": {"type": "number"},
+            "observations": {"type": "integer"},
+            "confident": {"type": "boolean"}
+          }
+        },
+        "status": {"type": "string", "enum": ["ok", "no_data", "insufficient_data", "error"]}
+      }
+    },
+    "example": "{\"date\":\"2026-10-21\",\"ts\":\"2026-10-21T18:05:00+02:00\",\"source_key\":\"flight:BER:FCO:2026-12-01\",\"source_id\":\"ber-fco\",\"price\":126.9,\"currency\":\"EUR\",\"provider\":\"google\",\"native_watch_id\":\"f5f53ed0\",\"price_position\":{\"band\":\"low\",\"verdict\":\"buy\",\"current\":126.9,\"low\":118.0,\"high\":268.0,\"median\":146.0,\"vs_median_pct\":-13.08,\"observations\":42,\"confident\":true},\"status\":\"ok\"}"
+  },
+
+  "external_tools_evaluated": [
+    {"name": "cron (cronie)", "license": "BSD/GPL (Debian-Paket)", "last_activity": "Paket lokal installiert", "install_effort": "0", "fit": "Ausloeser ja, Logik nein", "verdict": "Fallback"},
+    {"name": "systemd timer (user)", "license": "GPL (systemd)", "last_activity": "systemd 255 aktiv", "install_effort": "sehr gering", "fit": "hoch", "verdict": "EMPFOHLEN"},
+    {"name": "APScheduler", "license": "MIT", "last_activity": "2026-10-12", "install_effort": "gering", "fit": "hoch (Coalescing, JobStore)", "verdict": "Alternative, wenn Python-Daemon ohnehin laeuft"},
+    {"name": "Celery + beat", "license": "BSD-3-Clause", "last_activity": "2026-10-20", "install_effort": "hoch (Broker)", "fit": "niedrig", "verdict": "verworfen"},
+    {"name": "Apache Airflow", "license": "Apache-2.0", "last_activity": "2026-10-21", "install_effort": "sehr hoch", "fit": "niedrig", "verdict": "verworfen"},
+    {"name": "Prefect", "license": "Apache-2.0", "last_activity": "2026-10-21", "install_effort": "hoch", "fit": "niedrig", "verdict": "verworfen"},
+    {"name": "Dagster", "license": "Apache-2.0", "last_activity": "2026-10-21", "install_effort": "hoch", "fit": "niedrig", "verdict": "verworfen"},
+    {"name": "n8n", "license": "Sustainable Use License (Fair-Use, kein OSS)", "last_activity": "2026-10-21", "install_effort": "mittel", "fit": "mittel", "verdict": "verworfen (Lizenz/Lock-in)"},
+    {"name": "changedetection.io", "license": "Apache-2.0", "last_activity": "2026-10-19", "install_effort": "mittel", "fit": "nur HTML-Seiten, keine Preis-Semantik", "verdict": "nur Fallback fuer eine einzelne Website"},
+    {"name": "Autobrr", "license": "GPL-2.0", "last_activity": "2026-10-21", "install_effort": "mittel", "fit": "keine Preis-Historie", "verdict": "verworfen"},
+    {"name": "Scrapy + Scrapyd", "license": "BSD-3-Clause", "last_activity": "2026-10-21 / 2026-10-06", "install_effort": "mittel", "fit": "Crawl-Muster, aber trvl deckt Provider ab", "verdict": "Muster-Referenz (JOBDIR, Retry-Middleware)"},
+    {"name": "Playwright", "license": "Apache-2.0", "last_activity": "aktiv", "install_effort": "mittel", "fit": "nur fuer JS-Seiten ohne API", "verdict": "nur als letzter Ausweg"},
+    {"name": "Browsertrix Crawler", "license": "AGPL-3.0", "last_activity": "2026-10-19", "install_effort": "mittel", "fit": "Archiv, keine Alarm-Logik", "verdict": "verworfen"},
+    {"name": "kiinami/vfd", "license": "MIT", "last_activity": "2025-03-08", "install_effort": "mittel", "fit": "Muster: 'neuer Bestpreis => 1 Alarm'", "verdict": "Muster-Referenz"},
+    {"name": "affromero/flight-finder", "license": "MIT", "last_activity": "2026-10-19", "install_effort": "hoch (Postgres+Next.js)", "fit": "Muster: Channel-Dedup", "verdict": "Muster-Referenz"},
+    {"name": "asaji/Flight-Price-Tracker", "license": "keine", "last_activity": "2026-10-18", "install_effort": "mittel (Docker)", "fit": "Muster: APScheduler+SQLite", "verdict": "Muster-Referenz"},
+    {"name": "KaitlynOoi/flighttrack", "license": "keine", "last_activity": "2026-08-13", "install_effort": "mittel", "fit": "Muster: 'zuletzt alarmiert'-Cooldown", "verdict": "Muster-Referenz"},
+    {"name": "jeancsil/flight-spy", "license": "MIT", "last_activity": "2017-04-10 (tot)", "install_effort": "hoch (ES+Kibana)", "fit": "niedrig", "verdict": "verworfen"},
+    {"name": "andrewschultzw/price-tracker", "license": "MIT", "last_activity": "2026", "install_effort": "mittel", "fit": "Muster: 30/90-Tage-Tief, Ziel = 10. Perzentil, Coverage-Gate, Per-Seller-Cooldown", "verdict": "wichtigste Statistik-Referenz"},
+    {"name": "clucraft/PriceGhost", "license": "Apache-2.0", "last_activity": "2026", "install_effort": "mittel (Docker)", "fit": "Muster: Multi-Extraktion, 7-Tage-Sparkline, Kanalliste", "verdict": "Muster-Referenz"},
+    {"name": "ds-sebastian/pricecious", "license": "GPL-3.0", "last_activity": "2025-11-18", "install_effort": "mittel", "fit": "Muster: 'neues 90-Tage-Tief' als Alarmtyp", "verdict": "Muster-Referenz"},
+    {"name": "jez500/pricebuddy", "license": "Other (laut Repo-Metadaten)", "last_activity": "2026-02", "install_effort": "mittel (Docker)", "fit": "Muster: Multi-Kanal-Notification", "verdict": "Muster-Referenz"},
+    {"name": "luciodaou/fairtrail", "license": "MIT", "last_activity": "2026", "install_effort": "mittel", "fit": "Muster: Cron + Preis-Chart", "verdict": "Muster-Referenz"},
+    {"name": "alexander-vyh/ticket-tracker", "license": "GPL-3.0", "last_activity": "2026-07-13", "install_effort": "mittel", "fit": "Muster: Playwright + Postgres + Cron", "verdict": "Muster-Referenz"},
+    {"name": "loga77/flightclaw", "license": "unbekannt", "last_activity": "2026-07-04", "install_effort": "gering", "fit": "Muster: MCP-Toolset (search_flights/track_flight/check_prices)", "verdict": "Muster-Referenz"},
+    {"name": "AsierDev/price-history-tracker", "license": "MIT", "last_activity": "2025-11-09", "install_effort": "mittel", "fit": "Muster: exponentielles Backoff pro Domain (1m/5m/30m/2h)", "verdict": "Muster-Referenz"},
+    {"name": "CamelCamelCamel / Keepa", "license": "proprietaer (kein OSS)", "last_activity": "-", "install_effort": "-", "fit": "nur Semantik-Vorbild (Allzeittief, 30/90-Tage-Tief)", "verdict": "nur Vorbild, nicht einsetzbar"}
+  ],
+
+  "limitations": [
+    "'trvl watch check' bietet KEIN '--format json'. Alarm-Events stehen nur als Text auf stdout ('DEAL ...', 'PRICE DROP ...', 'LAST-MINUTE ...'); Statuszeilen ('Flight ...', '---', 'ERR') und Provider-Warnungen ('WARN ... HTTP 429') sind keine Alarme. Fuer strukturierte Alarme den nativen Webhook-Pfad (--webhook) oder 'trvl watch list/history --format json' nutzen.",
+    "'~/.trvl/watch.db' ist eine bbolt-Datenbank, kein SQLite. Ein direkter Fremd-Read mit sqlite3 scheitert; CLI oder bbolt-Leser (nur lesend) verwenden.",
+    "Die Route-Historie ('history-route/<ROUTE_KEY>') wird bei Suchlaeufen befuellt, nicht bei jedem 'watch check' (Watch-Punkte und Route-Punkte sind getrennte Buckets). Fuer eine 7-Tage-Serie je Route sind eigene Tages-Snapshots noetig.",
+    "price_position braucht >= 10 Beobachtungen (confident=true); trvl forecast braucht >= 30 Samples ueber 90 Tage und liest '~/.trvl/deal-history.json', das aktuell NICHT existiert (Forecast liefert InsufficientData=true).",
+    "Der Google-Cooldown ist self-extending: jeder Probe-Versuch waehrend des Cooldowns verlaengert die Deadline um 15 Minuten. Der Watcher darf im Cooldown nicht pollen.",
+    "Im Testfenster war Google-Flights dauerhaft im Quota-Refusal (wrb.fr status 13). Dadurch waren 'trvl dates' (dates: null, count: 0) und 'trvl grid' (Error: city resolution request: google refused ...) blockiert, ~/.trvl/date-grids.json wurde nicht angelegt und ~/.trvl/deal-history.json existiert nicht. Datumsfenster-/Forecast-Regeln brauchen bis dahin einen Fallback (eigene Tages-Snapshots) und duerfen bei count==0/dates==null NICHT alarmieren.",
+    "'trvl' steht unter der PolyForm Noncommercial License 1.0.0: source-available, aber kein OSI-Open-Source. Kein Laufzeit-Lock-in (lokales Binary, keine SaaS), aber Lizenz bei Weitergabe/Produktivbetrieb pruefen.",
+    "Waehrungswechsel: price_position ist waehrungsstreng; ein Provider-Wechsel der Waehrung setzt in trvl nach 2 bestaetigenden Polls Threshold und Historie zurueck. Der Watcher muss den Currency-Check mitfuehren und bei Mismatch keine Alarme feuern.",
+    "Statistische Mindestabdeckung: '7-Tage-Median' setzt >= 7 (besser >= 10) Tages-Snapshots voraus. In der ersten Woche laeuft der Watcher im Modus 'insufficient_data' und darf nicht alarmieren (Coverage-Gate).",
+    "Die native Preis-Historie ist nicht versionsstabil garantiert (Schema-Watch 'schema-version' im meta-Bucket, Migrationen moeglich). Der Watcher liest bevorzugt die CLI-JSON-Ausgaben statt die DB-Struktur.",
+    "Preisqualitaet ist ein Gate: 'price_confidence' (verified|room_level|unverified), 'freshness' (live|recent|stale) und 'price_basis' (lead_in|room_nightly|room_total|tax_inclusive_total) muessen vor einem Budget-Vergleich uebereinstimmen - sonst wuerde ein 'unverified'-Preis gegen ein Budget in einer anderen Preisbasis geprueft.",
+    "Alle Preispruefungen in diesem Dokument stammen aus EINER lokalen Installation und koennen je nach Provider-Verfuegbarkeit und Rate-Limit ausfallen. Die Beispieldaten sind Momentaufnahmen und keine Preiszusaagen.",
+    "Es wurde bewusst KEINE Preisrecherche im Web durchgefuehrt; die Preisbeobachtung laeuft ausschliesslich ueber die lokalen trvl-Kommandos/MCP-Werkzeuge."
+  ]
+}

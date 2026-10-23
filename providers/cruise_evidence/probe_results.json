@@ -1,0 +1,199 @@
+[
+ {
+  "name": "ncl-search",
+  "method": "GET",
+  "url": "https://www.ncl.com/api/cruise-search?destination=BER",
+  "status": 404,
+  "len": 164564,
+  "ctype": "text/html",
+  "body": "<!DOCTYPE html>\r <!--[if lt IE 7 ]> <html lang=\"en\" class=\"ie ie6\"> <![endif]-->\r <!--[if IE 7 ]>    <html lang=\"en\" class=\"ie ie7\"> <![endif]-->\r <!--[if IE 8 ]>    <html lang=\"en\" class=\"ie ie8\"> <![endif]-->\r <!--[if IE 9 ]>    <html lang=\"en\" class=\"ie ie9"
+ },
+ {
+  "name": "ncl-sailings",
+  "method": "GET",
+  "url": "https://www.ncl.com/api/sailings",
+  "status": 404,
+  "len": 164564,
+  "ctype": "text/html",
+  "body": "<!DOCTYPE html>\r <!--[if lt IE 7 ]> <html lang=\"en\" class=\"ie ie6\"> <![endif]-->\r <!--[if IE 7 ]>    <html lang=\"en\" class=\"ie ie7\"> <![endif]-->\r <!--[if IE 8 ]>    <html lang=\"en\" class=\"ie ie8\"> <![endif]-->\r <!--[if IE 9 ]>    <html lang=\"en\" class=\"ie ie9"
+ },
+ {
+  "name": "ncl-findacruise",
+  "method": "GET",
+  "url": "https://www.ncl.com/find-a-cruise",
+  "status": 404,
+  "len": 164564,
+  "ctype": "text/html",
+  "body": "<!DOCTYPE html>\r <!--[if lt IE 7 ]> <html lang=\"en\" class=\"ie ie6\"> <![endif]-->\r <!--[if IE 7 ]>    <html lang=\"en\" class=\"ie ie7\"> <![endif]-->\r <!--[if IE 8 ]>    <html lang=\"en\" class=\"ie ie8\"> <![endif]-->\r <!--[if IE 9 ]>    <html lang=\"en\" class=\"ie ie9"
+ },
+ {
+  "name": "costa-search",
+  "method": "GET",
+  "url": "https://www.costacruises.com/api/cruiseSearch",
+  "status": 404,
+  "len": 66254,
+  "ctype": "text/html;charset=utf-8",
+  "body": "\r <!DOCTYPE html>\r <html lang='en-US'>\r <head><meta name=\"content-page-ref\" content=\"zrjs-x2K1NdK_5vtMFWadmrHy-h0wMYMbVbdvBQf4EC5N2tYLT3Jv0jnG6PVo9f21MTx1Kor7L9Z_r_OXJWRXA\"/> <script defer=\"defer\" type=\"text/javascript\" src=\"https://rum.hlx.page/.rum/@adobe/he"
+ },
+ {
+  "name": "costa-home",
+  "method": "GET",
+  "url": "https://www.costacruises.com/",
+  "status": 200,
+  "len": 242178,
+  "ctype": "text/html;charset=utf-8",
+  "body": "\r <!DOCTYPE html>\r <html lang='en-US'>\r <head><meta name=\"content-page-ref\" content=\"zrjs-x2K1NdK_5vtMFWadmrHy-h0wMYMbVbdvBQf4EALnjTAN139uru0RVnTFbP54oTRz2yaanjN3kUnXkQFzw\"/> <script type=\"text/javascript\" src=\"https://www.costacruises.com/assets/03d7af37995fc"
+ },
+ {
+  "name": "viking-api",
+  "method": "GET",
+  "url": "https://www.vikingline.com/api/departures",
+  "status": 404,
+  "len": 335378,
+  "ctype": "text/html; charset=utf-8",
+  "body": " <!DOCTYPE html> <html lang=\"en\">  <head>     <meta charset=\"utf-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, viewport-fit=cover\">  <title></title> <meta name=\"description\"> <meta name=\"keywords\"> <meta property=\"og:title\"> <meta p"
+ },
+ {
+  "name": "viking-home",
+  "method": "GET",
+  "url": "https://www.vikingline.com/",
+  "status": 200,
+  "len": 378580,
+  "ctype": "text/html; charset=utf-8",
+  "body": " <!DOCTYPE html> <html lang=\"en\">  <head>     <meta charset=\"utf-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, viewport-fit=cover\">  <title>Passenger traffic and Cargo traffic on the northern Baltic Sea | Viking Line Group</title> <"
+ },
+ {
+  "name": "tuicruises-api",
+  "method": "GET",
+  "url": "https://www.tuicruises.com/api/sailings",
+  "status": "EXC",
+  "error": "CertificateVerifyError: Failed to perform, curl: (60) SSL: no alternative certificate subject name matches target hostname 'www.tuicruises.com'. See https://curl.se/libcurl/c/libcurl-e"
+ },
+ {
+  "name": "tuicruises-home",
+  "method": "GET",
+  "url": "https://www.tuicruises.com/",
+  "status": "EXC",
+  "error": "CertificateVerifyError: Failed to perform, curl: (60) SSL: no alternative certificate subject name matches target hostname 'www.tuicruises.com'. See https://curl.se/libcurl/c/libcurl-e"
+ },
+ {
+  "name": "aida-api",
+  "method": "GET",
+  "url": "https://www.aida-cruises.de/api/sailings",
+  "status": "EXC",
+  "error": "CertificateVerifyError: Failed to perform, curl: (60) SSL: no alternative certificate subject name matches target hostname 'www.aida-cruises.de'. See https://curl.se/libcurl/c/libcurl-"
+ },
+ {
+  "name": "aida-home",
+  "method": "GET",
+  "url": "https://www.aida-cruises.de/",
+  "status": "EXC",
+  "error": "CertificateVerifyError: Failed to perform, curl: (60) SSL: no alternative certificate subject name matches target hostname 'www.aida-cruises.de'. See https://curl.se/libcurl/c/libcurl-"
+ },
+ {
+  "name": "hapag-home",
+  "method": "GET",
+  "url": "https://www.hapag-lloyd.com/en/cruises",
+  "status": 404,
+  "len": 30852,
+  "ctype": "text/html;charset=utf-8",
+  "body": "<!DOCTYPE html> <html lang=\"en\" class=\"hal-lang-en \" style=\"visibility:visible !important;\">     <head>          <title>Page not Found - Hapag-Lloyd</title> <meta http-equiv=\"X-UA-Compatible\" content=\"IE=Edge\"/> <meta http-equiv=\"content-type\" content=\"text/ht"
+ },
+ {
+  "name": "cruise1-home",
+  "method": "GET",
+  "url": "https://www.cruise1.de/",
+  "status": 200,
+  "len": 137403,
+  "ctype": "text/html; charset=UTF-8",
+  "body": "<!doctype html>\r <html class=\"no-js\" lang=\"de-DE\">\r     <head>\r         <title>Home - CruiseTour</title> <link data-rocket-prefetch href=\"https://connect.facebook.net\" rel=\"dns-prefetch\"> <link data-rocket-prefetch href=\"https://www.gstatic.com\" rel=\"dns-prefe"
+ },
+ {
+  "name": "lastminute-home",
+  "method": "GET",
+  "url": "https://www.lastminute-cruise.de/",
+  "status": "EXC",
+  "error": "DNSError: Failed to perform, curl: (6) Could not resolve host: www.lastminute-cruise.de. See https://curl.se/libcurl/c/libcurl-errors.html first for more details."
+ },
+ {
+  "name": "holidaycheck-home",
+  "method": "GET",
+  "url": "https://www.holidaycheck.de/",
+  "status": 200,
+  "len": 607566,
+  "ctype": "text/html; charset=utf-8",
+  "body": "<!doctype html>         <html lang=\"de\">             <head>                 <base href=\"//www.holidaycheck.de/\" />                 <meta charset=\"utf-8\" />                 <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\" />                 <t"
+ },
+ {
+  "name": "check24-home",
+  "method": "GET",
+  "url": "https://www.check24.de/",
+  "status": 200,
+  "len": 922574,
+  "ctype": "text/html; charset=utf-8",
+  "body": "<!DOCTYPE html><html id=\"c24-html\" lang=\"de-DE\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no\"/><meta name=\"vanilla-home-application-env\" content=\"production\"/><meta name=\"robots"
+ },
+ {
+  "name": "kayak-cruise",
+  "method": "GET",
+  "url": "https://www.kayak.de/cruises",
+  "status": 404,
+  "len": 400395,
+  "ctype": "text/html;charset=UTF-8",
+  "body": "<!DOCTYPE html><html lang=\"de-de\" dir=\"ltr\"><head><link rel=\"stylesheet\" href=\"https://content.r9cdn.net/frontier/assets/Db4y7Pt5_c.css\"/><link rel=\"stylesheet\" href=\"https://content.r9cdn.net/frontier/assets/s880eW4kh_.css\"/><link rel=\"stylesheet\" href=\"https"
+ },
+ {
+  "name": "expedia-cruise",
+  "method": "GET",
+  "url": "https://www.expedia.de/Cruises",
+  "status": 429,
+  "len": 108,
+  "ctype": "application/json",
+  "body": "{   \"error\": \"Too Many Requests\",   \"message\": \"Provisioned request rate has been exceeded\",   \"code\": 429 }"
+ },
+ {
+  "name": "siloah-mcp",
+  "method": "POST",
+  "url": "https://mcp.siloah.travel/mcp",
+  "status": 404,
+  "len": 9,
+  "ctype": "text/plain; charset=utf-8",
+  "body": "Not found"
+ },
+ {
+  "name": "siloah-rest",
+  "method": "GET",
+  "url": "https://mcp.siloah.travel/api/voyages?maxPrice=2000",
+  "status": 404,
+  "len": 8068,
+  "ctype": "text/html; charset=utf-8",
+  "body": "<!DOCTYPE html><!--Nt1oH8EzkH9brmlApJZcQ--><html><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"preload\" as=\"script\" fetchPriority=\"low\" href=\"/_next/static/chunks/faf4a0202735b81c.js?dpl=dpl_DKbAQ9"
+ },
+ {
+  "name": "cruise-itinerary-mcp",
+  "method": "POST",
+  "url": "https://cruise-itinerary.com/mcp",
+  "status": 401,
+  "len": 141,
+  "ctype": "application/json; charset=utf-8",
+  "body": "{\"error\":\"invalid_request\",\"error_description\":\"Sign in to Cruise Itinerary to use this server. A free account needs only an email address.\"}"
+ },
+ {
+  "name": "cruisemapper-ship",
+  "method": "GET",
+  "url": "https://www.cruisemapper.com/ships.html",
+  "status": 404,
+  "len": 5159,
+  "ctype": "text/html; charset=UTF-8",
+  "body": "<!doctype html><html lang=\"en-EN\"><head><meta charset=\"UTF-8\"/><title>Error page | CruiseMapper</title><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, user-scalable=no\"><meta name=\"msapplication-config\" content=\"none\"/><meta name=\"mobile-we"
+ },
+ {
+  "name": "amadeus-cruises",
+  "method": "GET",
+  "url": "https://api.amadeus.com/v1/shopping/cruise-offers?origin=MIA",
+  "status": 404,
+  "len": 116,
+  "ctype": "application/json",
+  "body": "{\"errors\":[{\"code\":38196,\"title\":\"Resource Not found\",\"status\":404,\"detail\":\"The targeted resource doesn't exist\"}]}"
+ }
+]

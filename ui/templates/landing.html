@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block content %}
+<nav class="crumbs" aria-label="Brotkrumennavigation">
+  <a href="/">Start</a> › <a href="/{{ slug }}">{{ page.h1 }}</a>
+</nav>
+
+<h1>{{ page.h1 }}</h1>
+<p class="lead">{{ page.intro }}</p>
+
+{% if facts and facts.count %}
+<section class="card">
+  <h2>Was die Daten zeigen</h2>
+  <ul class="linklist">
+    <li><b>{{ facts.count }} Angebote</b> von {{ facts.sources | length }} Quelle(n),
+      Preisspanne <b>{{ facts.min_price | money(facts.currency) }}</b> bis
+      {{ facts.max_price | money(facts.currency) }} (Median {{ facts.median_price | money(facts.currency) }}).</li>
+    <li><b>{{ facts.nonstop }} von {{ facts.count }}</b> Angeboten sind nonstop
+      ({{ facts.nonstop_share }} %).</li>
+    {% if facts.airlines %}<li>Häufigste Anbieter: <b>{{ facts.airlines | join(', ') }}</b>.</li>{% endif %}
+    <li>Endpreis inkl. Gepäck bei <b>{{ facts.with_end_price }} von {{ facts.count }}</b>
+      Angeboten ausgewiesen{% if facts.with_end_price < facts.count %} – bei den übrigen nennt die
+      Quelle ihn nicht{% endif %}.</li>
+  </ul>
+</section>
+{% endif %}
+
+{% if offers %}
+<section class="card" aria-labelledby="preise">
+  <h2 id="preise">Zuletzt gefundene Preise{% if route %} – {{ route_label }}{% endif %}</h2>
+  <p class="muted small">Preisstand: {{ generated_at }} (UTC{{ '%+d' % tz_offset }}).
+    Preise gelten für den Moment der Abfrage; verbindlich ist der Preis beim Anbieter.
+    {% if stale %}<span class="warn">Die Daten sind älter als 24 Stunden – bitte neu suchen.</span>{% endif %}</p>
+  <table class="table">
+    <thead><tr><th>Preis</th><th>Endpreis</th><th>Anbieter</th><th>Quelle</th><th></th></tr></thead>
+    <tbody>
+      {% for o in offers %}
+      <tr>
+        <td>{{ o.price | money(o.currency) }}</td>
+        <td>{% if o.all_in is not none %}{{ o.all_in | money(o.currency) }}{% else %}<span class="muted">n/v</span>{% endif %}</td>
+        <td>{{ o.provider or o.name or 'k. A.' }}</td>
+        <td class="muted small">{{ o.source }}</td>
+        <td>{% if o.url and safe_url(o.url) %}<a href="{{ safe_url(o.url) }}" target="_blank"
+              rel="sponsored noopener">{{ 'Zum Anbieter' if not o.affiliate else 'Zum Anbieter (Anzeige)' }}</a>
+            {% else %}–{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if route and offers_total and offers_total > offers|length %}
+  <p><a href="/{{ slug }}/{{ routes[0].slug if routes else '' }}">Alle {{ offers_total }} Angebote
+    dieser Strecke ansehen</a></p>{% endif %}
+</section>
+{% endif %}
+
+<section class="card">
+  <h2>Preise vergleichen</h2>
+  <form class="search" method="post" action="/api/search" id="searchform">
+    <div class="grid">
+      <label>Start
+        <input name="origin" value="{{ preset.origin or 'BER' }}" placeholder="BER" required>
+      </label>
+      <label>Ziel
+        <input name="destination" value="{{ preset.destination or 'FCO' }}" placeholder="FCO" required>
+      </label>
+      <label>Abreise
+        <input type="date" name="depart_date" value="{{ default_depart }}" required>
+      </label>
+      <label>Rückkehr
+        <input type="date" name="return_date" value="{{ default_return }}">
+      </label>
+      <label>Personen
+        <input type="number" name="adults" min="1" max="9" value="{{ preset.adults or 1 }}">
+      </label>
+      <label>Währung
+        <input name="currency" value="EUR" maxlength="3">
+      </label>
+    </div>
+    <input type="hidden" name="categories" value="{{ page.key }}">
+    <button type="submit" class="primary">{{ action_label or 'Jetzt suchen' }}</button>
+    <span class="hint">Die Suche fragt alle Quellen parallel ab (bis ~2 Minuten).</span>
+  </form>
+</section>
+
+{% if routes %}
+<section class="card">
+  <h2>Beliebte Strecken</h2>
+  <ul class="linklist">
+    {% for r in routes %}
+    <li><a href="/{{ slug }}/{{ r.slug }}">{{ r.origin_name or r.origin }} →
+      {{ r.destination_name or r.destination }}</a>
+      <span class="muted small">letzter Preisstand {{ r.date }}
+      {%- if r.cheapest %} · ab {{ r.cheapest | money(r.currency) }}{% endif %}</span></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section class="card">
+  <h2>Häufige Fragen</h2>
+  {% for q, a in page.faq %}
+  <details class="faq">
+    <summary>{{ q }}</summary>
+    <p>{{ a }}</p>
+  </details>
+  {% endfor %}
+</section>
+
+<section class="card">
+  <h2>Weitere Kategorien</h2>
+  <ul class="linklist">
+    {% for s, other in other_categories %}
+    <li><a href="/{{ s }}">{{ other.h1 }}</a> <span class="muted small">{{ other.description }}</span></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

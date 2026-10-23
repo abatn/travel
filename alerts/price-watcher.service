@@ -1,0 +1,13 @@
+[Unit]
+Description=Preiswächter (Trip-Agent) – Snapshot + Regelprüfung
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/batnini/mimo-agents
+ExecStart=/usr/bin/python3 /home/batnini/mimo-agents/alerts/watcher.py --config /home/batnini/mimo-agents/alerts/alert_config.example.yaml --once
+# Cooldown/History liegen im State-Verzeichnis (siehe Config "state")
+# Alarmzustellung: der Watcher ruft optional "notify.command" auf (JSON auf stdin).
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,20 @@
+{
+ "session_guid": "6195E0EA-3293-4B5B-9454-EE3A3FD45DB2",
+ "url": "https://booking.tallink.com/api/timetables?locale=en&country=FI&from=hel&to=tll&oneWay=false&dateFrom=2026-11-05&dateTo=2026-11-05&voyageType=TRANSPORT&includeOvernight=false&searchFutureSails=false&sessionGUID=6195E0EA-3293-4B5B-9454-EE3A3FD45DB2",
+ "status": 200,
+ "body": "{\"defaultSelections\":{\"outwardSail\":null,\"returnSail\":null},\"trips\":{},\"isClubOneOnlyPromotion\":null}",
+ "cookies": [
+  [
+   "JSESSIONID",
+   "450C4C068CAD2ABD75D99B2235636ABA"
+  ],
+  [
+   "iki3persistance",
+   "3691885578.53691.0000"
+  ],
+  [
+   "TS01614805",
+   "01d6116d31ec03ca3f714df1809c7555a2bf3aa5eb3c4cf94b2463267fe5dfd64aa62c598f8138434bfca812845f22e3e6ea22eb44150dcd3de10bcdff1947bb282a74332f97c2efcab0c6580449d20ee8144320f9"
+  ]
+ ]
+}

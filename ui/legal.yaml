@@ -1,0 +1,57 @@
+# =============================================================================
+# Betreiberangaben für Impressum (§ 5 DDG) und Datenschutz (Art. 13 DSGVO)
+# =============================================================================
+# Diese Datei ist eine VORLAGE. Solange Pflichtfelder leer sind, bleiben
+# /impressum und /datenschutz auf "noindex" und zeigen einen Hinweis.
+# Erfundene Angaben werden bewusst nicht erzeugt.
+#
+# Pflichtfelder ausfüllen:
+#   betreiber.name, strasse, plz_ort, land, email, umsatzsteuer_id,
+#   verantwortlich
+#   datenschutz.hosting, kontakt_datenschutz, aufbewahrung_logs,
+#   aufsichtsbehoerde, stand
+#
+# USt-IdNr.: Wenn keine vorhanden ist (z. B. Kleinunternehmerregelung § 19 UStG),
+# trage exakt "keine" ein. Das zählt als ausgefüllt.
+# =============================================================================
+
+# =============================================================================
+# SCHNELLSTART – diese 12 Werte eintragen, dann sind beide Seiten indexierbar:
+#
+# betreiber:
+#   name: "Vorname Nachname"          # Pflicht
+#   strasse: "Straße Hausnummer"      # Pflicht
+#   plz_ort: "PLZ Ort"                # Pflicht
+#   land: "Deutschland"               # Pflicht (bereits gesetzt)
+#   email: "deine@mail.de"            # Pflicht
+#   umsatzsteuer_id: "DE123456789"    # Pflicht; ohne USt-IdNr. exakt "keine"
+#   verantwortlich: "Vorname Nachname" # Pflicht (§ 18 Abs. 2 MStV)
+#
+# datenschutz:
+#   hosting: "Hoster, Ort"            # Pflicht
+#   kontakt_datenschutz: "deine@mail.de" # Pflicht
+#   aufbewahrung_logs: "30 Tage"      # Pflicht
+#   aufsichtsbehoerde: "Zuständige Landesdatenschutzbehörde" # Pflicht
+#   stand: "24.10.2026"               # Pflicht
+# =============================================================================
+
+betreiber:
+  name: ""                       # Pflicht: Vor- und Nachname oder Firma
+  strasse: ""                    # Pflicht: Straße und Hausnummer
+  plz_ort: ""                    # Pflicht: PLZ und Ort
+  land: "Deutschland"            # Pflicht
+  email: ""                      # Pflicht: erreichbare E-Mail-Adresse
+  telefon: ""                    # optional (E-Mail genügt für § 5 DDG)
+  umsatzsteuer_id: ""            # Pflicht: USt-IdNr. oder "keine"
+  verantwortlich: ""             # Pflicht: Name, § 18 Abs. 2 MStV
+  registergericht: ""            # optional, nur bei eingetragenen Firmen
+  registernummer: ""             # optional, z. B. HRB 12345
+
+datenschutz:
+  hosting: ""                    # Pflicht: z. B. "Hetzner Online GmbH, Nürnberg"
+  kontakt_datenschutz: ""        # Pflicht: E-Mail für Datenschutzanfragen
+  aufbewahrung_logs: "30 Tage"   # Pflicht: Aufbewahrungsdauer der Server-Logs
+  aufsichtsbehoerde: ""          # Pflicht: zuständige Landesdatenschutzbehörde
+  stand: ""                      # Pflicht: z. B. "23.10.2026"
+  email_hosting: ""              # optional: E-Mail-Dienstleister
+  auftragsverarbeiter: ""        # optional: weitere Dienstleister (kommagetrennt)

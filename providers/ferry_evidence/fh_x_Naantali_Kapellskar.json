@@ -1,0 +1,441 @@
+{
+ "http_status": 200,
+ "session_id": null,
+ "tools": [
+  "get_ports",
+  "get_disruptions",
+  "get_direct_connections_for_ports",
+  "search_trips",
+  "search_ferry_trips",
+  "trip_details"
+ ],
+ "call": {
+  "result": {
+   "_meta": {
+    "ferryhopper/widgetConfig": {
+     "baseUrl": "https://www.ferryhopper.com",
+     "affiliateId": "mcpint",
+     "minTurnaroundMinutes": 30
+    }
+   },
+   "content": [
+    {
+     "type": "text",
+     "text": "Found 2 itineraries across 1 leg(s).",
+     "_meta": {}
+    }
+   ],
+   "structuredContent": {
+    "legs": [
+     {
+      "departurePort": {
+       "name": "NAANTALI",
+       "code": "NLI"
+      },
+      "arrivalPort": {
+       "name": "KAPELLSKAR",
+       "code": "KPS"
+      },
+      "departureDate": "2026-11-05",
+      "options": [
+       {
+        "id": "NLI/KPS/2026-11-05T10:00:00Z/FICO",
+        "segments": [
+         {
+          "vehicleIsMandatory": false,
+          "departurePort": {
+           "name": "NAANTALI",
+           "code": "NLI"
+          },
+          "arrivalPort": {
+           "name": "KAPELLSKAR",
+           "code": "KPS"
+          },
+          "departureDateTime": "2026-11-05T10:00:00Z",
+          "arrivalDateTime": "2026-11-05T17:45:00Z",
+          "ownerCompany": {
+           "name": "FINNLINES",
+           "code": "FIN"
+          },
+          "marketingCompany": {
+           "name": "FINNLINES",
+           "iconURL": "https://images.ferryhopper.com/companies/optimized/FIN-min.png"
+          },
+          "vessel": {
+           "name": "FINNCANOPUS",
+           "code": "FICO"
+          },
+          "accommodations": [
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 12240
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 11120
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 14240
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 17360
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 20480
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 11120
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 14240
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 17360
+            }
+           },
+           {
+            "type": "FAMILY_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 38720
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 9740
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 17480
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 8120
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 11240
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 14360
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 21480
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 17480
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 8120
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 11240
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 14360
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 9740
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 6620
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 9740
+            }
+           },
+           {
+            "type": "LOUNGE_DECK",
+            "expectedPrice": {
+             "totalPriceInCents": 3120
+            }
+           },
+           {
+            "type": "SUITE_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 77360
+            }
+           },
+           {
+            "type": "LUX_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 60480
+            }
+           },
+           {
+            "type": "LUX_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 65480
+            }
+           },
+           {
+            "type": "SUITE_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 87360
+            }
+           }
+          ],
+          "hasCabin": false,
+          "hasVehicles": true,
+          "hasPets": true,
+          "hasETicket": false
+         }
+        ]
+       },
+       {
+        "id": "NLI/KPS/2026-11-05T22:45:00Z/FISI",
+        "segments": [
+         {
+          "vehicleIsMandatory": false,
+          "departurePort": {
+           "name": "NAANTALI",
+           "code": "NLI"
+          },
+          "arrivalPort": {
+           "name": "KAPELLSKAR",
+           "code": "KPS"
+          },
+          "departureDateTime": "2026-11-05T22:45:00Z",
+          "arrivalDateTime": "2026-11-06T06:15:00Z",
+          "ownerCompany": {
+           "name": "FINNLINES",
+           "code": "FIN"
+          },
+          "marketingCompany": {
+           "name": "FINNLINES",
+           "iconURL": "https://images.ferryhopper.com/companies/optimized/FIN-min.png"
+          },
+          "vessel": {
+           "name": "FINNSIRIUS",
+           "code": "FISI"
+          },
+          "accommodations": [
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 14240
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 34480
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 13120
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 16240
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 19360
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 22480
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 13120
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 16240
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 19360
+            }
+           },
+           {
+            "type": "FAMILY_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 42720
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 11240
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 19480
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 10120
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 13240
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 16360
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 19480
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 10120
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 13240
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 16360
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 11240
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 8120
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 11240
+            }
+           },
+           {
+            "type": "SUITE_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 81360
+            }
+           },
+           {
+            "type": "LUX_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 64480
+            }
+           },
+           {
+            "type": "LUX_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 69480
+            }
+           },
+           {
+            "type": "SUITE_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 91360
+            }
+           }
+          ],
+          "hasCabin": false,
+          "hasVehicles": true,
+          "hasPets": true,
+          "hasETicket": false
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "jsonrpc": "2.0",
+  "id": 3
+ },
+ "raw_call_text": "Found 2 itineraries across 1 leg(s).",
+ "_note": "tool_schemas entfernt (Groesse); vollstaendig via tools/list abrufbar"
+}

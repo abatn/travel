@@ -1,0 +1,44 @@
+# Nur dieses Projekt versionieren (Monorepo enthält andere Agenten)
+/*
+!/.gitignore
+!/README.md
+!/.github/
+!/ui/
+!/providers/
+!/seo/
+!/resolver/
+!/affiliate/
+!/alerts/
+!/bundling/
+!/attest/
+!/docs/
+!/deploy/
+!/llms.txt
+!/requirements-runtime.txt
+!/rome-2star/
+
+# Ausnahmen innerhalb von rome-2star
+rome-2star/*
+!rome-2star/worker_c/
+
+# Laufzeit, Secrets, Caches
+__pycache__/
+*.py[cod]
+.venv/
+.venv-*/
+.env
+*.log
+logs/
+backups/
+ui/state*/
+alerts/state*/
+attest/state*/
+providers/state/
+affiliate/state/
+resolver/state/
+attest/artifacts/
+attest/keys/
+coinbase.txt
+mainnet.txt
+*.key
+.DS_Store

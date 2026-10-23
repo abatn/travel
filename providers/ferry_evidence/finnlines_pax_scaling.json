@@ -1,0 +1,110 @@
+{
+ "1 adult": {
+  "http": 200,
+  "rows": [
+   {
+    "sailing": "NLIKPS202611051000",
+    "dep": "2026-11-05 10:00",
+    "avail": true,
+    "chargeTotal_cents": 1760,
+    "ship": "FINNCANOPUS"
+   },
+   {
+    "sailing": "NLIKPS202611052245",
+    "dep": "2026-11-05 22:45",
+    "avail": false,
+    "chargeTotal_cents": null,
+    "ship": "FINNSIRIUS"
+   },
+   {
+    "sailing": "NLIKPS202611061000",
+    "dep": "2026-11-06 10:00",
+    "avail": true,
+    "chargeTotal_cents": 1760,
+    "ship": "FINNCANOPUS"
+   }
+  ],
+  "errors": null
+ },
+ "2 adults": {
+  "http": 200,
+  "rows": [
+   {
+    "sailing": "NLIKPS202611051000",
+    "dep": "2026-11-05 10:00",
+    "avail": true,
+    "chargeTotal_cents": 3520,
+    "ship": "FINNCANOPUS"
+   },
+   {
+    "sailing": "NLIKPS202611052245",
+    "dep": "2026-11-05 22:45",
+    "avail": false,
+    "chargeTotal_cents": null,
+    "ship": "FINNSIRIUS"
+   },
+   {
+    "sailing": "NLIKPS202611061000",
+    "dep": "2026-11-06 10:00",
+    "avail": true,
+    "chargeTotal_cents": 3520,
+    "ship": "FINNCANOPUS"
+   }
+  ],
+  "errors": null
+ },
+ "4 adults": {
+  "http": 200,
+  "rows": [
+   {
+    "sailing": "NLIKPS202611051000",
+    "dep": "2026-11-05 10:00",
+    "avail": true,
+    "chargeTotal_cents": 7040,
+    "ship": "FINNCANOPUS"
+   },
+   {
+    "sailing": "NLIKPS202611052245",
+    "dep": "2026-11-05 22:45",
+    "avail": false,
+    "chargeTotal_cents": null,
+    "ship": "FINNSIRIUS"
+   },
+   {
+    "sailing": "NLIKPS202611061000",
+    "dep": "2026-11-06 10:00",
+    "avail": true,
+    "chargeTotal_cents": 7040,
+    "ship": "FINNCANOPUS"
+   }
+  ],
+  "errors": null
+ },
+ "2 adults+1 child": {
+  "http": 200,
+  "rows": [
+   {
+    "sailing": "NLIKPS202611051000",
+    "dep": "2026-11-05 10:00",
+    "avail": true,
+    "chargeTotal_cents": 4960,
+    "ship": "FINNCANOPUS"
+   },
+   {
+    "sailing": "NLIKPS202611052245",
+    "dep": "2026-11-05 22:45",
+    "avail": false,
+    "chargeTotal_cents": null,
+    "ship": "FINNSIRIUS"
+   },
+   {
+    "sailing": "NLIKPS202611061000",
+    "dep": "2026-11-06 10:00",
+    "avail": true,
+    "chargeTotal_cents": 4960,
+    "ship": "FINNCANOPUS"
+   }
+  ],
+  "errors": null
+ }
+}

@@ -1,0 +1,298 @@
+{
+  "task": "Rome 2-star hotel — tax-inclusive end price with itemised tax positions (TRIZ 'copy': reuse how others solved the WAF + undifferentiated-tax contradiction)",
+  "date": "2026-10-21",
+  "query": {
+    "location": "Rome, Italy",
+    "check_in": "2026-10-31",
+    "check_out": "2026-11-01",
+    "nights": 1,
+    "adults": 1,
+    "currency": "EUR",
+    "stars": 2
+  },
+  "candidates": [
+    {
+      "name": "Booking.com property page — own price breakdown (provider's own cached aws-waf-token)",
+      "url": "https://www.booking.com/hotel/it/<slug>.html",
+      "key_required": false,
+      "installed": false,
+      "install_command": "n/a (direct HTTP; token read from ~/.trvl/cookies/www.booking.com.json)",
+      "test_result": "SUCCESS — HTTP 200, 1.4-1.9 MB page, per-room breakdown with named tax lines",
+      "tax_itemization": true,
+      "evidence": {
+        "http_status": 200,
+        "bytes": 1732214,
+        "quote": "\"b_included_charges\":[{\"b_copy_alt\":\"VAT\",\"b_value\":\"€ 24.26\",\"b_type\":\"percentage__included\",\"b_copy\":\"10 % VAT\"},{\"b_value_user_currency_rounded\":\"€ 8\",\"b_copy_alt\":\"City tax\",\"b_type\":\"per_person_per_night__included\",\"b_copy\":\"City tax\",\"b_value\":\"€ 7.50\"}]  …  \"b_charges_info_copy\":{\"b_tooltip_copy\":\"Total\",\"b_is_all_included\":1,\"b_line_copy\":\"Includes taxes and fees\"}  …  \"b_total_price\":[{\"b_copy_alt\":\"Total Price\",\"b_raw_value_user_currency\":274.4101,\"b_value_user_currency\":\"€ 274.41\"}]  …  \"b_net_room_price\":[{\"b_raw_value\":\"242.64540000000008\",\"b_value\":\"€ 242.65\",\"b_type\":\"net_room_price\"}]",
+        "arithmetic": "242.6454 (net) + 24.2646 (10 % VAT) + 7.50 (City tax) = 274.4101 (total) — exact",
+        "page_markers": "grep counts on the same page: 'City tax' x30, 'taxes and fees' x30, 'price_breakdown' x7, 'PriceBreakdown' x6",
+        "rome_2star_examples": [
+          {"hotel": "Melting Pot Rome", "booking_stars": 2, "net": 44.1818, "vat_10pct": 4.42, "city_tax": 3.5, "total_incl_tax": 52.1, "currency": "EUR"},
+          {"hotel": "Hostel Castello Maggiore", "booking_stars": null, "google_stars": 2, "net": 34.0818, "vat_10pct": 3.41, "city_tax": 3.5, "total_incl_tax": 40.99, "currency": "EUR"},
+          {"hotel": "Hotel Benedetto", "booking_stars": 2, "net": 63.6364, "vat_10pct": 6.36, "city_tax": 5.0, "total_incl_tax": 75.0, "currency": "EUR"},
+          {"hotel": "Hotel Demetra Capitolina Roma", "booking_stars": 2, "net": 86.3636, "vat_10pct": 8.64, "city_tax": 5.0, "total_incl_tax": 100.0, "currency": "EUR"},
+          {"hotel": "Hotel Lodi", "booking_stars": 2, "net": 107.4182, "vat_10pct": 10.74, "city_tax": 5.0, "total_incl_tax": 123.16, "currency": "EUR"},
+          {"hotel": "La Casa di Nazareth", "booking_stars": null, "google_stars": 2, "net": 86.3636, "vat_10pct": 8.64, "city_tax": 6.0, "total_incl_tax": 101.0, "currency": "EUR"},
+          {"hotel": "Hotel Adriatic", "booking_stars": 2, "net": 171.8636, "vat_10pct": 17.19, "city_tax": 5.0, "total_incl_tax": 194.05, "currency": "EUR"},
+          {"hotel": "San Lorenzo Guest House", "booking_stars": null, "google_stars": 2, "net": 106.0364, "vat_10pct": 10.6, "city_tax": 5.0, "total_incl_tax": 121.64, "currency": "EUR"}
+        ],
+        "caveats": "Booking rate-limits aggressive reuse: after ~20 rapid page fetches the same request returns HTTP 502 (2894 bytes). With ~2.5 s pacing it returns 200 again. Breakdown is only published when a room is bookable for the requested dates (Hotel Viminale 2 nights / 2 adults -> 0 breakdowns)."
+      },
+      "uncover_time": "~2 s per property page; the decisive insight (the breakdown lives in the inline SSR script, NOT the Apollo store) took ~30 min of source archaeology",
+      "error_image": "WITHOUT the token: HTTP 202, 3962 bytes, body contains reportChallengeError (AWS-WAF challenge). WITH the token: HTTP 200 + full page."
+    },
+    {
+      "name": "Google Hotels batchexecute RPC 'AtySUc' — deeplink tax parameters (installed as 'rome-hotel-taxes')",
+      "url": "https://www.google.com/_/TravelFrontendUi/data/batchexecute",
+      "key_required": false,
+      "installed": true,
+      "install_command": "claude mcp add rome-hotel-taxes --scope project -- python3 /home/batnini/mimo-agents/rome-2star/worker_c/rome_hotel_taxes_mcp.py",
+      "test_result": "SUCCESS — HTTP 200; booking.com is never contacted, so no WAF; tax + fees + total per OTA channel",
+      "tax_itemization": true,
+      "evidence": {
+        "http_status": 200,
+        "bytes": 219113,
+        "quote": "/travel/lodging/clk?pc=...&pcurl=https://www.booking.com/searchresults.en.html?...&selected_currency=EUR&ext_price_total=52.10&ext_price_tax=7.92&xfc=EUR...  |  https://www.bluepillow.de/search/...?fees=3.51&tax=7.94&total=52.18&currency=EUR  |  agoda: hpa_d_tax=13.98&hpa_d_total=83.93  |  opodo: mpf=108.01&mpj=18.91&cur=EUR",
+        "arithmetic": "base + tax + fees == total for 19/19 rate lines (0 mismatches, tolerance 0.02 EUR)",
+        "cross_validation": "Google-derived Booking figures reproduce Booking's own breakdown to the cent for Melting Pot Rome (44.18 + 4.42 + 3.50 = 52.10 = Booking's total 52.1000000000001) and Hostel Castello Maggiore (34.08 + 3.41 + 3.50 = 40.99).",
+        "slot_discovery": "the tax-bearing deeplinks sit in the hotel entry's provider block at entry[6][2][21..]/[22..]; the 'stays' MCP parser only reads entry[6][2][2] (SLOT_PROVIDER_LIST) and therefore never sees them.",
+        "rome_2star_examples": [
+          {"hotel": "Melting Pot Rome", "provider": "Booking.com", "channel": "www.booking.com", "base": 44.18, "tax": 7.92, "fees": null, "total": 52.1, "currency": "EUR"},
+          {"hotel": "Hostel Castello Maggiore", "provider": "Booking.com", "channel": "www.booking.com", "base": 34.08, "tax": 6.91, "fees": null, "total": 40.99, "currency": "EUR"},
+          {"hotel": "Hotel Filippo Roma", "provider": "Bluepillow.de", "channel": "www.bluepillow.de", "base": 104.93, "tax": 17.23, "fees": 17.23, "total": 139.39, "currency": "EUR"},
+          {"hotel": "San Lorenzo Guest House", "provider": "Hostelworld", "channel": "www.hostelworld.com", "base": 34.98, "tax": 6.99, "fees": null, "total": 41.97, "currency": null}
+        ]
+      },
+      "uncover_time": "4.75 s measured for the 2-star Rome search RPC; ~45 min to locate + parse the tax parameters",
+      "error_image": "none — 200 on every call"
+    },
+    {
+      "name": "stays (Google Hotels MCP Server v4.1.1, preinstalled)",
+      "url": "stdio: /home/batnini/.local/bin/stays mcp",
+      "key_required": false,
+      "installed": true,
+      "install_command": "pre-existing (user scope)",
+      "test_result": "PARTIAL — reaches the same Google endpoint and returns correct Rome 2-star rates, but never exposes the tax flag",
+      "tax_itemization": false,
+      "evidence": {
+        "tool_call": "search_hotels_with_details(query='hotels in Rome', check_in=2026-10-31, check_out=2026-11-01, adults=1, currency=EUR, hotel_class=[2], max_hotels=5)",
+        "http_status": 200,
+        "quote": "\"rates\":[{\"provider\":\"Expedia.de\",\"price\":89,\"currency\":\"USD\",\"breakfast_included\":false,\"includes_taxes_and_fees\":false,...}]",
+        "arithmetic": "11/11 rate lines have includes_taxes_and_fees=false, 0 have true; currencies = ['USD'] only (EUR request ignored); 5 hotels returned (San Lorenzo Guest House, Melting Pot Rome, Alessandro Palace & Bar, Hostel Castello Maggiore, Hotel Benedetto)",
+        "root_cause": "models/google_hotels/detail.py:26 declares `includes_taxes_and_fees: bool = False`; the only RatePlan(...) construction (search/parse/provider_parser.py:174-180) never passes it -> the flag is dead code, not a data gap."
+      },
+      "uncover_time": "n/a (preinstalled)",
+      "error_image": "no error — silently false"
+    },
+    {
+      "name": "pricewin MCP (preinstalled)",
+      "url": "https://mcp.price.win/mcp",
+      "key_required": false,
+      "installed": true,
+      "install_command": "pre-existing (project scope)",
+      "test_result": "PARTIAL — aggregates Agoda/Booking/Traveloka/Trip.com/Hotels.com/Airbnb for Rome, but returns one undifferentiated price per OTA and no tax fields at all",
+      "tax_itemization": false,
+      "evidence": {
+        "tool_call": "search_hotels_live(city=Rome, checkIn=2026-10-31, checkOut=2026-11-01, adults=1, rooms=1, priceCurrency=EUR) + poll_search_results(sessionId=..., nights=1, limit=100)",
+        "http_status": 200,
+        "quote": "{\"name\": \"Hotel Lella\", \"stars\": 2, \"rating\": 6.9, \"reviewCount\": 1213, \"location\": \"Termini Central Station, Rome\", \"prices\": {\"agoda\": {\"price\": 64.43, \"currency\": \"USD\", \"url\": \"https://www.price.win/go/QceO7-DC9_I\"}}, \"urls\": {\"agoda\": \"https://www.price.win/go/QceO7-DC9_I\"}}",
+        "arithmetic": "137 hotels total, 5 with stars==2; hotel keys = [imageUrl, location, name, prices, rating, reviewCount, stars, urls]; per-source keys = [currency, price, url] only — no tax/fees/total field exists",
+        "ota_detail_call": "get_ota_hotel_detail(hotelName='Hotel Lella', city='Rome', 2026-10-31..2026-11-01, adults=1) -> resolved to Agoda, room list 'Basic Single Room, 1 Twin Bed $63.80' / 'Single Room $72.60'; text contains 0 occurrences of tax/fee/included/breakdown/total/EUR (3310 chars)",
+        "tier_status": "agodaStatus=completed, bookingStatus=completed, travelokaStatus=completed"
+      },
+      "uncover_time": "~60-90 s (async session + polling)",
+      "error_image": "poll_search_results without `nights` -> 'MCP error -32602: Input validation error: Invalid arguments for tool poll_search_results: [ { \"code\": \"invalid_type\", \"expected\": \"number\", \"received\": \"undefined\", \"path\": [ \"nights\" ] ... } ]'"
+    },
+    {
+      "name": "skiplagged MCP (preinstalled)",
+      "url": "https://mcp.skiplagged.com/mcp",
+      "key_required": false,
+      "installed": true,
+      "install_command": "pre-existing (project scope)",
+      "test_result": "PARTIAL — Rome 2-star hotels found with prices, but the tax field is null and the currency is USD",
+      "tax_itemization": false,
+      "evidence": {
+        "tool_call": "sk_hotels_search(city=Rome, checkin=2026-10-31, checkout=2026-11-01, numAdults=1, limit=40) then sk_hotel_details(hotelId=1732025 / 99814)",
+        "http_status": 200,
+        "quote": "sk_hotel_details -> {\"hotelName\":\"Hostel Trastevere\",\"starRating\":2,\"pricePerNightInDollars\":0,\"taxesAndFeesInDollars\":null,\"totalPriceInDollars\":48.09,\"currency\":null}",
+        "arithmetic": "3 Rome 2-star properties checked (Hostel Trastevere 1732025, Hotel Filippo 99814, Casa Roma 11297448) — taxesAndFeesInDollars = null in all 3; only an undifferentiated total in USD",
+        "search_cards": "40 cards, e.g. {\"name\":\"Hostel Trastevere\",\"id\":\"hotel_1732025\",\"rating\":{\"stars\":2},\"price\":{\"amount\":43.72,\"currency\":\"USD\",\"text\":\"$43.72/night\"}}"
+      },
+      "uncover_time": "immediate on retry",
+      "error_image": "1st attempt: 'Failed to fetch from hotel_search: timeout of 10000ms exceeded' (isError=true); 1 further attempt: HTTP 429 Too Many Requests on sk_hotel_details"
+    },
+    {
+      "name": "trvl (preinstalled) — its own booking.com path",
+      "url": "stdio: /home/batnini/.local/bin/trvl mcp",
+      "key_required": false,
+      "installed": true,
+      "install_command": "pre-existing (project scope)",
+      "test_result": "FAIL for the booking.com path — but it is the source of the working aws-waf-token",
+      "tax_itemization": false,
+      "evidence": {
+        "http_status": 403,
+        "quote": "2026/10/21 16:17:30 WARN landing search failed error=\"landing resolve: unexpected status 403 for url#7d62e9d19a60\"",
+        "arithmetic": "trvl version 1.27.0 == latest npm trvl-mcp 1.27.0 -> no newer upstream to copy; its Agoda path yields an undifferentiated tax sum (taxes_and_fees = derived difference inclusiveTotal - nights x nightlyPrice, internal/hotels/agoda_parse.go:96-112)",
+        "valuable_side_effect": "~/.trvl/cookies/www.booking.com.json holds a provider-issued aws-waf-token (418 chars) that unlocks booking.com entirely"
+      },
+      "uncover_time": "n/a (preinstalled)",
+      "error_image": "booking 403/504, 'google refused further requests until the cooldown ends', trivago 503"
+    },
+    {
+      "name": "booking.com direct, no token",
+      "url": "https://www.booking.com/searchresults.html?ss=Rome&checkin=2026-10-31&checkout=2026-11-01&group_adults=1&no_rooms=1&group_children=0&currency=EUR&stars=2&lang=en-us",
+      "key_required": false,
+      "installed": false,
+      "install_command": "n/a",
+      "test_result": "FAIL — AWS-WAF challenge (this is the original failure being reproduced)",
+      "tax_itemization": false,
+      "evidence": {
+        "http_status": 202,
+        "bytes": 3962,
+        "quote": "<!DOCTYPE html>…<title></title>…function reportChallengeError(log, challengeError) {… (grep: reportChallengeError x3, 'challenge' x4)",
+        "arithmetic": "same 202 + 3962-byte challenge page for /hotel/it/<slug>.html detail requests (3 different slugs tested)"
+      },
+      "uncover_time": "~5 s per test",
+      "error_image": "HTTP 202 WAF challenge (trvl reports the same as 'booking 403')"
+    },
+    {
+      "name": "expedia.com direct (the endpoint trvl itself documents)",
+      "url": "https://www.expedia.com/Hotel-Search?destination=Rome%2C%20Lazio%2C%20Italy&startDate=2026-10-31&endDate=2026-11-01&rooms=1&adults=1",
+      "key_required": false,
+      "installed": false,
+      "install_command": "n/a",
+      "test_result": "FAIL — Akamai Bot Manager",
+      "tax_itemization": false,
+      "evidence": {
+        "http_status": 429,
+        "bytes": 25290,
+        "quote": "matches trvl's own probe note in internal/hotels/expedia.go: 'GET https://www.expedia.com/Hotel-Search?... -> HTTP 429'",
+        "arithmetic": "trvl therefore ships Expedia as a no-op skip unless EXPEDIA_API_BASE is set (expediaConfigured())"
+      },
+      "uncover_time": "~1 s per test",
+      "error_image": "HTTP 429"
+    },
+    {
+      "name": "hotels.com direct",
+      "url": "https://www.hotels.com/search?checkin=2026-10-31&checkout=2026-11-01&rooms=1&adults=1&landmark=Rome",
+      "key_required": false,
+      "installed": false,
+      "install_command": "n/a",
+      "test_result": "FAIL — Akamai Bot Manager",
+      "tax_itemization": false,
+      "evidence": {
+        "http_status": 429,
+        "bytes": 25342,
+        "quote": "gzip-compressed error page, HTTP 429 (same Akamai stack as Expedia)",
+        "arithmetic": "n/a"
+      },
+      "uncover_time": "~1 s per test",
+      "error_image": "HTTP 429"
+    },
+    {
+      "name": "octotrip-flights / google-flights / flights-gf / flyan (preinstalled)",
+      "url": "https://mcp.octotrip.app/flights/mcp | npx google-flights-mcp | uvx flights-mcp | flyan-mcp",
+      "key_required": false,
+      "installed": true,
+      "install_command": "pre-existing (project scope)",
+      "test_result": "NOT APPLICABLE — no hotel tool at all",
+      "tax_itemization": false,
+      "evidence": {
+        "tool_call": "tools/list on all four",
+        "http_status": 200,
+        "quote": "octotrip-flights: [search] | google-flights: [search_flights, search_multi_city, get_price_insights, get_calendar_heatmap, compare_cabin_classes, track_price, get_price_history, list_tracked_routes, lookup_airport, find_nearby_airports, get_flight_url, analyze_layovers] | flights-gf: [search_flights] | flyan: [find_flights, find_anywhere_under, explore_destinations, cheapest_per_day]",
+        "arithmetic": "0 of 25 tools across the four servers mention hotel/stay/accommodation/room"
+      },
+      "uncover_time": "n/a",
+      "error_image": "n/a"
+    },
+    {
+      "name": "npm hotel MCPs — keyless?",
+      "url": "https://www.npmjs.com/search?q=hotel+mcp",
+      "key_required": true,
+      "installed": false,
+      "install_command": "not installed — all require a key",
+      "test_result": "REJECTED on key requirement (checked via npm readme/registry metadata, not installed)",
+      "tax_itemization": false,
+      "evidence": {
+        "http_status": 200,
+        "quote": "drtrips-hotel-mcp: 'Booking.com API key from RapidAPI' + env RAPID_API_KEY | @pullapi/booking-scraper-mcp: 'Get your API key from RapidAPI' + env RAPIDAPI_KEY | serpapi-hotels-mcp-server: env SERPAPI_API_KEY | @hasdata/google-hotels-mcp & @hasdata/booking-mcp: 'x-api-key: HASDATA_API_KEY' | hotel-mcp (mkiradani): proprietary, 'Live connection to Supabase backend'",
+        "arithmetic": "0 keyless npm hotel MCP servers found; the keyless ones are exactly the three already installed (pricewin, skiplagged, stays) + trvl",
+        "notable_if_a_key_were_available": "@hasdata/google-hotels-mcp returns prices[] with ratePerNight{lowest, beforeTaxesFees, extractedLowest} — a before/after-tax split; Apify actor kestrel/google-hotels-prices advertises total_base/taxes/fees/total_with_taxes; rainminer/booking-price-scraper advertises taxesAndFees line items + totalWithTaxesFeesAmount"
+      },
+      "uncover_time": "~10 min of registry/manifest research",
+      "error_image": "n/a"
+    },
+    {
+      "name": "Forks / newer copies of MikkoParkkola/trvl",
+      "url": "https://github.com/MikkoParkkola/trvl",
+      "key_required": false,
+      "installed": false,
+      "install_command": "n/a — no newer copy exists to install",
+      "test_result": "REJECTED — the installed binary is already the newest published copy",
+      "tax_itemization": false,
+      "evidence": {
+        "http_status": 200,
+        "quote": "installed: 'trvl 1.27.0' (trvl version) and ~/.trvl/update-check.json {\"current_version\":\"1.27.0\",\"latest_version\":\"1.27.0\",\"update_available\":false}; npm 'trvl-mcp' latest = 1.27.0 (repo git+https://github.com/MikkoParkkola/trvl.git)",
+        "arithmetic": "public fork OyaAIProd/trvl is a fork of the same upstream (same booking path, same failure); upstream PR #224 'Headless-first browser challenge resolution (MIK-6218)' and PR #324 'surface retryable Booking room bot-walls' are already merged into 1.27.0",
+        "conclusion": "copying trvl does not fix the booking.com WAF — the fix is elsewhere (see the two winners)"
+      },
+      "uncover_time": "~15 min of web research",
+      "error_image": "n/a"
+    }
+  ],
+  "installed_by_this_task": [
+    {
+      "name": "rome-hotel-taxes",
+      "command": "claude mcp add rome-hotel-taxes --scope project -- python3 /home/batnini/mimo-agents/rome-2star/worker_c/rome_hotel_taxes_mcp.py",
+      "scope": "project (/home/batnini/mimo-agents/flight-agent/.mcp.json)",
+      "files_created": [
+        "/home/batnini/mimo-agents/rome-2star/worker_c/rome_hotel_taxes_mcp.py",
+        "/home/batnini/mimo-agents/rome-2star/worker_c/google_tax_probe.py",
+        "/home/batnini/mimo-agents/rome-2star/worker_c/booking_breakdown.py",
+        "/home/batnini/mimo-agents/rome-2star/worker_c/rome_2star_booking.py"
+      ],
+      "claude_mcp_list_evidence": "rome-hotel-taxes: python3 /home/batnini/mimo-agents/rome-2star/worker_c/rome_hotel_taxes_mcp.py - ✓ Connected",
+      "claude_mcp_list_full": [
+        "fli: /home/batnini/.local/bin/fli-mcp  - ✓ Connected",
+        "stays: /home/batnini/.local/bin/stays mcp  - ✓ Connected",
+        "rome-hotel-taxes: python3 /home/batnini/mimo-agents/rome-2star/worker_c/rome_hotel_taxes_mcp.py - ✓ Connected",
+        "trvl: /home/batnini/.local/bin/trvl mcp  - ✓ Connected",
+        "google-flights: npx -y google-flights-mcp - ✓ Connected",
+        "skiplagged: https://mcp.skiplagged.com/mcp (HTTP) - ✓ Connected",
+        "octotrip-flights: https://mcp.octotrip.app/flights/mcp (HTTP) - ✓ Connected",
+        "pricewin: https://mcp.price.win/mcp (HTTP) - ✓ Connected",
+        "flyan: flyan-mcp  - ✓ Connected",
+        "flights-gf: uvx --from git+https://github.com/FredrikBakken/flights-mcp flights-mcp - ✓ Connected"
+      ],
+      "uninstall_needed": false,
+      "note": "no pre-existing MCP server was uninstalled or modified; the list before and after differs by exactly this one addition"
+    }
+  ],
+  "verdict": {
+    "recommended_primary": "Booking.com's own price breakdown (worker_c/booking_breakdown.py + rome_2star_booking.py)",
+    "why": "It is the only source that satisfies the wording of the requirement literally: named, separate tax positions ('10 % VAT' and 'City tax' as distinct line items with b_type percentage__included / per_person_per_night__included), the explicit provider statement 'Includes taxes and fees' with b_is_all_included=1, and the tax-inclusive stay total (b_total_price) — plus empty b_conditional_charges / b_nonmandatory_charges, i.e. proof that nothing is left to pay at the property.",
+    "prerequisite": "The aws-waf-token that trvl already harvests through Booking's own browser flow and caches in ~/.trvl/cookies/www.booking.com.json. No API key, no captcha solving, no IP rotation. If the token is absent the script refuses to run rather than guessing.",
+    "recommended_fallback": "Google Hotels 'AtySUc' (installed as MCP 'rome-hotel-taxes') — keyless, never contacts booking.com, so no WAF at all, 4.75 s per Rome 2-star search. It yields base/tax/fees/total per OTA channel but as ONE tax bucket, not as named VAT vs. city-tax lines.",
+    "cross_validation": "The two paths agree to the cent (Melting Pot Rome: Google base 44.18 + tax 7.92 = total 52.10 == Booking net 44.1818 + VAT 4.42 + City tax 3.50 = total 52.1000000000001).",
+    "rejected": [
+      "pricewin — aggregates 6 OTAs but exposes no tax field whatsoever",
+      "skiplagged — taxesAndFeesInDollars is null for every Rome 2-star property checked",
+      "stays — reaches the right data but its includes_taxes_and_fees flag is dead code (11/11 false)",
+      "trvl — booking path still WAF-blocked; Agoda path gives only an undifferentiated tax sum",
+      "expedia / hotels.com direct — HTTP 429 (Akamai)",
+      "all npm hotel MCPs — require RAPIDAPI_KEY / SERPAPI_API_KEY / HASDATA_API_KEY"
+    ],
+    "recommended_booking_flow": "1) google_tax_probe.py / MCP rome-hotel-taxes for the cheap 2-star candidate list (WAF-free). 2) booking_breakdown.py for the final 1-3 candidates to obtain the named VAT / City-tax lines and the 'Includes taxes and fees' proof. 3) Pace booking.com requests at ~2.5 s; it answers 502 after ~20 rapid hits."
+  },
+  "limitations": [
+    "Rome 2-star hotels have no resort fee; the provider line vocabulary is '10 % VAT' + 'City tax' (+ Booking's aggregate 'sum included'). A 'resort fee' line does not exist in the Rome data — the guarantee one can give is 'taxes and fees are included in this total and nothing is left to pay at the property', not 'a specific resort fee is inside this number'.",
+    "Booking's City-tax line is typed 'per_person_per_night__included', so its amount depends on the occupancy that was requested (1 guest here). The 1-night figures are per stay; 2-night totals scale accordingly (verified: Google base 197.78 / tax 40.77 / total 238.55 for 2 nights).",
+    "Booking publishes the breakdown only when a room is actually bookable for the requested dates: Hotel Viminale with 2 nights / 2 adults returned 0 breakdowns, and Hotel Ferraro had no bookable room for 31.10.-01.11.2026 (Google still showed a rate for it).",
+    "Booking rate-limits: after roughly 20 rapid property-page fetches from this IP the same request returns HTTP 502 (2894 bytes) until the cooldown passes. With ~2.5 s pacing it returns 200 again.",
+    "The 2-star selection is made in Google Hotels (star_class == 2) and cross-checked per hotel against Booking's own 'RoomTableQueryResult:{}.stars' where Booking populates it (it was 2 for Hotel Benedetto, Hotel Lodi, Hotel Demetra, Hotel Adriatic, Hotel Ferraro; for the remaining properties Booking left that field empty, so only Google's class is available).",
+    "Booking's own star-class URL filter does not work any more in the new frontend: with stars=2 the Apollo store shows filters:{} and the result set still contains Mama Shelter and Hilton Rome; the 2-star restriction therefore cannot be delegated to Booking's search.",
+    "The upstream 'stays' package is NOT modified — its includes_taxes_and_fees flag stays broken. The fix lives in the separate 'rome-hotel-taxes' MCP server and in worker_c/google_tax_probe.py.",
+    "The aws-waf-token in ~/.trvl/cookies/www.booking.com.json is machine-local and can expire; booking_breakdown.py then exits with exit code 2 and an explicit message instead of returning wrong data.",
+    "No hotel prices were obtained via web search — web search was used only for code/server/endpoint research (trvl forks, MCP server manifests, provider endpoint documentation)."
+  ]
+}

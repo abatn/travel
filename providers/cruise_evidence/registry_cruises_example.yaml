@@ -1,0 +1,123 @@
+# Kreuzfahrten-Provider (Kategorie `cruises`) - eigenstaendige Registry-Datei.
+#
+# Zum direkten Einsetzen in providers/registry.yaml (Abschnitt "KREUZFAHRTEN") oder
+# als eigene Registry nutzbar:
+#     python3 providers/runner.py --registry providers/registry.cruises.yaml \
+#         --category cruises --origin MIA --destination BAHAM \
+#         --depart-date 2026-11-01 --return-date 2027-06-30 --adults 2 --currency USD
+#
+# Hinweis: providers/runner.py muss in argparse noch "--category cruises" erlauben
+#          (choices=["flights","hotels", "cruises"]).
+#
+# Verifiziert am 21.10.2026 gegen die echten Endpunkte (Belege:
+# providers/cruise_evidence/, Recherche: docs/SOURCES_CRUISES.md).
+version: 1
+
+defaults:
+  timeout_seconds: 240
+  max_workers: 8
+  rank_by: price
+  currency: EUR
+
+providers:
+  # ---------------------------------------------------------------- KREUZFAHRTEN
+  - id: hal-cruises
+    category: cruises
+    transport: http
+    enabled: true
+    price_scope: per_person
+    price_scope_confidence: confirmed
+    url: "https://www.hollandamerica.com/search/halcruisesearch"
+    method: GET
+    headers:
+      Accept: application/json
+      Referer: "https://www.hollandamerica.com/en/us/find-a-cruise"
+      User-Agent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+    params:
+      fq: "embarkPortCode:{origin} AND departDate:[{depart_date}T00:00:00Z TO {return_date}T00:00:00Z]"
+      rows: "20"
+      fl: "cruiseId,shipId,shipName,embarkPortCode,embarkPortName,disembarkPortCode,disembarkPortName,departDate,arrivalDate,duration,soldOut,name,sortPrice_EUR,sortPrice_USD,taxExpenses_EUR,taxesAndFeesCombined_EUR,price_EUR_RESTRICTED,price_EUR_BASEPRICE,price_EUR_FLEXIBLE,price_USD_RESTRICTED"
+    coerce:
+      adults: int
+    extract:
+      items_path: response.docs
+      price: price_EUR_RESTRICTED      # guenstigster Kabinen-Fare inkl. Steuern, PRO PERSON
+      all_in: price_EUR_RESTRICTED     # Quelle liefert steuerinklusive Preise -> identisch
+      currency: EUR                    # Konstante: Quelle fuehrt kein Waehrungsfeld, nur Feldsuffixe
+      taxes_included: taxesAndFeesCombined_EUR
+      provider: shipName
+      name: name
+      departure_date: departDate
+      nights: duration
+      boarding: embarkPortCode
+      booking_url: itineraryURL        # relativer AEM-Pfad; Prefix https://www.hollandamerica.com
+    note: >-
+      Holland America Line, oeffentliche Solr-Suche, kein API-Key. Preis = guenstigster
+      Kabinen-Fare (RESTRICTED) PRO PERSON in EUR; taxesAndFeesCombined_EUR=true heisst
+      "Steuern & Gebuehren enthalten" (taxExpenses_EUR = Steueranteil darin).
+      sortPrice_EUR ist der FLEXIBLE-Preis und NICHT der guenstigste - nicht als Preis nehmen.
+      {origin}/{destination} = HAL-Hafencodes (MIA, FLL, HAM, BCN, ...).
+
+  - id: rcl-cruises
+    category: cruises
+    transport: cli
+    enabled: true
+    price_scope: per_person
+    price_scope_confidence: confirmed
+    command: ["python3", "/home/batnini/mimo-agents/providers/cruise_rcl.py",
+              "--origin", "{origin}", "--destination", "{destination}",
+              "--depart-date", "{depart_date}", "--return-date", "{return_date}",
+              "--adults", "{adults}", "--children", "{children}", "--currency", "{currency}",
+              "--max-price-calls", "30", "--limit", "15"]
+    coerce:
+      adults: int
+      children: int
+    extract:
+      items_path: items
+      price: price           # Kabinenpreis je Person nach Rabatt, OHNE Steuern
+      all_in: all_in         # Endpreis je Person INKL. Steuern
+      currency: currency
+      provider: provider
+      name: name
+      departure_date: departure_date
+      nights: nights
+      boarding: boarding
+      booking_url: booking_url
+      taxes_included: taxes_included
+      drinks_included: drinks_included
+    note: >-
+      Royal Caribbean/Celebrity, oeffentliche JSON-APIs (kein Key). price = Kabinenpreis
+      pro Person OHNE Steuern, all_in = Endpreis pro Person INKL. Steuern
+      (taxesAndFeesBundled=true). drinks_included=false -> Getraenke NICHT inklusive.
+      {origin} = Abfahrtshafen-Code (MIA/FLL/...), {destination} = Zielregion-Code
+      (BAHAM/CARIB/MED/ALASKA/...). Preisbasis belegt: die Rechnung skaliert linear mit
+      der Personenzahl (1/2/3 Erw. -> 561.15 / 696.30 / 1060.45 USD fuer dieselbe Abfahrt).
+
+  # Braucht die cruiseId aus hal-cruises -> erst aktivieren, wenn ein 2-Schritt-Followup
+  # im Runner existiert (oder als eigenstaendiger Abruf mit fester cruiseId).
+  - id: hal-price-api
+    category: cruises
+    transport: http
+    enabled: false
+    price_scope: per_person
+    price_scope_confidence: confirmed
+    url: "https://www.hollandamerica.com/api/v2/price/cruise/{cruise_id}"
+    method: GET
+    headers:
+      Accept: application/json
+      country: US
+      locale: en_US
+      brand: hal
+      User-Agent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+    extract:
+      items_path: data.bestAvailable
+      price: price
+      all_in: price
+      currency: currencyCode
+      taxes_included: taxAndFeesCombined
+    note: >-
+      Kabinenweise Preise je HAL-Reise: bestAvailable.price (Endpreis inkl. Steuern),
+      .basePrice (ohne Steuern), .tax, .launchPrice, .classification
+      (restricted/flexible/baseprice), .amenities.obcUSD (Onboard-Guthaben).
+      Ohne die Header country/locale/brand antwortet die API mit HTTP 400
+      "Missing required request parameters: [country, locale, brand]".

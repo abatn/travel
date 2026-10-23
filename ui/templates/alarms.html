@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Preisalarme{% endblock %}
+{% block content %}
+<h1>Preisalarme</h1>
+<p class="muted">Ein Alarm ist eine Wächter-Konfiguration: Budget, Tiefpunkt und Preissturz werden vom
+  vorhandenen Wächter ausgewertet (alerts/watcher.py). Die Regeln sind im Wächter fest verankert.</p>
+
+<section class="card">
+  <h2>Neuer Alarm</h2>
+  <form method="post" action="/alarms" class="grid">
+    <label>Name
+      <input name="name" placeholder="z. B. Berlin → Rom" required>
+    </label>
+    <label>Kategorie
+      <select name="category">
+        {% for c in categories %}<option value="{{ c }}">{{ labels[c] }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Start<input name="origin" placeholder="BER"></label>
+    <label>Ziel<input name="destination" placeholder="FCO" required></label>
+    <label>Abreise<input type="date" name="depart_date"></label>
+    <label>Rückkehr<input type="date" name="return_date"></label>
+    <label>Personen<input type="number" name="adults" min="1" value="1"></label>
+    <label>Währung<input name="currency" value="EUR" maxlength="3"></label>
+    <label>Budget (€)<input type="number" name="budget" min="0" step="10" required></label>
+    <label>Budget gilt für
+      <select name="budget_scope">
+        <option value="per_person">je Person</option>
+        <option value="total">für die ganze Reise</option>
+      </select>
+    </label>
+    <label>Tiefpunkt-Regel
+      <select name="trough_mode">
+        <option value="median_x">unterhalb des Medians</option>
+        <option value="min_over_lookback">neuer Tiefpunkt im Fenster</option>
+        <option value="percentile">unterhalb des Perzentils</option>
+      </select>
+    </label>
+    <label>Faktor Tiefpunkt<input type="number" name="trough_factor" step="0.01" value="0.95"></label>
+    <label>Fenster (Tage)<input type="number" name="lookback_days" min="1" value="7"></label>
+    <label>Min. Beobachtungen<input type="number" name="min_observations" min="1" value="2"></label>
+    <label>Preissturz (% unter Hochwasser)<input type="number" name="drop_percent" min="1" value="10"></label>
+    <label>Cooldown (h)<input type="number" name="cooldown_hours" min="0" value="24"></label>
+    <label class="chk"><input type="checkbox" name="trough_enabled" checked> Tiefpunkt-Alarm aktiv</label>
+    <label class="chk"><input type="checkbox" name="drop_enabled" checked> Preissturz-Alarm aktiv</label>
+    <button type="submit" class="primary">Alarm anlegen</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Bestehende Alarme</h2>
+  {% if not alarms %}
+    <p class="muted">Noch keine Alarme angelegt.</p>
+  {% else %}
+  <table class="table">
+    <thead><tr><th>Name</th><th>Route</th><th>Kategorie</th><th>Budget</th><th>Messpunkte</th>
+      <th>letzter Alarm</th><th></th></tr></thead>
+    <tbody>
+      {% for a in alarms %}
+      {% set st = states.get(a.id, {}) %}
+      <tr>
+        <td><a href="/alarms/{{ a.id }}">{{ a.name }}</a></td>
+        <td>{{ a.origin }} → {{ a.destination }}</td>
+        <td>{{ labels.get(a.category, a.category) }}</td>
+        <td>{{ a.budget | money(a.currency) }} / {{ 'Person' if a.budget_scope == 'per_person' else 'Reise' }}</td>
+        <td>{{ st.get('history_size', 0) }}</td>
+        <td>{{ (st.get('last_alert') or {}).get('ts', '—') }}</td>
+        <td><a href="/alarms/{{ a.id }}">Details</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+{% endblock %}

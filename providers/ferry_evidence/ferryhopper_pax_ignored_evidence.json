@@ -1,0 +1,585 @@
+{
+ "http_status": 200,
+ "session_id": null,
+ "tools": [
+  "get_ports",
+  "get_disruptions",
+  "get_direct_connections_for_ports",
+  "search_trips",
+  "search_ferry_trips",
+  "trip_details"
+ ],
+ "call": {
+  "result": {
+   "_meta": {
+    "ferryhopper/widgetConfig": {
+     "baseUrl": "https://www.ferryhopper.com",
+     "affiliateId": "mcpint",
+     "minTurnaroundMinutes": 30
+    }
+   },
+   "content": [
+    {
+     "type": "text",
+     "text": "Found 3 itineraries across 1 leg(s).",
+     "_meta": {}
+    }
+   ],
+   "structuredContent": {
+    "legs": [
+     {
+      "departurePort": {
+       "name": "BARCELONA",
+       "code": "BRC"
+      },
+      "arrivalPort": {
+       "name": "PALMA DE MALLORCA",
+       "code": "PAL"
+      },
+      "departureDate": "2026-11-05",
+      "options": [
+       {
+        "id": "BRC/PAL/2026-11-05T21:30:00Z/40c430",
+        "segments": [
+         {
+          "vehicleIsMandatory": false,
+          "departurePort": {
+           "name": "BARCELONA",
+           "code": "BRC"
+          },
+          "arrivalPort": {
+           "name": "PALMA DE MALLORCA",
+           "code": "PAL"
+          },
+          "departureDateTime": "2026-11-05T21:30:00Z",
+          "arrivalDateTime": "2026-11-06T06:00:00Z",
+          "ownerCompany": {
+           "name": "GRANDI NAVI VELOCI",
+           "code": "GNV"
+          },
+          "marketingCompany": {
+           "name": "GRANDI NAVI VELOCI",
+           "iconURL": "https://images.ferryhopper.com/companies/optimized/GNV-min.png"
+          },
+          "vessel": {
+           "name": "TENACIA",
+           "code": "40c430"
+          },
+          "accommodations": [
+           {
+            "type": "LOUNGE_DECK",
+            "expectedPrice": {
+             "totalPriceInCents": 3668
+            }
+           },
+           {
+            "type": "SEAT_NOTNUMBERED",
+            "expectedPrice": {
+             "totalPriceInCents": 3725
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 25813
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 25813
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 25813
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 25813
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 24388
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 24388
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 24388
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 25338
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 25338
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 25338
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 25338
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 24388
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 24388
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 24388
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 24388
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 26763
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 26763
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 26763
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 26763
+            }
+           },
+           {
+            "type": "LUX_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 29138
+            }
+           },
+           {
+            "type": "LUX_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 29138
+            }
+           },
+           {
+            "type": "LUX_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 29138
+            }
+           },
+           {
+            "type": "LUX_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 29138
+            }
+           }
+          ],
+          "hasCabin": false,
+          "hasVehicles": true,
+          "hasPets": true,
+          "hasETicket": false
+         }
+        ]
+       },
+       {
+        "id": "BRC/PAL/2026-11-05T22:15:00Z/8bd563",
+        "segments": [
+         {
+          "vehicleIsMandatory": false,
+          "departurePort": {
+           "name": "BARCELONA",
+           "code": "BRC"
+          },
+          "arrivalPort": {
+           "name": "PALMA DE MALLORCA",
+           "code": "PAL"
+          },
+          "departureDateTime": "2026-11-05T22:15:00Z",
+          "arrivalDateTime": "2026-11-06T06:00:00Z",
+          "ownerCompany": {
+           "name": "BALEARIA",
+           "code": "BAL"
+          },
+          "marketingCompany": {
+           "name": "BALEARIA",
+           "iconURL": "https://images.ferryhopper.com/companies/optimized/BAL-min.png"
+          },
+          "vessel": {
+           "name": "HYPATIA DE ALEJANDRÍA",
+           "code": "8bd563"
+          },
+          "accommodations": [
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 14950
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 14950
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 14950
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 14950
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 14950
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 14950
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 14950
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 14950
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 16750
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 16750
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 16750
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 16750
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 16750
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 16750
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 16750
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 16750
+            }
+           },
+           {
+            "type": "SEAT_NOTNUMBERED",
+            "expectedPrice": {
+             "totalPriceInCents": 6500
+            }
+           },
+           {
+            "type": "SEAT_NUMBERED_STANDARD",
+            "expectedPrice": {
+             "totalPriceInCents": 6000
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 19400
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 19400
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 19400
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 19400
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 19400
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 19400
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 19400
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 19400
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 21750
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 21750
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 21750
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 21750
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 21750
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 21750
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 21750
+            }
+           },
+           {
+            "type": "PET_CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 21750
+            }
+           },
+           {
+            "type": "SEAT_NOTNUMBERED",
+            "expectedPrice": {
+             "totalPriceInCents": 8450
+            }
+           },
+           {
+            "type": "SEAT_NUMBERED_STANDARD",
+            "expectedPrice": {
+             "totalPriceInCents": 7800
+            }
+           }
+          ],
+          "hasCabin": false,
+          "hasVehicles": true,
+          "hasPets": true,
+          "hasETicket": true
+         }
+        ]
+       },
+       {
+        "id": "BRC/PAL/2026-11-05T22:30:00Z/XD",
+        "segments": [
+         {
+          "vehicleIsMandatory": false,
+          "departurePort": {
+           "name": "BARCELONA",
+           "code": "BRC"
+          },
+          "arrivalPort": {
+           "name": "PALMA DE MALLORCA",
+           "code": "PAL"
+          },
+          "departureDateTime": "2026-11-05T22:30:00Z",
+          "arrivalDateTime": "2026-11-06T05:30:00Z",
+          "ownerCompany": {
+           "name": "TRASMED",
+           "code": "TRMG"
+          },
+          "marketingCompany": {
+           "name": "TRASMED",
+           "iconURL": "https://images.ferryhopper.com/companies/optimized/TRMG-min.png"
+          },
+          "vessel": {
+           "name": "CIUDAD DE PALMA",
+           "code": "XD"
+          },
+          "accommodations": [
+           {
+            "type": "LOUNGE_DECK",
+            "expectedPrice": {
+             "totalPriceInCents": 14660
+            }
+           },
+           {
+            "type": "LOUNGE_DECK",
+            "expectedPrice": {
+             "totalPriceInCents": 4100
+            }
+           },
+           {
+            "type": "SEAT_NOTNUMBERED",
+            "expectedPrice": {
+             "totalPriceInCents": 14760
+            }
+           },
+           {
+            "type": "SEAT_NOTNUMBERED",
+            "expectedPrice": {
+             "totalPriceInCents": 6000
+            }
+           },
+           {
+            "type": "SEAT_NUMBERED_BUSINESS",
+            "expectedPrice": {
+             "totalPriceInCents": 16020
+            }
+           },
+           {
+            "type": "SEAT_NUMBERED_BUSINESS",
+            "expectedPrice": {
+             "totalPriceInCents": 6500
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 50660
+            }
+           },
+           {
+            "type": "CABIN_FULL",
+            "expectedPrice": {
+             "totalPriceInCents": 17625
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 53160
+            }
+           },
+           {
+            "type": "CABIN_FULL_WINDOW",
+            "expectedPrice": {
+             "totalPriceInCents": 20125
+            }
+           }
+          ],
+          "hasCabin": false,
+          "hasVehicles": true,
+          "hasPets": true,
+          "hasETicket": true
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "jsonrpc": "2.0",
+  "id": 3
+ },
+ "raw_call_text": "Found 3 itineraries across 1 leg(s).",
+ "_note": "tool_schemas entfernt (Groesse); vollstaendig via tools/list abrufbar"
+}

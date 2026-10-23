@@ -1,0 +1,33 @@
+# Konfiguration für verifizierte Preis-Attestierungen (M2) und x402.
+#
+# Aktuell: Base Mainnet + Coinbase CDP (siehe unten).
+# Testnet (kostenlos, ohne Account): network eip155:84532,
+# facilitator https://x402.org/facilitator (oder OpenFacilitator), auth none.
+# Wechsel ist reine Konfiguration – kein Code.
+# Jeder Wert kann zusätzlich per Umgebungsvariable überschrieben werden
+# (siehe attest/README.md).
+
+enabled: true
+
+issuer:
+  # DID des Ausstellers. Für lokal: did:web:localhost%3A8077
+  did: "did:web:reise.example"
+  key_file: "attest/keys/issuer.ed25519"   # wird beim ersten Start erzeugt
+  ttl_seconds: 300                          # Gültigkeit einer Attestierung
+
+payment:
+  price: "$0.01"           # USD-Preis pro Attestierung (x402 "exact")
+  network: "eip155:8453"   # Base Mainnet (CAIP-2)
+  asset: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"   # USDC (Circle, Base)
+  pay_to: "0x1cE5379a485a0bd726fce57BbfDfc316b0D35Cc4"
+  max_timeout_seconds: 120
+
+  facilitator:
+    # --- Mainnet: Coinbase CDP --------------------------------------------
+    url: "https://api.cdp.coinbase.com/platform/v2/x402"
+    timeout: 30
+    auth:
+      mode: "cdp_jwt"      # none | bearer | cdp_jwt
+      key_id_env: "CDP_API_KEY_ID"
+      key_secret_env: "CDP_API_KEY_SECRET"
+      alg: "auto"          # auto | ES256 | EdDSA

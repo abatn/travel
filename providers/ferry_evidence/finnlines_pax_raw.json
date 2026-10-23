@@ -1,0 +1,107 @@
+{
+ "adults_1": {
+  "http": 200,
+  "json": {
+   "data": {
+    "listTimeTableAvailability": [
+     {
+      "sailingCode": "HELTRV202611051500",
+      "departureDate": "2026-11-05",
+      "departureTime": "15:00",
+      "arrivalDate": "2026-11-06",
+      "arrivalTime": "21:00",
+      "departurePort": "FIHEL",
+      "arrivalPort": "DETRV",
+      "isAvailable": false,
+      "shipName": "FINNSTAR",
+      "crossingTime": "30:00",
+      "chargeTotal": null
+     },
+     {
+      "sailingCode": "HELTRV202611061500",
+      "departureDate": "2026-11-06",
+      "departureTime": "15:00",
+      "arrivalDate": "2026-11-07",
+      "arrivalTime": "21:00",
+      "departurePort": "FIHEL",
+      "arrivalPort": "DETRV",
+      "isAvailable": false,
+      "shipName": "FINNLADY",
+      "crossingTime": "30:00",
+      "chargeTotal": null
+     }
+    ]
+   }
+  }
+ },
+ "adults_2": {
+  "http": 200,
+  "json": {
+   "data": {
+    "listTimeTableAvailability": [
+     {
+      "sailingCode": "HELTRV202611051500",
+      "departureDate": "2026-11-05",
+      "departureTime": "15:00",
+      "arrivalDate": "2026-11-06",
+      "arrivalTime": "21:00",
+      "departurePort": "FIHEL",
+      "arrivalPort": "DETRV",
+      "isAvailable": false,
+      "shipName": "FINNSTAR",
+      "crossingTime": "30:00",
+      "chargeTotal": null
+     },
+     {
+      "sailingCode": "HELTRV202611061500",
+      "departureDate": "2026-11-06",
+      "departureTime": "15:00",
+      "arrivalDate": "2026-11-07",
+      "arrivalTime": "21:00",
+      "departurePort": "FIHEL",
+      "arrivalPort": "DETRV",
+      "isAvailable": false,
+      "shipName": "FINNLADY",
+      "crossingTime": "30:00",
+      "chargeTotal": null
+     }
+    ]
+   }
+  }
+ },
+ "adults_4": {
+  "http": 200,
+  "json": {
+   "data": {
+    "listTimeTableAvailability": [
+     {
+      "sailingCode": "HELTRV202611051500",
+      "departureDate": "2026-11-05",
+      "departureTime": "15:00",
+      "arrivalDate": "2026-11-06",
+      "arrivalTime": "21:00",
+      "departurePort": "FIHEL",
+      "arrivalPort": "DETRV",
+      "isAvailable": false,
+      "shipName": "FINNSTAR",
+      "crossingTime": "30:00",
+      "chargeTotal": null
+     },
+     {
+      "sailingCode": "HELTRV202611061500",
+      "departureDate": "2026-11-06",
+      "departureTime": "15:00",
+      "arrivalDate": "2026-11-07",
+      "arrivalTime": "21:00",
+      "departurePort": "FIHEL",
+      "arrivalPort": "DETRV",
+      "isAvailable": false,
+      "shipName": "FINNLADY",
+      "crossingTime": "30:00",
+      "chargeTotal": null
+     }
+    ]
+   }
+  }
+ }
+}

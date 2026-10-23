@@ -1,0 +1,121 @@
+# Test-Registry fuer die Faehren-Quellen (End-to-End-Test gegen providers/runner.py).
+# Nur fuer den Test - der produktive Eintrag landet in providers/registry.yaml.
+version: 1
+
+defaults:
+  timeout_seconds: 240
+  max_workers: 4
+  rank_by: price
+  currency: EUR
+
+providers:
+  # 1) Ferryhopper MCP (Streamable HTTP, keyless) - Live-Preise + Verfuegbarkeit
+  - id: ferryhopper_mcp
+    category: ferries
+    transport: mcp_http
+    enabled: true
+    price_scope: per_person
+    price_scope_confidence: confirmed
+    url: "https://mcp.ferryhopper.com/mcp"
+    tool: search_ferry_trips
+    note: >-
+      Live-Fahrten mit Preisen in EUR-Cents (expectedPrice.totalPriceInCents) und
+      Verfuegbarkeitsflags (hasCabin/hasVehicles/hasPets/hasETicket).
+      Ein Angebot je Tarifklasse (expand) - Sitzplatzklassen sind je Person,
+      Kabinenklassen je Kabine (siehe Doku). Waehrung kommt aus dem Runner-Fallback
+      (EUR) - der MCP nennt keine Waehrung, Ferryhopper rechnet in EUR-Basis.
+    headers:
+      Accept: "application/json, text/event-stream"
+    params:
+      legs:
+        - departureLocation: "{origin}"
+          arrivalLocation: "{destination}"
+          departureDate: "{depart_date}"
+    extract:
+      items_path: legs
+      expand:
+        path: [options, segments, accommodations]
+        price: expectedPrice.totalPriceInCents
+        price_divisor: 100
+        name: type
+        provider: segments[0].marketingCompany.name
+        booking_url: null
+
+  # 2) trvl (lokal installiertes MCP, keyless) - Ground-/Faehren-Suche
+  - id: trvl_ferries
+    category: ferries
+    transport: mcp_stdio
+    enabled: true
+    price_scope: per_person
+    price_scope_confidence: confirmed
+    command: ["/home/batnini/.local/bin/trvl", "mcp"]
+    tool: travel
+    note: >-
+      trvl-Router mit intent=search_ground und type=ferry. Preise je erwachsener
+      Person ohne Fahrzeug (die Ground-Suche kennt keinen Passagier-Parameter).
+      Live-Preise via Ferryhopper-MCP; DFDS/Viking Line/Eckerö Line liefern
+      Referenz-Fahrpläne (Kennzeichnung "Reference" in amenities).
+    params:
+      intent: search_ground
+      params:
+        from: "{origin}"
+        to: "{destination}"
+        date: "{depart_date}"
+        type: "ferry"
+    extract:
+      items_path: result.routes
+      price: price
+      currency: currency
+      provider: provider
+      booking_url: booking_url
+      name: departure.station
+      legs: legs
+      warnings: warnings
+
+  # 3) Finnlines GraphQL (AppSync, oeffentlicher SPA-Key) - Live-Preis + isAvailable
+  - id: finnlines_ferry
+    category: ferries
+    transport: http
+    enabled: true
+    price_scope: per_person
+    price_scope_confidence: confirmed
+    url: "https://dm3xyy44wbeivgqmeymvmw22be.appsync-api.eu-central-1.amazonaws.com/graphql"
+    method: POST
+    note: >-
+      Live-Fahrplan mit chargeTotal (EUR-Cents) und isAvailable. chargeTotal skaliert
+      linear mit der Passagierzahl (1=17.60 / 2=35.20 / 4=70.40 EUR) -> Preis ist je
+      Person. {origin}/{destination} = Finnlines-Hafenkuerzel (FINLI, SEKPS, FIHEL,
+      DETRV, FINLI, ...). x-api-key ist der oeffentliche SPA-Client-Identifier.
+    headers:
+      Content-Type: application/json
+      x-api-key: "da2-zvuktusyubbstlw7khps4vyeie"
+      Origin: "https://booking.finnlines.com"
+      Referer: "https://booking.finnlines.com/"
+      User-Agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    body:
+      query: "query ListTimeTableAvailability($query:TimetableQuery!){listTimeTableAvailability(query:$query){...on Timetable{sailingCode departureDate departureTime arrivalDate arrivalTime departurePort arrivalPort isAvailable shipName crossingTime chargeTotal}}}"
+      variables:
+        query:
+          currency: "{currency}"
+          language: EN
+          tariff:
+            - legCode: 1
+              type: SPECIAL
+          sailings:
+            - legCode: 1
+              departurePort: "{origin}"
+              arrivalPort: "{destination}"
+              startDate: "{depart_date}"
+              numberOfDays: 1
+          passengers:
+            - legCode: 1
+              id: 1
+              type: ADULT
+          accommodations: []
+    extract:
+      items_path: data.listTimeTableAvailability
+      price: chargeTotal
+      price_divisor: 100
+      name: shipName
+      provider: null
+      booking_url: null

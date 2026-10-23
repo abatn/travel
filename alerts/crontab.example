@@ -1,0 +1,11 @@
+# Preiswächter per cron (Alternative zum systemd-Timer).
+# Installation:  crontab -e   und eine der Zeilen eintragen (Pfade anpassen!).
+#
+# Stündlicher Snapshot + Regelprüfung (Budget/Tiefpunkt):
+#   7 * * * * /usr/bin/python3 /home/batnini/mimo-agents/alerts/watcher.py --config /home/batnini/mimo-agents/alerts/alert_config.example.yaml --once >> /home/batnini/mimo-agents/alerts/state/cron.log 2>&1
+#
+# Tägliche Historie-Auswertung (separate Datei, damit sie unabhängig vom Snapshot-Job läuft):
+#   17 6 * * * /usr/bin/python3 /home/batnini/mimo-agents/alerts/watcher.py --config /home/batnini/mimo-agents/alerts/alert_config.example.yaml --report >> /home/batnini/mimo-agents/alerts/state/daily_report.log 2>&1
+#
+# Ohne cron/systemd (Container): Dauerbetrieb im eigenen Scheduler:
+#   python3 /home/batnini/mimo-agents/alerts/watcher.py --config ... --loop --interval 3600

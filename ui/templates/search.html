@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Reise suchen{% endblock %}
+{% block content %}
+<h1>Reise suchen</h1>
+{% if error %}<p class="alert error">{{ error }}</p>{% endif %}
+
+<form class="card search" method="post" action="/api/search" id="searchform">
+  <div class="grid">
+    <label>Start
+      <input name="origin" value="{{ request.query_params.get('origin', 'BER') }}" placeholder="BER" required>
+    </label>
+    <label>Ziel
+      <input name="destination" value="{{ request.query_params.get('destination', 'FCO') }}" placeholder="FCO" required>
+    </label>
+    <label>Abreise
+      <input type="date" name="depart_date" value="{{ default_depart }}" required>
+    </label>
+    <label>Rückkehr
+      <input type="date" name="return_date" value="{{ default_return }}">
+    </label>
+    <label>Erwachsene
+      <input type="number" name="adults" min="1" max="9" value="1">
+    </label>
+    <label>Kinder
+      <input type="number" name="children" min="0" max="8" value="0">
+    </label>
+    <label>Währung
+      <input name="currency" value="EUR" maxlength="3">
+    </label>
+    <label>Max. Stopps
+      <select name="max_stops">
+        <option value="one_stop">max. 1 Stopp</option>
+        <option value="any">beliebig</option>
+      </select>
+    </label>
+    <label>Hotelsterne
+      <input type="number" name="hotel_stars" min="1" max="5" value="4">
+    </label>
+    <label>Budget (€)
+      <input type="number" name="budget" min="0" step="10" placeholder="optional">
+    </label>
+  </div>
+
+  <fieldset class="cats">
+    <legend>Was suchen?</legend>
+    {% for c in categories %}
+    <label class="cat">
+      <input type="checkbox" name="categories" value="{{ c }}" {% if c == 'flights' %}checked{% endif %}>
+      {{ labels[c] }}
+    </label>
+    {% endfor %}
+  </fieldset>
+
+  <details class="more">
+    <summary>Erweiterte Angaben (Fähren / Kreuzfahrten)</summary>
+    <div class="grid">
+      <label>Fähre ab
+        <input name="ferry_origin" placeholder="z. B. Palma">
+      </label>
+      <label>Fähre nach
+        <input name="ferry_destination" placeholder="z. B. Barcelona">
+      </label>
+      <label>Kreuzfahrt ab
+        <input name="cruise_origin" placeholder="z. B. HAM">
+      </label>
+      <label>Kreuzfahrt nach
+        <input name="cruise_destination" placeholder="z. B. MIA">
+      </label>
+      <label>Zeitlimit je Quelle (s)
+        <input type="number" name="timeout_seconds" min="10" max="240" placeholder="Standard">
+      </label>
+    </div>
+  </details>
+
+  <button type="submit" class="primary">Suche starten</button>
+  <span class="hint">Die Suche fragt alle Quellen parallel ab (bis ~2 Minuten). Die Ergebnisseite zeigt
+    währenddessen live, welche Quelle antwortet.</span>
+</form>
+
+{% if landing_links %}
+<section class="card">
+  <h2>Nach Reiseart suchen</h2>
+  <ul class="linklist">
+    {% for slug, label in landing_links %}
+    <li><a href="/{{ slug }}">{{ label }}</a></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section class="card">
+  <h2>Quellen derzeit aktiv</h2>
+  {% for cat, items in status.categories.items() %}
+    {% if cat in ['flights','hotels','ferries','cruises'] %}
+    <h3>{{ status.labels.get(cat, cat) }} <span class="muted">({{ items|length }} Quellen)</span></h3>
+    <ul class="sources">
+      {% for it in items %}
+      <li>
+        <span class="dot {{ 'ok' if it.enabled and not it.blocked_until else ('warn' if it.enabled else 'off') }}"></span>
+        <b>{{ it.id }}</b>
+        <span class="muted">{{ it.transport }}</span>
+        {% if it.blocked_until %}<span class="tag warn">gesperrt bis {{ it.blocked_until }}</span>{% endif %}
+        {% if not it.enabled %}<span class="tag off">deaktiviert</span>{% endif %}
+        {% if it.note %}<span class="muted small">{{ it.note }}</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  {% endfor %}
+</section>
+{% endblock %}

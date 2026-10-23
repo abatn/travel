@@ -1,0 +1,50 @@
+{
+ "http_status": 200,
+ "session_id": null,
+ "tools": [
+  "get_ports",
+  "get_disruptions",
+  "get_direct_connections_for_ports",
+  "search_trips",
+  "search_ferry_trips",
+  "trip_details"
+ ],
+ "call": {
+  "result": {
+   "_meta": {
+    "ferryhopper/widgetConfig": {
+     "baseUrl": "https://www.ferryhopper.com",
+     "affiliateId": "mcpint",
+     "minTurnaroundMinutes": 30
+    }
+   },
+   "content": [
+    {
+     "type": "text",
+     "text": "Found 0 itineraries across 1 leg(s).",
+     "_meta": {}
+    }
+   ],
+   "structuredContent": {
+    "legs": [
+     {
+      "departurePort": {
+       "name": "HELSINKI (ALL PORTS)",
+       "code": "HEL00"
+      },
+      "arrivalPort": {
+       "name": "TALLINN",
+       "code": "TAL"
+      },
+      "departureDate": "2026-11-05",
+      "options": []
+     }
+    ]
+   }
+  },
+  "jsonrpc": "2.0",
+  "id": 3
+ },
+ "raw_call_text": "Found 0 itineraries across 1 leg(s).",
+ "_note": "tool_schemas entfernt (Groesse); vollstaendig via tools/list abrufbar"
+}

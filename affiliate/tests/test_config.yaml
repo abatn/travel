@@ -1,0 +1,23 @@
+# Testkonfiguration: aktiviert den Demo-Partner mit offensichtlich fiktiver ID.
+# Wird nur von den automatisierten Tests verwendet (AFFILIATE_CONFIG=...).
+version: 1
+
+settings:
+  verify_before_show: true
+  verify_timeout_seconds: 4
+  verify_cache_seconds: 60
+
+partners: {}
+
+demo:
+  network: "TESTNETZWERK (nur Test)"
+  categories: [flights, hotels, ferries, cruises]
+  enabled: true
+  id: "TESTMARKER-0000"
+  parameter: ref
+  link_template: "{target}?ref={id}&campaign={campaign}"
+  campaign: "TESTCAMPAIGN"
+  domains: [booking.com, example.invalid, 127.0.0.1]
+  cookie_days: 0
+  commission: "keine (Test)"
+  source: "Testkonfiguration"

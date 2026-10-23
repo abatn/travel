@@ -1,0 +1,26 @@
+# Mainnet-Beispiel: Coinbase CDP Facilitator.
+# Kopieren nach attest/config.yaml oder per ATTEST_* Umgebungsvariablen setzen.
+# Es ist KEINE Code-Änderung nötig.
+
+enabled: true
+
+issuer:
+  did: "did:web:reise.example"
+  key_file: "attest/keys/issuer.ed25519"
+  ttl_seconds: 300
+
+payment:
+  price: "$0.002"
+  network: "eip155:8453"                                  # Base Mainnet
+  asset: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"     # USDC (Circle)
+  pay_to: "0x1cE5379a485a0bd726fce57BbfDfc316b0D35Cc4"
+  max_timeout_seconds: 120
+
+  facilitator:
+    url: "https://api.cdp.coinbase.com/platform/v2/x402"
+    timeout: 30
+    auth:
+      mode: "cdp_jwt"
+      key_id_env: "CDP_API_KEY_ID"
+      key_secret_env: "CDP_API_KEY_SECRET"
+      alg: "auto"

@@ -1,0 +1,90 @@
+# Affiliate-Konfiguration
+#
+# GRUNDSATZ: Ohne eingetragene ID wird KEIN Affiliate-Link erzeugt. Es sind hier
+# bewusst keine echten IDs hinterlegt - eine Provision kann nur erhalten, wer im
+# jeweiligen Programm angemeldet ist. Trage die eigene ID (und ggf. die Kampagnen-
+# ID) aus dem Partner-Dashboard ein, dann werden die Links automatisch getaggt.
+#
+# link_template: Das Template MUSS aus dem Link-Generator des jeweiligen Netzwerks
+#   stammen. Platzhalter: {id} = Publisher-/Marker-ID, {campaign} = Programm-/Kampagnen-ID,
+#   {target} = Ziel-URL roh, {target_encoded} = Ziel-URL URL-kodiert (fuer Redirector).
+#   Fehlt das Template, wird nicht getaggt (kein geratenes Netzwerk-Format).
+
+version: 1
+
+settings:
+  # Erreichbarkeitspruefung vor der Anzeige (HEAD/GET, kurzer Timeout)
+  verify_before_show: true
+  verify_timeout_seconds: 6
+  verify_cache_seconds: 3600
+  # Nur diese Hosts duerfen geprueft werden (Ziel + Netzwerk-Redirector).
+  allow_private_hosts: false
+
+partners:
+  # ---------------------------------------------------------------- Awin (Hotel/Flug)
+  awin:
+    network: Awin
+    categories: [hotels, flights]
+    id: ""                      # Publisher-ID (awinaffid)
+    parameter: awinaffid
+    # Dokumentiertes Awin-Deep-Link-Format (cread.php)
+    link_template: "https://www.awin1.com/cread.php?awinmid={campaign}&awinaffid={id}&ued={target_encoded}"
+    campaign: ""                # Advertiser-/Programm-ID (awinmid) aus dem Dashboard
+    domains: [booking.com, edreams.de, edreams.com, opodo.de, hotels.com]
+    cookie_days: 30
+    commission: "2-6 % je Programm"
+    source: "Awin Help: Understanding cookies / Merchant-Profile (30 Tage Standard)"
+
+  # ---------------------------------------------------------------- Travelpayouts (Flug/Hotel)
+  travelpayouts:
+    network: Travelpayouts
+    categories: [flights, hotels, ferries]
+    id: ""                      # Marker/Promocode
+    parameter: marker
+    # Template aus dem Travelpayouts-Link-Generator kopieren (Dashboard -> Tools -> Link)
+    link_template: ""
+    domains: [aviasales.com, aviasales.ru, kiwi.com, hotellook.com, 12go.asia]
+    cookie_days: 30
+    commission: "Fluege 1,1-1,5 %, Hotels 4-5 % (Netzwerk-Angabe)"
+    source: "support.travelpayouts.com (Brand-Seiten, Cookie-Laufzeit)"
+
+  # ---------------------------------------------------------------- Direct Ferries (Faehre)
+  directferries:
+    network: Direct Ferries
+    categories: [ferries]
+    id: ""
+    parameter: affid
+    # Template aus dem Direct-Ferries-Partnerbereich (Tracking-Link-Generator)
+    link_template: ""
+    domains: [directferries.com, directferries.de, directferries.co.uk]
+    cookie_days: 30
+    commission: "50 % der DF-Provision (effektiv 2-4 %)"
+    source: "directferries.com/affiliate.htm; TradeDoubler-Programmseite"
+
+  # ---------------------------------------------------------------- CruiseDirect (Kreuzfahrt)
+  cruisedirect:
+    network: CruiseDirect (CJ)
+    categories: [cruises]
+    id: ""
+    parameter: sid
+    link_template: ""
+    domains: [cruisedirect.com]
+    cookie_days: 45
+    commission: "3 % des provisionsfaehigen Reisepreises"
+    source: "cruisedirect.com/affiliates (45-Tage-Cookie)"
+
+# ---------------------------------------------------------------------------
+# TEST-PARTNER - nur fuer automatisierte Tests, in der UI als Testkennung markiert.
+# Wird im Normalbetrieb nicht verwendet (enabled: false).
+demo:
+  network: "TESTNETZWERK (nur Test)"
+  categories: [flights, hotels, ferries, cruises]
+  enabled: false
+  id: "TESTMARKER-0000"
+  parameter: ref
+  link_template: "{target}?ref={id}&campaign={campaign}"
+  campaign: "TESTCAMPAIGN"
+  domains: [example.invalid]
+  cookie_days: 0
+  commission: "keine (Test)"
+  source: "Testkonfiguration"

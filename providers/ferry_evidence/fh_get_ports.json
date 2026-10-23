@@ -1,0 +1,140 @@
+{
+ "http_status": 200,
+ "tools": [
+  "get_ports",
+  "get_disruptions",
+  "get_direct_connections_for_ports",
+  "search_trips",
+  "search_ferry_trips",
+  "trip_details"
+ ],
+ "_note": "get_ports-Antwort gekuerzt: 1453 Ports, hier 25 Beispiele; vollstaendige Liste in fh_ports.json",
+ "ports_total": 1453,
+ "ports_sample": [
+  {
+   "name": "BELLE-ÎLE (THE PALACE)",
+   "countryName": "France",
+   "code": "FRLP2"
+  },
+  {
+   "name": "ABBADIA L.",
+   "countryName": "Italy",
+   "code": "ITABB"
+  },
+  {
+   "name": "ACCIAROLI",
+   "countryName": "Italy",
+   "code": "AOL"
+  },
+  {
+   "name": "MILOS",
+   "countryName": "Greece",
+   "code": "MLO"
+  },
+  {
+   "name": "AEGIALI",
+   "countryName": "Greece",
+   "code": "AIG"
+  },
+  {
+   "name": "AEGINA (ALL PORTS)",
+   "countryName": "Greece",
+   "code": "AEG00"
+  },
+  {
+   "name": "AEGINA",
+   "countryName": "Greece",
+   "code": "AEG"
+  },
+  {
+   "name": "AEOLIAN ISLANDS (ALL PORTS)",
+   "countryName": "Italy",
+   "code": "AEL00"
+  },
+  {
+   "name": "AGAETE",
+   "countryName": "Spain",
+   "code": "ES_AGA"
+  },
+  {
+   "name": "AGATHONISI",
+   "countryName": "Greece",
+   "code": "AGA"
+  },
+  {
+   "name": "AG. KIRIAKI",
+   "countryName": "Greece",
+   "code": "GRAKM"
+  },
+  {
+   "name": "AG.MARINA (AEGINA)",
+   "countryName": "Greece",
+   "code": "AAM"
+  },
+  {
+   "name": "AG.MARINA (LEROS)",
+   "countryName": "Greece",
+   "code": "AGM"
+  },
+  {
+   "name": "AGIOKAMPOS",
+   "countryName": "Greece",
+   "code": "AKA"
+  },
+  {
+   "name": "AG. EFSTRATIOS",
+   "countryName": "Greece",
+   "code": "AES"
+  },
+  {
+   "name": "AG. KIRIKOS",
+   "countryName": "Greece",
+   "code": "AGK"
+  },
+  {
+   "name": "AG. KONSTANTINOS",
+   "countryName": "Greece",
+   "code": "AGC"
+  },
+  {
+   "name": "AG. NIKOLAOS",
+   "countryName": "Greece",
+   "code": "AGN"
+  },
+  {
+   "name": "AG. NIKOLAOS (ZAKYNTHOS)",
+   "countryName": "Greece",
+   "code": "SHI"
+  },
+  {
+   "name": "AG. STEFANOS",
+   "countryName": "Greece",
+   "code": "GRASF"
+  },
+  {
+   "name": "AGISTRI (ALL PORTS)",
+   "countryName": "Greece",
+   "code": "AG00"
+  },
+  {
+   "name": "SKOPELOS (AGNONTAS)",
+   "countryName": "Greece",
+   "code": "ANS"
+  },
+  {
+   "name": "AGROPOLI",
+   "countryName": "Italy",
+   "code": "AGR"
+  },
+  {
+   "name": "AIRLIE",
+   "countryName": "Australia",
+   "code": "AUWSY"
+  },
+  {
+   "name": "AJACCIO",
+   "countryName": "France",
+   "code": "AJA"
+  }
+ ]
+}

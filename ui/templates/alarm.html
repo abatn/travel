@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Alarm {{ alarm.name }}{% endblock %}
+{% block content %}
+<p><a href="/alarms">← alle Alarme</a></p>
+<h1>{{ alarm.name }}</h1>
+<p class="muted">{{ labels.get(alarm.category, alarm.category) }} · {{ alarm.origin }} → {{ alarm.destination }}
+  · {{ alarm.depart_date }}{% if alarm.return_date %} → {{ alarm.return_date }}{% endif %}
+  · {{ alarm.adults }} Person(en) · angelegt {{ alarm.created_at }}</p>
+
+<div class="card">
+  <h2>Regeln</h2>
+  <table class="table kv">
+    <tr><th>Budget</th><td>{{ alarm.budget | money(alarm.currency) }}
+      ({{ 'je Person' if alarm.budget_scope == 'per_person' else 'für die ganze Reise' }})</td></tr>
+    <tr><th>Tiefpunkt</th>
+      <td>{% if alarm.trough_enabled %}aktiv – Modus {{ alarm.trough_mode }}, Faktor {{ alarm.trough_factor }},
+        Fenster {{ alarm.lookback_days }} Tage, mind. {{ alarm.min_observations }} Beobachtungen
+        {% else %}inaktiv{% endif %}</td></tr>
+    <tr><th>Preissturz</th>
+      <td>{% if alarm.drop_enabled %}aktiv – ab {{ alarm.drop_percent }} % unter der Hochwasser-Marke
+        {% else %}inaktiv{% endif %}</td></tr>
+    <tr><th>Cooldown</th><td>{{ alarm.cooldown_hours }} h</td></tr>
+    <tr><th>Konfiguration</th><td><code>{{ alarm.config_path }}</code></td></tr>
+  </table>
+  <form method="post" action="/alarms/{{ alarm.id }}/run">
+    <button type="submit" class="primary">Wächter jetzt einmal laufen lassen</button>
+  </form>
+  <p class="muted small">Der Wächter liest seine Regeln aus dieser Konfiguration; die Regelauswertung selbst
+    liegt unverändert in alerts/watcher.py.</p>
+</div>
+
+<div class="card">
+  <h2>Messwerte</h2>
+  <p class="muted">{{ state.history_size }} Beobachtungen ·
+    Median {{ state.median | money(alarm.currency) }} ·
+    Minimum {{ state.min | money(alarm.currency) }} ·
+    Maximum {{ state.max | money(alarm.currency) }}</p>
+  {% if state.history %}
+  <table class="table">
+    <thead><tr><th>Zeit</th><th>Preis</th><th>Quelle</th></tr></thead>
+    <tbody>
+      {% for h in state.history[-12:]|reverse %}
+      <tr><td>{{ h.ts }}</td><td>{{ h.effective_price | money(h.currency) }}</td><td>{{ h.source }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">Noch keine Beobachtung – der Wächter muss einmal laufen.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Ausgelöste Alarme</h2>
+  {% if state.alerts %}
+  <table class="table">
+    <thead><tr><th>Zeit</th><th>Regel</th><th>Preis</th><th>Begründung</th></tr></thead>
+    <tbody>
+      {% for a in state.alerts|reverse %}
+      <tr>
+        <td>{{ a.ts }}</td><td>{{ a.rule }}</td>
+        <td>{{ a.price | money(a.currency) }}</td>
+        <td class="small">{{ a.details.text if a.details else '' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">Noch kein Alarm ausgelöst.</p>
+  {% endif %}
+  {% if state.pending %}
+  <h3>Offene Zustellungen</h3>
+  <ul class="notes">
+    {% for p in state.pending %}
+    <li>{{ p.status }} · {{ p.attempts }} Versuch(e) · {{ p.event_key[:10] }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</div>
+{% endblock %}

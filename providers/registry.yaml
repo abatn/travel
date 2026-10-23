@@ -1,0 +1,833 @@
+# Provider-Registry: alle Preisquellen für Flüge und Hotels.
+#
+# NEUE QUELLE HINZUFÜGEN = hier einen Eintrag ergänzen (kein Code, kein Neustart nötig).
+#   transport: mcp_stdio | mcp_http | http | cli
+#   params:    Platzhalter {origin} {destination} {depart_date} {return_date} {adults}
+#              {children} {currency} {hotel_stars} {max_stops} {query} {nights} {one_way}
+#   extract:   Pfade in der Antwort ("result.flights", "hotels", …) bzw. Spalten einer
+#              Markdown-Tabelle (parser: table) – Preis, Währung, Stopps, Endpreis,
+#              Koordinaten, Sterne, Buchungslink.
+#   enabled:   false -> Quelle wird übersprungen (z. B. aktuell blockiert/limitiert).
+version: 1
+
+defaults:
+  timeout_seconds: 240
+  max_workers: 8
+  rank_by: price          # price | all_in
+  currency: EUR
+  # Circuit Breaker: eine Quelle, die kuerzlich ein Raten-Limit hatte, wird fuer
+  # eine Abklingzeit uebersprungen (spart Kontingent, beschleunigt den Lauf).
+  circuit_breaker:
+    enabled: true
+    cooldown_seconds: 900     # Grundfenster; jeder weitere Fehlversuch verdoppelt es (max. 1 h)
+    retries: 2                # erneute Versuche bei 429/Timeout/5xx mit Backoff + Jitter
+    backoff_seconds: 3        # Basiswartezeit vor dem ersten Wiederversuch
+  # Plausibilitaetspruefung: eine Quelle kann formal gueltig antworten und dabei
+  # Unsinn melden (z. B. 0,01 EUR). Solche Angebote werden verworfen, die Quelle
+  # wird als korrupt gemeldet und ihre Tarife nicht fuer den Vergleich benutzt.
+  plausibility:
+    enabled: true
+    min_price: 1.00             # absolute Untergrenze (ein Flugpreis liegt darueber)
+    # Fachliche Untergrenzen: darunter kann der Preis nicht echt sein
+    min_price_by_category:
+      flights: 4.99             # kein Anbieter verkauft einen Flug unter ~5 EUR
+      ferries: 3.00             # Faehre je Person/ Fahrzeug
+      cruises: 40.00            # Kreuzfahrt je Person und Tag
+      hotels: 5.00              # Hotelzimmer je Nacht
+    suspicious_values: [0.01, 0.1, 0.5, 1.0]   # typische Fehlerpreise
+    # Ausreisser innerhalb einer Quelle: ein Preis unter diesem Anteil des Medians
+    # der EIGENEN Quelle ist ein Datenfehler (typisch: um Groessenordnungen daneben).
+    max_ratio_within_source: 0.15
+    min_items_within_source: 2
+    # Vergleich mit dem Marktmedian: ABGESCHALTET (0 = aus). Der Marktmedian haengt
+    # davon ab, welche Quellen antworten und welche Tarife sie liefern - im Test
+    # wurde ein korrekter Preis von 29,58 EUR faelschlich verworfen, weil zwei
+    # Quellen nur teure Tarife (143-216 EUR) gemeldet hatten. Die belastbare
+    # Groesse ist der Ausreisser innerhalb der eigenen Quelle.
+    max_ratio_to_median: 0
+    min_sources_for_ratio: 3
+  # Multi-Kriterien-Score je Angebot (Muster aus der Benchmark-Recherche).
+  # Gates sind harte Ausschlusskriterien, Gewichte weisen die Zielgroesse.
+  scoring:
+    enabled: true
+    weights: {price: 1.0, stops: 0.35, duration: 0.25, depart_time: 0.15, baggage: 0.1}
+    profiles:
+      budget:  {price: 1.0, stops: 0.15, duration: 0.1, depart_time: 0.05, baggage: 0.0}
+      comfort: {price: 0.6, stops: 0.5, duration: 0.5, depart_time: 0.3, baggage: 0.3}
+    gates: {max_stops: 1}
+  score_profile: comfort      # Default-Profil der Anfrage (budget | comfort)
+
+providers:
+  # ---------------------------------------------------------------- FLÜGE
+  - id: trvl_flights
+    price_scope: per_person
+    category: flights
+    transport: mcp_stdio
+    enabled: true
+    affiliate:
+      partner: null
+      note: "Buchungslinks zeigen u. a. auf Ryanair/Wizz/easyJet - dort keine Provision (Travelpayouts-Liste). Nur Links zu Partnern (z. B. Kiwi) werden getaggt."
+    command: ["/home/batnini/.local/bin/trvl", "mcp"]
+    tool: travel
+    note: >-
+      Google Flights + Kiwi + Skiplagged. Gepäckfilter (carry_on_bags/checked_bags)
+      aktivieren all_in_cost (Endpreis inkl. Gepäck) je Tarif.
+    params:
+      intent: search_flights
+      params:
+        origin: "{origin}"
+        destination: "{destination}"
+        departure_date: "{depart_date}"
+        return_date: "{return_date}"
+        currency: "{currency}"
+        max_stops: "{max_stops}"
+        carry_on_bags: 1
+        checked_bags: 1
+    extract:
+      items_path: result.flights
+      price: price
+      currency: currency
+      stops: stops
+      all_in: all_in_cost
+      bag_breakdown: bag_breakdown
+      provider: provider
+      legs: legs
+      warnings: warnings
+      booking_url: booking_url
+  - id: fli_flights
+    price_scope: per_person
+    category: flights
+    transport: mcp_stdio
+    enabled: true
+    affiliate:
+      partner: travelpayouts
+      note: "Google-Flights-Ableger; Links ggf. ueber Travelpayouts taggbar, wenn der Zielhost passt."
+    command: ["/home/batnini/.local/bin/fli-mcp"]
+    tool: search_flights
+    note: >-
+      Zweite Engine (Google Flights direkt). Liefert für manche Routen 0 Treffer –
+      der Runner toleriert das (Status ok, 0 Angebote).
+    params:
+      origin: "{origin}"
+      destination: "{destination}"
+      departure_date: "{depart_date}"
+      return_date: "{return_date}"
+      max_stops: "{max_stops}"
+    extract:
+      items_path: flights
+      price: [price, price.amount, amount]
+      currency: [currency, price.currency]
+      stops: [stops, stops.count, num_stops]
+      provider: [provider, airline]
+      booking_url: [booking_url, url, deep_link]
+      legs: legs
+  - id: skiplagged_flights
+    price_scope: per_person
+    price_scope_confidence: confirmed
+    category: flights
+    transport: mcp_http
+    enabled: true
+    url: https://mcp.skiplagged.com/mcp
+    tool: sk_flights_search
+    note: "Metasuche; Preise in USD (umgerechnet nur mit belegtem Kurs). Antwort kommt mal strukturiert, mal nur als Markdown-Tabelle -> Fallback-Extraktion."
+    params:
+      origin: "{origin}"
+      destination: "{destination}"
+      departureDate: "{depart_date}"
+      returnDate: "{return_date}"
+      adults: "{adults}"
+    coerce:
+      adults: int
+    min_interval_seconds: 60
+    max_calls_per_hour: 20
+    extract:
+      items_path: flights
+      price: price.amount
+      currency: price.currency
+      stops: layovers
+      provider: airlines
+      name: airlines
+      identity: id
+      booking_url: deepLink
+      warnings: attributes
+      fallback:
+        parser: table
+        table:
+          price_col: 0
+          stops_col: 2
+          name_col: 4
+          url_col: -1
+          price_regex: '[0-9][0-9.,]*'
+          stops_regex: '([0-9]+) stops'
+          url_regex: '\((https?://[^)]+)\)'
+    affiliate:
+      partner: null
+      note: "Metasuche ohne eigenes Partnerprogramm in der Auswahl."
+  - id: rome_hotel_taxes
+    price_scope: per_night
+    category: hotels
+    transport: mcp_stdio
+    enabled: true
+    affiliate:
+      partner: null
+      note: "Datenquelle fuer Steuern, kein Buchungsprogramm."
+    command: ["python3", "/home/batnini/mimo-agents/rome-2star/worker_c/rome_hotel_taxes_mcp.py"]
+    tool: search_hotels_with_itemized_taxes
+    note: >-
+      Google-Hotels-Herkunft mit steuerinklusive Endsumme und aufgeschlüsselten
+      Steuer-/Gebührenpositionen je OTA-Kanal (Booking/Agoda/Hostelworld).
+      booking.com wird nicht kontaktiert (kein WAF).
+    params:
+      location: "{city}"
+      check_in: "{depart_date}"
+      check_out: "{return_date}"
+      adults: "{adults}"
+      children: "{children}"
+      rooms: 1
+      currency: "{currency}"
+      stars: ["{hotel_stars}"]
+      max_hotels: 12
+    coerce:
+      adults: int
+      children: int
+      stars: int_list
+    extract:
+      items_path: hotels
+      expand:
+        path: rates
+        price: total
+        currency: currency
+        all_in: total
+        provider: provider
+        booking_url: booking_url
+        name: name
+        stars: stars
+        lat: lat
+        lon: lng
+  - id: skiplagged_hotels
+    category: hotels
+    transport: mcp_http
+    enabled: false
+    url: "https://mcp.skiplagged.com/mcp"
+    tool: sk_hotel_search
+    note: >-
+      Aktivieren, sobald der Server antwortet (während der Registry-Erstellung
+      lieferte er für Rome 0 Tools bzw. Timeouts); taxesAndFeesInDollars war null.
+    params:
+      location: "{destination}"
+      check_in: "{depart_date}"
+      check_out: "{return_date}"
+      adults: "{adults}"
+    extract:
+      items_path: hotels
+      price: [price, price.amount]
+      currency: currency
+      name: name
+      lat: lat
+      lon: lng
+
+  # ------------------- NEU (Recherche 21.10.2026, keyless, mit Steuerfeldern)
+  - id: maqami-travel
+    price_scope: total
+    category: flights
+    transport: mcp_http
+    enabled: true
+    affiliate:
+      partner: null
+      note: "Kein Partnerprogramm bekannt."
+    url: "https://mcp.maqami.co/"
+    tool: post_flights_rates
+    note: >-
+      Bislang EIN keyless Flugserver, der Steuern/Gebuehren explizit ausweist:
+      pricing.display = {base, taxes, fees, total}. total = Endpreis inkl. Steuer fuer
+      ALLE Passagiere (1 Erw. 369.25 EUR / 2 Erw. 738.50 EUR im Test).
+      Repo: github.com/negm17111995/mcp-server (MIT, Aktivitaet 2026-10-17).
+    params:
+      legs:
+        - origin: "{origin}"
+          destination: "{destination}"
+          date: "{depart_date}"
+          direction: OUTBOUND
+        - origin: "{destination}"
+          destination: "{origin}"
+          date: "{return_date}"
+          direction: INBOUND
+      adults: "{adults}"
+      currency: "{currency}"
+      country: DE
+    coerce:
+      adults: int
+    extract:
+      items_path: data[0].journeys
+      price: cheapestOffer.pricing.display.total
+      currency: cheapestOffer.pricing.display.currency
+      stops_sum: segments
+      all_in: cheapestOffer.pricing.display.total
+      provider: segments[0].carrier.name
+      booking_url: cheapestOffer.bookingUrl
+      legs: segments
+  - id: octotrip-flights
+    price_scope: total
+    category: flights
+    transport: mcp_http
+    enabled: true
+    affiliate:
+      partner: null
+      note: "Kein Partnerprogramm bekannt."
+    url: "https://mcp.octotrip.app/flights/mcp"
+    tool: search
+    note: >-
+      EUR als Standardwaehrung (keine Umrechnung noetig), Preis = Trip-Gesamtpreis fuer
+      alle Passagiere, results[].baggage nennt das Gepaeck. Repo: github.com/octotrip/flights (MIT).
+      Achtung: blockiert curl-User-Agents, Rate-Limit 1 rps, Affiliate-Links, ~15 min Gueltigkeit.
+    params:
+      origin: "{origin}"
+      destination: "{destination}"
+      departure_date: "{depart_date}"
+      return_date: "{return_date}"
+      adults: "{adults}"
+      trip_class: Y
+      currency: "{currency}"
+      locale: en
+    coerce:
+      adults: int
+    extract:
+      items_path: result.results
+      price: price
+      currency: currency
+      stops: stops
+      provider: airline
+      booking_url: booking_url
+      bag_breakdown: baggage
+  - id: callstay
+    price_scope: per_night
+    category: hotels
+    transport: mcp_http
+    enabled: true
+    affiliate:
+      partner: null
+      note: "Kein Partnerprogramm bekannt."
+    url: "https://callstay.com/api/mcp"
+    tool: search_stays
+    note: >-
+      rooms[].total_all_in = steuer-/gebuehreninklusiver Endpreis, rooms[].fees[] mit
+      description/amount/included_in_total und due_at_property. Suchen -> price_stay.
+      Registry: com.callstay/hotels v0.1.0 (gehostet, kein offener Quellcode).
+    params:
+      query: "{destination}"
+      destination: "{city}"
+      checkin: "{depart_date}"
+      checkout: "{return_date}"
+      adults: "{adults}"
+      rooms: 1
+      currency: "{currency}"
+      max_results: 5
+    coerce:
+      adults: int
+      rooms: int
+    followup:
+      tool: price_stay
+      seed_path: results
+      max_items: 3
+      args_template:
+        slug: "{item.slug}"
+        checkin: "{depart_date}"
+        checkout: "{return_date}"
+        adults: "{adults}"
+        currency: "{currency}"
+    extract:
+      items_path: results
+      price: total
+      currency: currency
+      stars: stars
+      name: name
+      all_in: rooms.0.total_all_in
+      booking_url: url
+  - id: alice-flights
+    category: flights
+    transport: http
+    enabled: true
+    affiliate:
+      partner: null
+      note: "Kein Partnerprogramm bekannt."
+    price_scope: total
+    url: "https://api.alice.co.il/flights/search"
+    method: POST
+    note: >-
+      Direkte REST-Suche (El Al/Israir-Netz). Preise in USD, totalPrice = Trip-Gesamtpreis
+      fuer alle Passagiere. Kein Steuerfeld.
+    body:
+      flightClass: tour
+      passengers:
+        ADT: "{adults}"
+      segments:
+        - index: 1
+          from: {code: "{origin}", type: city}
+          to: {code: "{destination}", type: city}
+          departure: "{depart_date}"
+        - index: 2
+          from: {code: "{destination}", type: city}
+          to: {code: "{origin}", type: city}
+          departure: "{return_date}"
+    headers:
+      Content-Type: application/json
+    extract:
+      counts:
+        stops: "segments[0].flights"
+      items_path: result.best
+      price: totalPrice
+      currency: flowCurrencyCode
+      stops: segments.0.flights
+  - id: flights-gf
+    category: flights
+    transport: mcp_stdio
+    enabled: true
+    affiliate:
+      partner: null
+      note: "Google-Flights-Scraper, kein Partnerprogramm."
+    price_scope: total
+    command: ["uvx", "--from", "git+https://github.com/FredrikBakken/flights-mcp", "flights-mcp"]
+    tool: search_flights
+    note: >-
+      Google-Flights-Scraper als MCP. Tool-Doku: 'Prices are totals for all passengers'.
+    params:
+      from_airport: "{origin}"
+      to_airport: "{destination}"
+      departure_date: "{depart_date}"
+      return_date: "{return_date}"
+      adults: "{adults}"
+      seat: economy
+      currency: "{currency}"
+      max_results: 5
+    coerce:
+      adults: int
+      max_results: int
+    extract:
+      items_path: itineraries
+      price: price
+      currency: currency
+      stops: stops
+      legs: legs
+  - id: pilotplans-hotels
+    category: hotels
+    transport: mcp_http
+    enabled: true
+    affiliate:
+      partner: null
+      note: "Kein Partnerprogramm bekannt."
+    price_scope: per_night
+    url: "https://mcp.pilotplans.com/mcp"
+    tool: search_hotels
+    note: >-
+      Koordinaten + Sterne + Stornoflag je Rate; Achtung: Suche EUR, Raten USD (Waehrung
+      wechselt zwischen Suche und Ratenabfrage).
+    params:
+      location: "{city}"
+      check_in: "{depart_date}"
+      check_out: "{return_date}"
+      guests: "{adults}"
+      rooms: 1
+      currency: "{currency}"
+      limit: 5
+    coerce:
+      guests: int
+      rooms: int
+      limit: int
+    extract:
+      items_path: hotels
+      price: price
+      currency: currency
+      stars: starRating
+      name: name
+      lat: coordinates.latitude
+      lon: coordinates.longitude
+      booking_url: url
+  - id: bookresorts
+    category: hotels
+    transport: mcp_http
+    enabled: true
+    affiliate:
+      partner: awin
+      note: "Booking.com-basiert; Awin moeglich, wenn der Zielhost passt."
+    price_scope: per_night
+    url: "https://www.bookresorts.com/api/br/mcp"
+    tool: search_hotels
+    note: >-
+      total_price_usd laut Anbieter: 'stay totals in USD with taxes & fees' (kein separates
+      Steuerfeld). Waehrung im Feldnamen kodiert.
+    params:
+      destination: "{city}"
+      checkin: "{depart_date}"
+      checkout: "{return_date}"
+      adults: "{adults}"
+      rooms: 1
+      min_stars: "{hotel_stars}"
+    coerce:
+      adults: int
+      rooms: int
+      min_stars: int
+    extract:
+      items_path: hotels
+      price: per_night_usd
+      currency: currency
+      stars: stars
+      name: name
+      booking_url: url
+  - id: maqami-travel-hotels
+    category: hotels
+    transport: mcp_http
+    enabled: true
+    affiliate:
+      partner: null
+      note: "Kein Partnerprogramm bekannt."
+    price_scope: per_stay
+    url: "https://mcp.maqami.co/"
+    tool: get_data_hotels
+    note: >-
+      Zweiter keyless Server mit expliziter Steuerpositionierung fuer Hotels:
+      rates[].retailRate.total[].amount (Gesamtpreis) und
+      rates[].retailRate.taxesAndFees[].amount mit included-Bool je Position
+      (z. B. description 'RESORT', included=false) + Stornobedingung.
+      Ein Aufruf (cityName + starRating + Zeitraum) liefert Hotel+Raten.
+    params:
+      cityName: "{city}"
+      countryCode: IT
+      starRating: "{hotel_stars}"
+      limit: 5
+      language: en
+    coerce:
+      limit: int
+      adults: int
+    followup:
+      mode: batch
+      tool: post_hotels_rates
+      seed_path: data
+      ids_field: id
+      max_items: 5
+      args_template:
+        hotelIds: "{ids}"
+        occupancies:
+          - adults: "{adults}"
+            childrenAges: []
+        checkin: "{depart_date}"
+        checkout: "{return_date}"
+        currency: "{currency}"
+        guestNationality: DE
+        maxRatesPerHotel: 2
+    extract:
+      items_path: data
+      expand:
+        path: [roomTypes, rates]
+        name_from_parent: true
+        price: retailRate.total[0].amount
+        currency: retailRate.total[0].currency
+        all_in: retailRate.total[0].amount
+        name: name
+        lat: latitude
+        lon: longitude
+        booking_url: deeplinkUrl
+      # tax_lines: retailRate.taxesAndFees[] (description, amount, included) - je Position
+  - id: googleflights-local
+    category: flights
+    transport: mcp_stdio
+    enabled: true
+    affiliate:
+      partner: null
+      note: "Lokaler Scraper, kein Partnerprogramm."
+    price_scope: total
+    price_scope_confidence: unverified
+    command: ["uvx", "--from", "git+https://github.com/altunoren/googleflights-mcp", "googleflights-mcp"]
+    tool: search_flights
+    note: >-
+      Lokaler stdio-Scraper (eigene IP, kein Shared-IP-Ban, kein Key). Gleiche Datenbasis
+      wie flights-gf, aber eigenstaendig nutzbar, wenn dessen Versorgung ausfaellt.
+    params:
+      from_airport: "{origin}"
+      to_airport: "{destination}"
+      departure_date: "{depart_date}"
+      return_date: "{return_date}"
+      currency: "{currency}"
+      max_results: 5
+    coerce:
+      max_results: int
+    extract:
+      items_path: results
+      price: price
+      currency: currency
+      stops: stops
+      legs: legs
+  - id: easygroupflights
+    price_scope: per_person
+    price_scope_confidence: confirmed
+    category: flights
+    transport: mcp_http
+    enabled: true
+    url: https://mcp.easygroupflights.com/mcp
+    tool: egf_search_flights
+    note: "Antwort ist Fliesstext, kein JSON -> parser: text. Tool-Doku: 'Prices are per person'. Slowakische OTA; Angebote 30 Minuten gueltig, kein Steuerfeld."
+    params:
+      origin: "{origin}"
+      destination: "{destination}"
+      departure_date: "{depart_date}"
+      return_date: "{return_date}"
+      passengers: "{adults}"
+      limit: 10
+    coerce:
+      passengers: int
+      limit: int
+    extract:
+      parser: text
+      text:
+        price_regex: '(?:EUR|€)\s*([0-9]+[.,]?[0-9]*)'
+        max_items: 5
+        provider: easygroupflights
+    affiliate:
+      partner: null
+      note: "Text-OTA, kein Partnerprogramm."
+  - id: ferryhopper_mcp
+    price_scope: per_person
+    price_scope_confidence: confirmed
+    category: ferries
+    transport: mcp_http
+    enabled: true
+    url: https://mcp.ferryhopper.com/mcp
+    tool: search_ferry_trips
+    note: "Preise in Cent (expectedPrice.totalPriceInCents), je Person; Kabinenklassen je Kabine. Live geprueft: Barcelona-Palma 3668 = 36,68 EUR."
+    params:
+      legs:
+        - departureLocation: "{origin}"
+          arrivalLocation: "{destination}"
+          departureDate: "{depart_date}"
+    extract:
+      items_path: legs[0].options
+      expand:
+        path: [segments, accommodations]
+        price: expectedPrice.totalPriceInCents
+        price_divisor: 100
+        name: type
+    affiliate:
+      partner: null
+      note: "Kein Partnerprogramm in der Auswahl; Direct Ferries/12Go greifen nur bei passendem Zielhost."
+
+  - id: trvl_ferries
+    category: ferries
+    transport: mcp_stdio
+    enabled: true
+    affiliate:
+      partner: directferries
+      note: "Wenn der Link auf directferries.com zeigt: Direct-Ferries-Programm (50 Prozent der DF-Provision)."
+    price_scope: per_person
+    price_scope_confidence: confirmed
+    command: ["/home/batnini/.local/bin/trvl", "mcp"]
+    tool: travel
+    note: >-
+      trvl-Router, intent=search_ground + type=ferry – keyless. Liefert Angebote je
+      Abfahrt mit price/currency/booking_url/freshness. Preis = 1 Erwachsener ohne
+      Fahrzeug (die Ground-Suche kennt keine Passagierzahl). Achtung: nur der Provider
+      'ferryhopper' ist live; DFDS/Viking Line/Eckerö Line liefern Referenzpreise
+      (amenities=['Reference']). Lizenz trvl: PolyForm Noncommercial 1.0.0 (nicht kommerziell).
+    params:
+      intent: search_ground
+      params:
+        from: "{origin}"
+        to: "{destination}"
+        date: "{depart_date}"
+        return_date: "{return_date}"
+        type: "ferry"
+    extract:
+      items_path: result.routes
+      price: price
+      currency: currency
+      provider: provider
+      booking_url: booking_url
+      name: departure.station
+      legs: legs
+  - id: finnlines_ferry
+    category: ferries
+    transport: http
+    enabled: true
+    affiliate:
+      partner: null
+      note: "Reederei direkt, kein Programm hinterlegt."
+    price_scope: per_person
+    price_scope_confidence: confirmed
+    url: "https://dm3xyy44wbeivgqmeymvmw22be.appsync-api.eu-central-1.amazonaws.com/graphql"
+    method: POST
+    note: >-
+      Finnlines-Buchungs-GraphQL (AWS AppSync) – keyless (x-api-key ist der öffentliche
+      SPA-Client-Identifier), live. chargeTotal = Summe je Passagier (linear: 1→17.60,
+      2→35.20, 4→70.40 EUR), isAvailable = Verfügbarkeit je Abfahrt. {origin}/{destination}
+      = Finnlines-Hafenkürzel (FINLI, SEKPS, FIHEL, DETRV …), KEINE Staedtennamen.
+      Verifizierte Route: FINLI->SEKPS (Helsinki-Stockholm); auf nicht bedienten Routen
+      liefert die API ein leeres Objekt (dann 0 Angebote, kein Fehler).
+      Pflicht: browser-ähnlicher User-Agent (sonst 403 WAFForbiddenException) und
+      accommodations: [] in der Query.
+    headers:
+      Content-Type: application/json
+      x-api-key: "da2-zvuktusyubbstlw7khps4vyeie"
+      Origin: "https://booking.finnlines.com"
+      Referer: "https://booking.finnlines.com/"
+      User-Agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    body:
+      query: "query ListTimeTableAvailability($query:TimetableQuery!){listTimeTableAvailability(query:$query){...on Timetable{sailingCode departureDate departureTime arrivalDate arrivalTime departurePort arrivalPort isAvailable shipName crossingTime chargeTotal}}}"
+      variables:
+        query:
+          currency: "{currency}"
+          language: EN
+          tariff:
+            - legCode: 1
+              type: SPECIAL
+          sailings:
+            - legCode: 1
+              departurePort: "{origin}"
+              arrivalPort: "{destination}"
+              startDate: "{depart_date}"
+              numberOfDays: 1
+          passengers:
+            - legCode: 1
+              id: 1
+              type: ADULT
+          accommodations: []
+    extract:
+      items_path: data.listTimeTableAvailability
+      price: chargeTotal
+      price_divisor: 100
+      name: shipName
+      provider: null
+  - id: stays_hotels
+    price_scope: per_night
+    price_scope_confidence: confirmed
+    category: hotels
+    transport: mcp_stdio
+    enabled: true
+    command: ["/home/batnini/.local/bin/stays", "mcp"]
+    tool: search_hotels
+    note: "Google Hotels. currency=USD ist Default -> currency ist Pflicht. includes_taxes_and_fees ist im Paket ein toter Schalter (nie true)."
+    params:
+      query: "{query}"
+      check_in: "{depart_date}"
+      check_out: "{return_date}"
+      adults: "{adults}"
+      children: "{children}"
+      currency: "{currency}"
+      hotel_class:
+        - "{hotel_stars}"
+      max_results: 25
+    coerce:
+      adults: int
+      children: int
+      max_results: int
+      hotel_class: int_list
+    extract:
+      items_path: hotels
+      price: display_price
+      currency: currency
+      name: name
+      lat: lat
+      lng: lng
+      star_class: star_class
+      entity_key: entity_key
+    affiliate:
+      partner: awin
+      note: "Booking.com-Links: Awin-Programm (4 Prozent, eine Session Cookie) moeglich."
+
+  - id: hal-cruises
+    category: cruises
+    transport: http
+    enabled: true
+    affiliate:
+      partner: cruisedirect
+      note: "Holland America ueber CruiseDirect (CJ) vermittelbar; 3 Prozent, 45 Tage Cookie."
+    price_scope: per_person
+    price_scope_confidence: confirmed
+    url: "https://www.hollandamerica.com/search/halcruisesearch"
+    method: GET
+    headers:
+      Accept: application/json
+      Referer: "https://www.hollandamerica.com/en/us/find-a-cruise"
+      User-Agent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+    params:
+      fq: "embarkPortCode:{origin} AND departDate:[{depart_date}T00:00:00Z TO {return_date}T00:00:00Z]"
+      rows: "20"
+      fl: "cruiseId,shipId,shipName,embarkPortCode,embarkPortName,disembarkPortCode,disembarkPortName,departDate,arrivalDate,duration,soldOut,name,sortPrice_EUR,sortPrice_USD,taxExpenses_EUR,taxesAndFeesCombined_EUR,price_EUR_RESTRICTED,price_EUR_BASEPRICE,price_EUR_FLEXIBLE,price_USD_RESTRICTED"
+    coerce:
+      adults: int
+    extract:
+      items_path: response.docs
+      price: price_EUR_RESTRICTED      # guenstigster Kabinenpreis inkl. Steuern, PRO PERSON
+      all_in: price_EUR_RESTRICTED     # Preis ist steuerinklusive -> identisch zum Endpreis
+      currency: EUR                    # Konstante (Quelle liefert kein Waehrungsfeld, nur Feldsuffixe)
+      taxes_included: taxesAndFeesCombined_EUR
+      provider: shipName
+      name: name
+      departure_date: departDate
+      nights: duration
+      boarding: embarkPortCode
+      booking_url: itineraryURL        # relativer AEM-Pfad, Prefix: https://www.hollandamerica.com
+    note: >-
+      Holland America Line, oeffentliche Solr-Suche, kein Key. Preis = guenstigster
+      Kabinen-Fare (RESTRICTED) PRO PERSON in EUR; taxesAndFeesCombined_EUR=true heisst
+      "Steuern & Gebuehren enthalten" (taxExpenses_EUR = Steueranteil darin).
+      sortPrice_EUR ist der FLEXIBLE-Preis und NICHT der guenstigste - nicht als Preis nehmen.
+      {origin}/{destination} = HAL-Hafencodes (MIA, FLL, HAM, BCN, ...).
+  - id: rcl-cruises
+    category: cruises
+    transport: cli
+    enabled: true
+    affiliate:
+      partner: cruisedirect
+      note: "Royal Caribbean: TradeDoubler bis 4 Prozent oder CruiseDirect 3 Prozent; Konfiguration entscheidet."
+    price_scope: per_person
+    price_scope_confidence: confirmed
+    command: ["python3", "/home/batnini/mimo-agents/providers/cruise_rcl.py",
+              "--origin", "{origin}", "--destination", "{destination}",
+              "--depart-date", "{depart_date}", "--return-date", "{return_date}",
+              "--adults", "{adults}", "--children", "{children}", "--currency", "{currency}",
+              "--max-price-calls", "30", "--limit", "15"]
+    coerce:
+      adults: int
+      children: int
+    extract:
+      items_path: items
+      price: price           # Kabinenpreis je Person nach Rabatt, OHNE Steuern
+      all_in: all_in         # Endpreis je Person INKL. Steuern
+      currency: currency
+      provider: provider
+      name: name
+      departure_date: departure_date
+      nights: nights
+      boarding: boarding
+      booking_url: booking_url
+      taxes_included: taxes_included
+      drinks_included: drinks_included
+    note: >-
+      Royal Caribbean/Celebrity, oeffentliche JSON-APIs (kein Key). price = Kabinenpreis
+      pro Person OHNE Steuern, all_in = Endpreis pro Person INKL. Steuern
+      (taxesAndFeesBundled=true). drinks_included=false -> Getraenke NICHT inklusive.
+      {origin} = Abfahrtshafen-Code (MIA/FLL/...), {destination} = Zielregion-Code
+      (BAHAM/CARIB/MED/ALASKA/...). Preisbasis belegt: Rechnung skaliert linear mit
+      der Personenzahl (1/2/3 Erw. -> 561.15 / 696.30 / 1060.45 USD fuer dieselbe Abfahrt).
+  - id: hal-price-api
+    category: cruises
+    transport: http
+    enabled: false          # aktivieren, sobald ein 2-Schritt-Followup im Runner existiert
+    price_scope: per_person
+    price_scope_confidence: confirmed
+    url: "https://www.hollandamerica.com/api/v2/price/cruise/{cruise_id}"
+    method: GET
+    headers:
+      Accept: application/json
+      country: US
+      locale: en_US
+      brand: hal
+      User-Agent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+    extract:
+      items_path: data.bestAvailable
+      price: price
+      all_in: price
+      currency: currencyCode
+    note: >-
+      Kabinenweise Preise je HAL-Reise: bestAvailable.price (Endpreis inkl. Steuern),
+      .basePrice (ohne Steuern), .tax, .launchPrice, .classification
+      (restricted/flexible/baseprice), .amenities.obcUSD (Onboard-Guthaben).
+      Braucht {cruise_id} aus hal-cruises -> daher als followup, nicht als eigene Suche.
