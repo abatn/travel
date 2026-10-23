@@ -30,3 +30,59 @@ jobs:
 
       - name: Run CI suite
         run: bash scripts/ci.sh
+
+  deploy:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install rsync
+        run: sudo apt-get update -qq && sudo apt-get install -y rsync
+
+      - name: Configure SSH
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.CONTABO_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "${{ secrets.CONTABO_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy to Contabo
+        env:
+          HOST: ${{ secrets.CONTABO_HOST }}
+          USER: ${{ secrets.CONTABO_USER }}
+        run: |
+          set -euo pipefail
+
+          rsync -rlptz --delete \
+            --exclude '__pycache__/' \
+            --exclude '*.pyc' \
+            --exclude '.venv/' \
+            --exclude '.venv-*/' \
+            --exclude 'attest/keys/' \
+            --exclude 'attest/state/' \
+            --exclude 'attest/artifacts/' \
+            --exclude 'ui/state/' \
+            --exclude 'alerts/state/' \
+            --exclude 'providers/state/' \
+            --exclude 'affiliate/state/' \
+            --exclude 'resolver/state/' \
+            --exclude 'logs/' \
+            ui providers seo resolver affiliate alerts bundling attest docs llms.txt requirements-runtime.txt scripts deploy \
+            "$USER@$HOST:/home/batnini/mimo-agents/"
+
+          rsync -rlptz --delete \
+            rome-2star/worker_c/ \
+            "$USER@$HOST:/home/batnini/mimo-agents/rome-2star/worker_c/"
+
+          ssh "$USER@$HOST" 'cd /home/batnini/mimo-agents && .venv/bin/pip install -q -r requirements-runtime.txt'
+          ssh "$USER@$HOST" 'sudo systemctl restart reise-agent; sleep 4; curl -fsS http://127.0.0.1:8077/health'
+          curl -fsS --retry 5 --retry-delay 3 https://travel.hanibal-ai.com/health

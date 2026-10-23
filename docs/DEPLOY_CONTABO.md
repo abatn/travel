@@ -85,3 +85,44 @@ curl -s https://travel.hanibal-ai.com/llms.txt | head
 curl -s https://travel.hanibal-ai.com/.well-known/agent-payments.json
 curl -s -o /dev/null -w '%{http_code}\n' https://travel.hanibal-ai.com/
 ```
+
+## Auto-Deploy über GitHub Actions
+
+Push auf `main` löst aus:
+
+1. **test** – `scripts/ci.sh` (Compile + alle Suiten)
+2. **deploy** – nur wenn `test` grün ist und der Push auf `main` ging
+
+Der Deploy-Job:
+
+* verbindet sich per SSH als `batnini` (dedizierter Deploy-Key),
+* rsync nach `/home/batnini/mimo-agents` (Runtime-State, Keys und Venvs sind
+  ausgeschlossen),
+* installiert `requirements-runtime.txt` im venv,
+* startet `reise-agent` neu und prüft `/health` lokal **und** öffentlich.
+
+### GitHub-Secrets
+
+| Secret | Inhalt |
+|---|---|
+| `CONTABO_SSH_KEY` | privater Ed25519-Deploy-Key (nur für Deploy) |
+| `CONTABO_HOST` | `176.57.189.201` |
+| `CONTABO_USER` | `batnini` |
+| `CONTABO_KNOWN_HOSTS` | `ssh-keyscan -H 176.57.189.201` |
+
+### Server-Seite
+
+* `~batnini/.ssh/authorized_keys`: Deploy-Key mit
+  `no-agent-forwarding,no-port-forwarding,no-X11-forwarding,no-pty`.
+* `/etc/sudoers.d/reise-deploy`: `batnini` darf **nur**
+  `systemctl restart/is-active/status reise-agent` ohne Passwort.
+
+### Deploy-Key rotieren
+
+```bash
+ssh-keygen -t ed25519 -f deploy_key -N "" -C "github-actions-deploy"
+# Public Key in ~batnini/.ssh/authorized_keys ersetzen
+# Private Key als CONTABO_SSH_KEY in GitHub aktualisieren
+```
+
+Manuell (Fallback): `./deploy/contabo.sh`

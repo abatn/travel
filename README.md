@@ -74,6 +74,9 @@ Siehe [`docs/DEPLOY_CONTABO.md`](docs/DEPLOY_CONTABO.md).
 ./deploy/contabo.sh
 ```
 
+Push auf `main` deployt automatisch: GitHub Actions führt erst die Tests aus
+und ruft danach den Deploy-Job auf (SSH/rsync + `systemctl restart`).
+
 ## Recht & Steuern
 
 * Impressum/Datenschutz: `ui/legal.yaml` (Vorlage; Pflichtfelder ausfüllen).
