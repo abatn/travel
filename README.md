@@ -77,6 +77,10 @@ Siehe [`docs/DEPLOY_CONTABO.md`](docs/DEPLOY_CONTABO.md).
 Push auf `main` deployt automatisch: GitHub Actions führt erst die Tests aus
 und ruft danach den Deploy-Job auf (SSH/rsync + `systemctl restart`).
 
+Zusätzlich läuft auf dem Server ein **2-Minuten-Auto-Deploy-Timer**
+(`travel-deploy.timer`): er zieht `main` aus GitHub und deployt auch dann, wenn
+GitHub-hosted Actions wegen Account-Billing nicht starten.
+
 ## Recht & Steuern
 
 * Impressum/Datenschutz: `ui/legal.yaml` (Vorlage; Pflichtfelder ausfüllen).
