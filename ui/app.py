@@ -331,7 +331,7 @@ def _legal_page(request: Request, kind: str):
         ust_html = (
             "<p>Umsatzsteuer-Identifikationsnummer: keine vorhanden.</p>"
             if ust.lower() == "keine"
-            else f"<p>Umsatzsteuer-Identifikationsnummer gemäß § 27a UStG: {_e(ust)}</p>"
+            else f"<p>Steuer-/Umsatzsteuer-Identifikationsnummer: {_e(ust)}</p>"
         )
         register = ""
         if b.get("registergericht") or b.get("registernummer"):
