@@ -35,8 +35,12 @@ def _url_entry(parent, loc: str, lastmod: str | None = None,
         ET.SubElement(url, f"{{{NS}}}priority").text = priority
 
 
-def build(base_url: str) -> str:
-    """Sitemap als XML-String."""
+def build(base_url: str, extra_paths: list[str] | None = None) -> str:
+    """Sitemap als XML-String.
+
+    `extra_paths` sind zusätzliche indexierbare Seiten (z. B. /impressum,
+    /datenschutz), die der Aufrufer nur bei vollständigen Pflichtangaben übergibt.
+    """
     base = base_url.rstrip("/")
     ET.register_namespace("", NS)          # Standard-Namespace (kein ns0:-Praefix)
     root = ET.Element(f"{{{NS}}}urlset")
@@ -45,6 +49,10 @@ def build(base_url: str) -> str:
     _url_entry(root, base + f"/{OVERVIEW_SLUG}", priority="0.9", changefreq="weekly")
     for slug in CATEGORIES:
         _url_entry(root, base + f"/{slug}", priority="0.9", changefreq="daily")
+
+    for path in extra_paths or []:
+        clean = "/" + str(path).lstrip("/")
+        _url_entry(root, base + clean, priority="0.3", changefreq="yearly")
 
     # Routenseiten nur mit echtem, nicht zu altem Inhalt (zwischengespeicherte Angebote)
     for data in routes_cache.all_routes():

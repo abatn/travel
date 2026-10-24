@@ -403,7 +403,13 @@ def datenschutz(request: Request):
 
 @app.get("/sitemap.xml")
 def sitemap_xml(request: Request):
-    xml = seo_sitemap.build(_base(request))
+    legal = _legal_data()
+    extra: list[str] = []
+    if legal_config.is_complete(legal, "impressum"):
+        extra.append("/impressum")
+    if legal_config.is_complete(legal, "datenschutz"):
+        extra.append("/datenschutz")
+    xml = seo_sitemap.build(_base(request), extra_paths=extra)
     return Response(content=xml, media_type="application/xml",
                     headers={"Cache-Control": "public, max-age=3600"})
 

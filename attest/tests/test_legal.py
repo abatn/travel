@@ -130,6 +130,9 @@ def main() -> int:
                 check("Noch nicht konfiguriert" in html, f"{path}: Hinweis sichtbar")
                 label = "Name / Firma" if path == "/impressum" else "Hosting-Anbieter"
                 check(label in html, f"{path}: fehlende Pflichtfelder gelistet")
+            sitemap = httpx.get(base + "/sitemap.xml", timeout=10).text
+            check("/impressum" not in sitemap and "/datenschutz" not in sitemap,
+                  "Sitemap: keine noindex-Rechtsseiten")
 
         # 2) Platzhalter -> weiterhin noindex
         with serve(placeholders, 8084) as base:
@@ -140,6 +143,9 @@ def main() -> int:
             check("Name / Firma" in imp, "/impressum: Platzhalter als fehlend gelistet")
             check("Hosting-Anbieter" in ds, "/datenschutz: Platzhalter als fehlend gelistet")
             check("Batnini" not in imp, "/impressum: keine Platzhalterdaten gerendert")
+            sitemap = httpx.get(base + "/sitemap.xml", timeout=10).text
+            check("/impressum" not in sitemap and "/datenschutz" not in sitemap,
+                  "Sitemap: Platzhalter-Seiten nicht enthalten")
 
         # 3) Optionaler Platzhalter -> weiterhin noindex
         with serve(optional_placeholder, 8085) as base:
@@ -160,6 +166,9 @@ def main() -> int:
             check("Testhosting GmbH" in ds and "Test-Datenschutzbehörde" in ds,
                   "/datenschutz: Hoster und Aufsichtsbehörde gerendert")
             check("x402-Zahlungen" in ds, "/datenschutz: x402/Blockchain-Hinweis vorhanden")
+            sitemap = httpx.get(base + "/sitemap.xml", timeout=10).text
+            check("/impressum" in sitemap and "/datenschutz" in sitemap,
+                  "Sitemap: vollständige Rechtsseiten enthalten")
 
     passed = sum(1 for ok, _ in checks if ok)
     print(f"\nErgebnis: {passed}/{len(checks)} Prüfungen bestanden")
