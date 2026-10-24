@@ -410,10 +410,9 @@ def _legal_page(request: Request, kind: str):
         robots="index,follow" if configured else "noindex,follow")
 
     if configured:
-        from i18n import legal as i18n_legal
+        from legal_i18n import imprint_html, privacy_html
 
-        builder = (i18n_legal.imprint_html if kind == "impressum"
-                   else i18n_legal.privacy_html)
+        builder = imprint_html if kind == "impressum" else privacy_html
         content = builder(lang, i18n_core.translator(lang), _e, data)
     else:
         content = ""
