@@ -419,7 +419,7 @@ def format_report(report: dict) -> str:
              f"{ledger['invoices_in_period']} (davon fremd: {ledger['invoices_external']})"),
             ("Mit On-chain-Tx verknüpft:", str(ledger["invoices_matched_onchain"])),
             ("Rechnungen ohne On-chain-Tx:", str(ledger["invoices_without_onchain_tx"])),
-            ("On-chain-Zahlungen ohne Rechnung:",
+            ("Fremde On-chain-Zahlungen ohne Rechnung:",
              str(ledger["onchain_external_without_invoice"])),
         ]
         width = max(len(label) for label, _ in rows)
