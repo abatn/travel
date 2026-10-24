@@ -22,6 +22,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from .billing import record_invoice
+from .capabilities import capabilities_document
 from .config import Settings, load_settings
 from .discovery import SAMPLE_INPUT, SAMPLE_OUTPUT, atomic_amount, bazaar_extension, contact_email
 from .models import Observation
@@ -270,6 +271,20 @@ def discovery_document(base: str) -> dict[str, Any]:
 @public_router.get("/.well-known/agent-payments.json")
 async def agent_payments(request: Request) -> JSONResponse:
     return JSONResponse(discovery_document(_base_url(request)),
+                        headers={"Cache-Control": "public, max-age=60"})
+
+
+@public_router.get("/.well-known/capabilities.json")
+async def capabilities_json(request: Request) -> JSONResponse:
+    """Maschinenlesbarer Capability-Katalog (M3), kostenlos."""
+    return JSONResponse(capabilities_document(load_settings(), _base_url(request)),
+                        headers={"Cache-Control": "public, max-age=60"})
+
+
+@public_router.get("/capabilities")
+async def capabilities_page(request: Request) -> JSONResponse:
+    """Derselbe Katalog unter kurzer URL."""
+    return JSONResponse(capabilities_document(load_settings(), _base_url(request)),
                         headers={"Cache-Control": "public, max-age=60"})
 
 

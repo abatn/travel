@@ -49,6 +49,8 @@ payTo: `{{PAY_TO}}`.
 - `POST {{BASE_URL}}/api/attest/verify` – Signatur prüfen
 - `GET  {{BASE_URL}}/api/attest/key` – öffentlicher Ed25519-Schlüssel
 - `GET  {{BASE_URL}}/.well-known/agent-payments.json` – Discovery
+- `GET  {{BASE_URL}}/.well-known/capabilities.json` – Capability-Katalog (was ist bezahlbar, was geplant)
+- `GET  {{BASE_URL}}/capabilities` – derselbe Katalog unter kurzer URL
 - `GET  {{BASE_URL}}/llms.txt` – diese Datei
 
 ## Discovery
