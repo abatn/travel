@@ -6,9 +6,13 @@
       e.preventDefault();
       const data = new FormData(form);
       const body = new URLSearchParams(data);
+      const delay = (typeof window.homeAgentRun === 'function') ? window.homeAgentRun(body) : 0;
       fetch('/api/search', { method: 'POST', body: body })
         .then(r => r.json())
-        .then(d => { window.location.href = '/jobs/' + d.job_id; })
+        .then(d => {
+          const go = () => { window.location.href = '/jobs/' + d.job_id; };
+          if (delay) { setTimeout(go, delay); } else { go(); }
+        })
         .catch(err => alert('Suche konnte nicht gestartet werden: ' + err));
     });
   }
@@ -66,6 +70,7 @@
   const live = document.getElementById('live-status');
   if (!live) return;
   const jobId = window.location.pathname.split('/').pop();
+  try { localStorage.setItem('lastJob', jobId); } catch (e) {}
 
   function statusDot(status) {
     if (status === 'ok') return 'ok';
@@ -374,4 +379,181 @@
     }).catch(() => { setTimeout(tick, 4000); });
   }
   tick();
+})();
+
+// --- Startseite: interaktives Agenten-Schaubild ---------------------------
+(function () {
+  const svg = document.getElementById('home-agent-svg');
+  if (!svg) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const CX = 450, CY = 260;
+  const CATS = [
+    { id: 'flights', label: 'Flüge',        x: CX,  y: 64 },
+    { id: 'hotels',  label: 'Hotels',       x: 790, y: CY },
+    { id: 'ferries', label: 'Fähren',       x: CX,  y: 456 },
+    { id: 'cruises', label: 'Kreuzfahrten', x: 110, y: CY }
+  ];
+  const counts = {};
+  const el = function (name, attrs) {
+    const node = document.createElementNS(NS, name);
+    for (const key in (attrs || {})) node.setAttribute(key, attrs[key]);
+    return node;
+  };
+
+  // Verlauf für das Zentrum
+  const defs = el('defs');
+  const grad = el('radialGradient', { id: 'homeGrad', cx: '50%', cy: '50%', r: '50%' });
+  grad.appendChild(el('stop', { offset: '0%', 'stop-color': '#4c8dff', 'stop-opacity': '0.55' }));
+  grad.appendChild(el('stop', { offset: '100%', 'stop-color': '#4c8dff', 'stop-opacity': '0.06' }));
+  defs.appendChild(grad);
+  svg.appendChild(defs);
+
+  const edgesG = el('g', { class: 'home-edges' });
+  const nodesG = el('g', { class: 'home-nodes' });
+  const centerG = el('g', { class: 'home-center' });
+  svg.appendChild(edgesG);
+  svg.appendChild(nodesG);
+  svg.appendChild(centerG);
+
+  // Schleife: Wahrnehmen -> Planen -> Handeln -> Beobachten
+  centerG.appendChild(el('circle', { cx: CX, cy: CY, r: 118, class: 'home-loop' }));
+  [['Wahrnehmen', CX - 100, CY - 92, 'p1'],
+   ['Planen',     CX + 100, CY - 92, 'p2'],
+   ['Handeln',    CX + 100, CY + 106, 'p3'],
+   ['Beobachten', CX - 100, CY + 106, 'p4']].forEach(function (p) {
+    const t = el('text', { x: p[1], y: p[2], 'text-anchor': 'middle', class: 'home-phase ' + p[3] });
+    t.textContent = p[0];
+    centerG.appendChild(t);
+  });
+
+  // Zentrum
+  centerG.appendChild(el('circle', { cx: CX, cy: CY, r: 62, class: 'core' }));
+  const title = el('text', { x: CX, y: CY - 6, 'text-anchor': 'middle', class: 'title' });
+  title.textContent = 'Agent';
+  const mind = el('text', { x: CX, y: CY + 16, 'text-anchor': 'middle', class: 'mind' });
+  mind.textContent = 'bereit';
+  centerG.appendChild(title);
+  centerG.appendChild(mind);
+
+  const nodes = {};
+  const edges = {};
+  CATS.forEach(function (c) {
+    const dx = c.x - CX, dy = c.y - CY, len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len, uy = dy / len;
+    const x1 = CX + ux * 70, y1 = CY + uy * 70;
+    const x2 = c.x - ux * 84, y2 = c.y - uy * 36;
+    const mx = (x1 + x2) / 2 - uy * 16, my = (y1 + y2) / 2 + ux * 16;
+    const edge = el('path', {
+      d: 'M' + x1 + ',' + y1 + ' Q' + mx + ',' + my + ' ' + x2 + ',' + y2,
+      class: 'home-edge waiting', 'data-cat': c.id
+    });
+    edgesG.appendChild(edge);
+    edges[c.id] = edge;
+
+    const g = el('g', { class: 'home-node waiting', 'data-cat': c.id, tabindex: '0',
+                        role: 'button', 'aria-label': c.label + ' auswählen' });
+    g.appendChild(el('rect', { x: c.x - 86, y: c.y - 30, width: 172, height: 60, rx: 12 }));
+    const label = el('text', { x: c.x - 70, y: c.y - 4, class: 'label' });
+    label.textContent = c.label;
+    const sub = el('text', { x: c.x - 70, y: c.y + 14, class: 'sub' });
+    sub.textContent = 'wird geprüft';
+    g.appendChild(label);
+    g.appendChild(sub);
+    g.appendChild(el('circle', { cx: c.x + 66, cy: c.y - 14, r: 5, class: 'dot' }));
+    nodesG.appendChild(g);
+    nodes[c.id] = { g: g, sub: sub };
+
+    const activate = function () {
+      const box = document.querySelector('input[name="categories"][value="' + c.id + '"]');
+      if (box) {
+        box.checked = true;
+        mind.textContent = c.label + ' ausgewählt';
+      }
+    };
+    g.addEventListener('click', activate);
+    g.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); }
+    });
+  });
+
+  function setCategory(cat, status, sub) {
+    if (!nodes[cat] || !edges[cat]) return;
+    nodes[cat].g.setAttribute('class', 'home-node ' + status);
+    edges[cat].setAttribute('class', 'home-edge ' + status);
+    if (sub) nodes[cat].sub.textContent = sub;
+  }
+
+  function total() {
+    return CATS.reduce(function (sum, c) { return sum + (counts[c.id] || 0); }, 0);
+  }
+
+  function fromStatus(d) {
+    CATS.forEach(function (c) {
+      const items = (d.categories || {})[c.id] || [];
+      const active = items.filter(function (p) { return p.enabled !== false; });
+      const blocked = active.filter(function (p) { return p.blocked_until; });
+      if (!active.length) { setCategory(c.id, 'error', 'keine Quelle'); return; }
+      if (blocked.length === active.length) {
+        setCategory(c.id, 'error', active.length + ' blockiert'); return;
+      }
+      counts[c.id] = active.length;
+      setCategory(c.id, 'waiting', active.length + ' Quellen');
+    });
+    mind.textContent = 'bereit · ' + total() + ' Quellen';
+  }
+
+  function fromJob(d) {
+    let ok = 0, all = 0;
+    Object.keys(d.categories || {}).forEach(function (cat) {
+      const providers = (d.categories[cat] || {}).providers || [];
+      if (!providers.length) return;
+      const good = providers.filter(function (p) { return p.status === 'ok'; }).length;
+      ok += good;
+      all += providers.length;
+      counts[cat] = providers.length;
+      setCategory(cat, good === 0 ? 'error' : 'ok', good + '/' + providers.length + ' ok');
+    });
+    if (all) {
+      mind.textContent = 'letzte Suche · ' + ok + '/' + all + ' ok';
+    } else {
+      // Lauf ohne Ergebnisse (z. B. noch nicht gestartet) -> normaler Status
+      lastJob = null;
+      try { localStorage.removeItem('lastJob'); } catch (e) {}
+      refreshStatus();
+    }
+  }
+
+  let lastJob = null;
+  function refreshStatus() {
+    fetch('/api/status').then(function (r) { return r.json(); })
+      .then(function (d) { if (!lastJob) fromStatus(d); })
+      .catch(function () { mind.textContent = 'Status nicht verfügbar'; });
+  }
+  try { lastJob = localStorage.getItem('lastJob'); } catch (e) {}
+  if (lastJob) {
+    fetch('/api/jobs/' + encodeURIComponent(lastJob))
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (d) { fromJob(d); return; }
+        // gemerkter Lauf existiert nicht mehr (z. B. Serverneustart)
+        lastJob = null;
+        try { localStorage.removeItem('lastJob'); } catch (e) {}
+        refreshStatus();
+      })
+      .catch(function () { lastJob = null; refreshStatus(); });
+  }
+  refreshStatus();
+  setInterval(refreshStatus, 30000);
+
+  // Beim Start einer Suche die Phasen sichtbar machen, dann normal weiterleiten.
+  window.homeAgentRun = function (params) {
+    const chosen = params.getAll('categories');
+    CATS.forEach(function (c) {
+      if (chosen.indexOf(c.id) >= 0) setCategory(c.id, 'running', 'läuft');
+    });
+    mind.textContent = 'Analysiere Anfrage …';
+    setTimeout(function () { mind.textContent = 'Frage ' + Math.max(chosen.length, 1) + ' Kategorien ab …'; }, 350);
+    setTimeout(function () { mind.textContent = 'Ergebnisse werden zusammengeführt …'; }, 800);
+    return 1150;
+  };
 })();

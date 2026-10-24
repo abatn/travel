@@ -8,6 +8,35 @@ ehrlich („Kein Affiliate-Link: … keine ID konfiguriert“).
 
 ---
 
+## 0. Für die Anzeige von Flügen/Hotels/Fähren/Kreuzfahrten (Stand 24.10.2026)
+
+Grund: Eigene Preisdaten dürfen wir nicht anzeigen (siehe `docs/QUELLEN_PRUEFUNG.md`).
+Lösung: Partner-Widgets/White-Label + Partner-APIs. Dafür fehlen nur die Kennungen.
+
+| # | Kategorie | Firma | Anmeldung | Feldname | Kosten | Status |
+|---|---|---|---|---|---|---|
+| A | Flüge | **Travelpayouts / Aviasales** | travelpayouts.com → Programm „Aviasales" verbinden | **Partner-ID / Marker** (z. B. 11501) | 0 € (Provision) | ☐ offen |
+| B | Hotels | **Booking.com** (über Awin oder CJ) | awin.com / cj.com → Booking-Programm | **Publisher-ID** + **Advertiser-ID** (`mid=6776`) | 0 € (Provision) | ☐ offen |
+| C | Fähren | **Ferryhopper** | partners.ferryhopper.com → Affiliate/API-Partner | **Affiliate-ID / API-Key** | 0 € (Provision) | ☐ offen |
+| D | Fähren (Alt.) | **Direct Ferries Connect** | directferriesconnect.com → „Become a Partner" | **Partner-/Agenten-Zugang** | 0 € (Provision) | ☐ offen |
+| E | Kreuzfahrten | **Cruise Itinerary** | cruise-itinerary.com → Developer-Abo | **API-Key** | 149 USD/Monat | ☐ offen |
+| F | Flüge (optional) | **Amadeus** | developers.amadeus.com → Production | **Client-ID + Client-Secret** | pay-per-call | ☐ offen |
+
+**Pflicht für Flüge/Hotels/Fähren:** A, B, C. · **Optional:** D (Alternative zu C), E (nur Kreuzfahrten), F (eigene Airline-Daten).
+
+### Abnahmekriterien (Definition of Done)
+
+- [ ] Kennungen liegen in `/etc/reise-agent.env` auf Contabo (Rechte 600), **nicht** im Repo.
+- [ ] Widget/API rendert echte Preise, ohne Platzhalter und ohne erfundene Links.
+- [ ] Anzeige ist als „Anzeige" gekennzeichnet; Links mit `rel="sponsored nofollow"`.
+- [ ] **Keine** Partner-Preise in unserer Datenbank (Booking/Travelpayouts verbieten Caching).
+- [ ] `rights.status: approved` im Registry-Eintrag erst nach erfolgreichem Test.
+- [ ] Browser-Konsole ohne Fehler; Seite lädt unter 3 s.
+
+**Nicht liefern:** Passwörter, Konto-E-Mails, Session-Cookies. Nur IDs/Keys.
+
+---
+
 ## 1. Programme anmelden (kostenlos, Firmendaten nötig)
 
 Die Provision wird an den **Programm-Account** ausgezahlt – die Anmeldung muss auf deinen Namen /

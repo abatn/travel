@@ -4,6 +4,24 @@
 <h1>Reise suchen</h1>
 {% if error %}<p class="alert error">{{ error }}</p>{% endif %}
 
+<section class="card home-agent" id="home-agent" aria-labelledby="home-agent-title">
+  <div class="home-agent-head">
+    <h2 id="home-agent-title">So arbeitet der Reise-Agent</h2>
+    <p class="muted small">
+      Live-Schaubild: Der Agent fragt Flüge, Hotels, Fähren und Kreuzfahrten parallel ab.
+      <span class="legend"><i class="lg waiting"></i> wartet</span>
+      <span class="legend"><i class="lg ok"></i> antwortet</span>
+      <span class="legend"><i class="lg error"></i> blockiert</span>
+    </p>
+  </div>
+  <div class="home-map" id="home-agent-map">
+    <svg id="home-agent-svg" viewBox="0 0 900 520"
+         role="img" aria-label="Schaubild: zentraler Agent, verbunden mit Flügen, Hotels, Fähren und Kreuzfahrten; Schleife Wahrnehmen, Planen, Handeln, Beobachten">
+    </svg>
+  </div>
+  <p class="home-status" id="home-agent-status" aria-live="polite">Bereit.</p>
+</section>
+
 <form class="card search" method="post" action="/api/search" id="searchform">
   <div class="grid">
     <label>Start

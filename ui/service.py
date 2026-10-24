@@ -108,6 +108,7 @@ def now_iso() -> str:
 import yaml  # noqa: E402
 
 from runner import load_registry, run  # noqa: E402
+from rights import display_allowed  # noqa: E402
 from compare import compare  # noqa: E402
 
 sys.path.insert(0, os.path.join(ROOT, "affiliate"))
@@ -591,6 +592,8 @@ def source_status() -> dict:
     reg = load_registry(REGISTRY)
     by_cat: dict[str, list[dict]] = {}
     for p in reg.get("providers", []):
+        if not display_allowed(p):
+            continue  # Quellenrechte: gesperrte Quellen nicht anzeigen
         cat = p.get("category") or "unknown"
         by_cat.setdefault(cat, []).append({
             "id": p.get("id"), "enabled": p.get("enabled", True),
