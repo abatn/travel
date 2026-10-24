@@ -84,5 +84,5 @@ jobs:
             "$USER@$HOST:/home/batnini/mimo-agents/rome-2star/worker_c/"
 
           ssh "$USER@$HOST" 'cd /home/batnini/mimo-agents && .venv/bin/pip install -q -r requirements-runtime.txt'
-          ssh "$USER@$HOST" 'sudo systemctl restart reise-agent; sleep 4; curl -fsS http://127.0.0.1:8077/health'
+          ssh "$USER@$HOST" 'sudo systemctl restart reise-agent; for i in $(seq 1 40); do curl -fsS http://127.0.0.1:8077/health && exit 0; sleep 2; done; exit 1'
           curl -fsS --retry 5 --retry-delay 3 https://travel.hanibal-ai.com/health
