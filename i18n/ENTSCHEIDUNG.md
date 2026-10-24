@@ -175,3 +175,13 @@ ausdrücklich `private` statt `Vary: Cookie`. Das kostet CDN-Trefferquote – de
 - ICU: https://unicode-org.github.io/icu/userguide/format_parse/messages/ · CLDR/JSON: https://github.com/ChauCM/dialect/blob/main/dialect/spec/icu-json.md
 - Playwright: https://playwright.dev/docs/test-snapshots · Open Graph: https://ogp.me/#optional · `ar_AR`: https://stackoverflow.com/questions/33141402/opengraph-locale-for-argentina
 - MDN `Vary`: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Vary
+
+---
+
+## Nachtrag: Deploy-Struktur (24.10.2026)
+
+Die Locale-Dateien liegen bewusst unter **`ui/locales/`**, nicht unter `i18n/locales/`:
+Der bestehende Auto-Deploy kopiert nur ausgewählte Verzeichnisse (`ui/`, `providers/`, …).
+Dadurch funktionieren die Übersetzungen auch dann, wenn `i18n/` (Doku/Testmodul) nicht
+mitkopiert wird. `ui/i18n_core.py` und `ui/legal_i18n.py` liegen aus demselben Grund in `ui/`.
+`i18n/__init__.py` verweist für lokale Tests auf `ui/locales/`.

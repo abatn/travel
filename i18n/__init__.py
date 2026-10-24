@@ -15,12 +15,12 @@ SUPPORTED: tuple[str, ...] = ("de", "en", "fr", "es", "ar")
 DEFAULT = "de"
 RTL = {"ar"}
 COOKIE = "lang"
-LOCALES = Path(__file__).resolve().parent / "locales"
+LOCALES = Path(__file__).resolve().parent.parent / "ui" / "locales"
 
 
 @lru_cache(maxsize=None)
 def load(lang: str) -> dict[str, str]:
-    """Lädt eine Locale (Basis + optionale Zusatzdateien), Fallback Deutsch.
+    """Lädt eine Locale (Basis + optionale Zusatzdateien (unter ui/locales)), Fallback Deutsch.
 
     Zusatzdateien erlauben paralleles Arbeiten ohne Konflikte:
     ``<code>.json`` (Basis), ``<code>.pages.json``, ``<code>.legal.json``.
