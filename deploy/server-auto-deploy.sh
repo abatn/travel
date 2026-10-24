@@ -9,6 +9,16 @@ LOG="$HOME/deploy-travel.log"
 exec 9>"$HOME/.deploy-travel.lock"
 flock -n 9 || { echo "Deploy läuft bereits"; exit 0; }
 
+# Selbstinstallation: systemd startet $HOME/deploy-travel.sh (Kopie). Damit
+# Aenderungen an diesem Skript nicht haengen bleiben, wird die Kopie bei
+# jedem Lauf aus dem Repo aktualisiert (wirkt ab dem naechsten Lauf).
+if [ -f "$HOME/deploy-travel.sh" ] && [ -f "$REPO/deploy/server-auto-deploy.sh" ] \
+   && ! cmp -s "$REPO/deploy/server-auto-deploy.sh" "$HOME/deploy-travel.sh"; then
+  cp "$REPO/deploy/server-auto-deploy.sh" "$HOME/deploy-travel.sh"
+  chmod 755 "$HOME/deploy-travel.sh"
+  echo "Selbstinstallation: deploy-travel.sh aktualisiert"
+fi
+
 exec >>"$LOG" 2>&1
 echo "=== $(date -Is) ==="
 cd "$REPO"
