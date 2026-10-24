@@ -130,5 +130,6 @@
   "results.provider": "Provider",
   "results.meta.title": "Search results – Reise-Agent",
   "results.meta.description": "Live prices for your search: flights, hotels, ferries and cruises compared.",
-  "results.new_prices": "New prices for this route"
+  "results.new_prices": "New prices for this route",
+  "results.no_result_category": "No result for this category."
 }

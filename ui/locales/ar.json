@@ -130,5 +130,6 @@
   "results.provider": "المزوّد",
   "results.meta.title": "نتائج البحث – Reise-Agent",
   "results.meta.description": "أسعار مباشرة لبحثك: مقارنة الرحلات الجوية والفنادق والعبّارات والرحلات البحرية.",
-  "results.new_prices": "أسعار جديدة لهذا المسار"
+  "results.new_prices": "أسعار جديدة لهذا المسار",
+  "results.no_result_category": "لا توجد نتيجة لهذه الفئة."
 }

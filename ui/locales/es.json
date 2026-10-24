@@ -130,5 +130,6 @@
   "results.provider": "Proveedor",
   "results.meta.title": "Resultados de búsqueda – Reise-Agent",
   "results.meta.description": "Precios en directo para tu búsqueda: vuelos, hoteles, ferris y cruceros comparados.",
-  "results.new_prices": "Nuevos precios para esta ruta"
+  "results.new_prices": "Nuevos precios para esta ruta",
+  "results.no_result_category": "No hay resultados para esta categoría."
 }

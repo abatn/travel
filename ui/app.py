@@ -603,7 +603,9 @@ def job_page(request: Request, job_id: str):
 def detail_page(request: Request, job_id: str, category: str, index: int):
     data = service.job_result(job_id, category)
     if not data:
-        return HTMLResponse("Kein Ergebnis fuer diese Kategorie.", status_code=404)
+        lang = getattr(request.state, "lang", i18n_core.DEFAULT)
+        return HTMLResponse(i18n_core.t(lang, "results.no_result_category"),
+                            status_code=404)
     ranked = data.get("ranked") or []
     if index < 0 or index >= len(ranked):
         return HTMLResponse("Angebot nicht gefunden.", status_code=404)

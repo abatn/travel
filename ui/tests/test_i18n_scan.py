@@ -133,7 +133,10 @@ def start_search() -> str:
         "adults": "1", "currency": "EUR", "categories": "flights",
         "timeout_seconds": "25"}).encode()
     req = urllib.request.Request(f"{BASE}/api/search", data=body, method="POST",
-                                 headers={"Cookie": "lang=en"})
+                                 headers={"Cookie": "lang=en",
+                                          "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) "
+                                                        "reise-agent-i18n-scan/1.0",
+                                          "Accept": "application/json"})
     with urllib.request.urlopen(req, timeout=30) as resp:
         return json.loads(resp.read().decode())["job_id"]
 
