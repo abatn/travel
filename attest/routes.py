@@ -305,17 +305,29 @@ async def register_discovery(request: Request) -> JSONResponse:
         "saved_to": str(saved),
         "targets": [
             {
-                "name": "x402 Bazaar / OpenFacilitator-Index",
-                "url": "https://pay.openfacilitator.io/discovery/resources",
-                "mode": "read-only Index",
-                "note": "Aufnahme erfolgt über den Facilitator/Indexer, in der Regel nach "
-                        "einem erfolgreichen bezahlten Call. Kein offizieller Submit-Endpunkt bekannt.",
+                "name": "Coinbase CDP Bazaar (Hauptindex)",
+                "url": "https://api.cdp.coinbase.com/platform/v2/x402/discovery/search",
+                "mode": "automatisch – keine Registrierung",
+                "note": "Der Facilitator katalogisiert die Ressource nach dem ersten "
+                        "erfolgreichen Settlement (paymentPayload.resource muss gesetzt "
+                        "sein). Status prüfen: /v2/x402/validate – returns_402 muss true "
+                        "sein (GET/HEAD müssen 402 antworten).",
             },
             {
-                "name": "x402.jobs",
-                "url": "https://x402.jobs",
-                "mode": "manuell",
-                "note": "Verzeichnis für x402-Ressourcen; Einreichung/Anmeldung manuell prüfen.",
+                "name": "x402.new / x402scan / agentic.market (spiegeln CDP)",
+                "url": "https://x402.new/submit",
+                "mode": "automatisch (Index zieht CDP-Bazaar)",
+                "note": "Kein Formular; erscheint in der Regel innerhalb einer Stunde "
+                        "nach Katalogisierung im CDP-Bazaar.",
+            },
+            {
+                "name": "Manuelle Verzeichnisse",
+                "url": "https://github.com/xpaysh/awesome-x402",
+                "mode": "Pull Request / Einreichung",
+                "note": "PR bei xpaysh/awesome-x402, Rug-Munch/awesome-x402, x402.eco "
+                        "(data/ecosystem/services-endpoints/), gold-402, "
+                        "agent-tools.cloud (Formular) und x402-index (GitHub-Issue). "
+                        "gold-402 verlangt eine lebende 402 auf GET.",
             },
             {
                 "name": "Eigene Discovery",
@@ -325,10 +337,15 @@ async def register_discovery(request: Request) -> JSONResponse:
             },
         ],
         "manual_steps": [
-            "Öffentliche HTTPS-Domain setzen (SITE_URL) und Deployment erreichbar machen.",
-            "Einen erfolgreichen bezahlten Aufruf von POST /api/attest durchführen.",
-            "Prüfen, ob die Ressource im Facilitator-Index (discovery/resources) auftaucht.",
-            "Bei x402.jobs bzw. weiteren Verzeichnissen die Payload manuell einreichen.",
+            "Ersten bezahlten Aufruf von POST /api/attest über den CDP-Facilitator "
+            "durchführen (bewiesen: Tx 0x335fac… bzw. 0x2a848c… auf Base).",
+            "GET/HEAD /api/attest müssen 402 antworten – sonst schlägt der offizielle "
+            "Check POST /v2/x402/validate (returns_402) fehl und Verzeichnisse lehnen ab.",
+            "Index-Eintrag prüfen: /v2/x402/discovery/search?query=hanibal.",
+            "PRs/Issues an die manuellen Verzeichnisse senden (awesome-x402, x402.eco, "
+            "gold-402, agent-tools.cloud, x402-index).",
+            "30-Tage-Regel: Der CDP-Index blendet Ressourcen ohne Aktivität nach 30 "
+            "Tagen aus – mindestens einmal monatlich selbst zahlen.",
             "llms.txt und /.well-known/agent-payments.json nach Änderungen aktualisieren.",
         ],
     })
@@ -377,6 +394,25 @@ async def attest_verify(request: Request) -> JSONResponse:
 
 
 # --------------------------------------------------------------------------- paid
+@paid_router.get(ATTEST_PATH)
+async def attest_info() -> JSONResponse:
+    """Hinweis für Verzeichnis-Prüfungen (GET/HEAD).
+
+    Unbezahlte GET/HEAD-Anfragen werden schon von der x402-Middleware mit 402
+    abgefangen – erst mit gültiger Zahlung erreicht diese Route der Agent und
+    bekommt eine kurze Bedienhilfe (Attestierung selbst läuft über POST).
+    """
+    return JSONResponse({
+        "detail": "Diese Route ist per Zahlung erreichbar; die Attestierung "
+                  "selbst erfolgt über POST.",
+        "post": ATTEST_PATH,
+        "validate": f"{ATTEST_PATH}/validate",
+        "verify": f"{ATTEST_PATH}/verify",
+        "discovery": "/.well-known/agent-payments.json",
+        "documentation": "/llms.txt",
+    })
+
+
 @paid_router.post(ATTEST_PATH)
 async def attest(request: Request) -> JSONResponse:
     try:
@@ -453,7 +489,7 @@ def install(app) -> bool:
     if not ok:
         logger.error("x402 deaktiviert: %s", detail)
 
-        @app.post(ATTEST_PATH)
+        @app.api_route(ATTEST_PATH, methods=["GET", "HEAD", "POST"])
         async def _unavailable() -> JSONResponse:
             return JSONResponse(
                 {"error": "Zahlungsweg nicht verfügbar", "detail": detail},
@@ -466,7 +502,7 @@ def install(app) -> bool:
     except Exception as exc:  # noqa: BLE001
         logger.error("x402-Middleware nicht verfügbar: %s", exc)
 
-        @app.post(ATTEST_PATH)
+        @app.api_route(ATTEST_PATH, methods=["GET", "HEAD", "POST"])
         async def _unavailable() -> JSONResponse:
             return JSONResponse(
                 {"error": "Zahlungsweg nicht verfügbar", "detail": str(exc)},

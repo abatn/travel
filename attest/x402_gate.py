@@ -81,9 +81,10 @@ def build_payment_middleware(settings: Settings):
     if settings.asset:
         accepts["asset"] = settings.asset
 
-    routes: dict[str, Any] = {
-        f"POST {ATTEST_PATH}": {
-            "accepts": [accepts],
+    def route_config() -> dict[str, Any]:
+        # Frisches Objekt pro Methode: Die Middleware kompiliert jede Route einzeln.
+        return {
+            "accepts": [dict(accepts)],
             "description": (
                 "Signierte Preis-Attestierung: Route, Datum, Preis, Quelle, "
                 "Zeitstempel und Plausibilitätsprüfung (Ed25519)."
@@ -93,6 +94,13 @@ def build_payment_middleware(settings: Settings):
             "tags": ["travel", "price", "attestation", "x402"],
             "extensions": {"bazaar": bazaar_extension()},
         }
+
+    # GET/HEAD gehören bewusst dazu: Verzeichnisse und Facilitator-Indexer
+    # (CDP /v2/x402/validate, PayAI, gold-402) prüfen per HEAD/GET auf 402.
+    # Ohne 402-Antwort wird die Ressource nicht katalogisiert (returns_402).
+    routes: dict[str, Any] = {
+        f"{method} {ATTEST_PATH}": route_config()
+        for method in ("POST", "GET", "HEAD")
     }
     return payment_middleware(
         routes,

@@ -226,13 +226,44 @@ das Feld leer; erfundene Werte entstehen nie.
   Root, `{{BASE_URL}}` wird dynamisch ersetzt).
 * `GET /.well-known/agent-payments.json` – vollständige Discovery inkl.
   `resources`, `accepts`, `provider`, `contact` und `extensions.bazaar`.
-* Der 402-Response enthält dieselbe Bazaar-Erweiterung; Indexer können die
-  Ressource nach einem erfolgreichen bezahlten Call aufnehmen.
-* `POST /api/register` – **simuliert** die Registrierung: schreibt
-  `attest/state/registration_request.json` und liefert Payload, Ziele und die
-  manuellen Schritte. Es wird kein externer Dienst aufgerufen.
+* Der 402-Response (Header `payment-required`) enthält `resource`, `accepts` und
+  dieselbe Bazaar-Erweiterung `extensions.bazaar` wie die Discovery-Datei.
 
-**Manuell zu tun:** öffentliche HTTPS-Domain setzen (`SITE_URL`), einen
-erfolgreichen bezahlten Call ausführen, im Facilitator-Index prüfen, bei
-x402.jobs/Verzeichnissen die Payload einreichen, `llms.txt` und Discovery aktuell
-halten.
+**Automatische Aufnahme (kein Formular, offizielle Quellen):**
+
+* **CDP-Bazaar:** „There is no separate registration step." Der Facilitator
+  katalogisiert die Ressource nach dem **ersten erfolgreichen Settlement**
+  (dafür muss das Zahlungs-Payload `paymentPayload.resource` enthalten – die
+  offizielle x402-Python-SDK setzt es). Quelle:
+  <https://docs.cdp.coinbase.com/x402/bazaar>.
+* **Statusprüfung:** `POST https://api.cdp.coinbase.com/platform/v2/x402/validate`
+  mit `{"resource": "…/api/attest"}` – alle Preflight-Checks, insbesondere
+  `returns_402`, müssen `passed: true` sein. Suchindex:
+  `GET …/discovery/search?query=…` (Stand 24.10.2026: `query=hanibal` → 1 Treffer).
+* **GET/HEAD müssen 402 antworten:** Indexer und Verzeichnisse prüfen per
+  HEAD/GET; eine 405 führt zu `returns_402: false` und die Ressource wird nicht
+  bzw. nicht dauerhaft geführt. Deshalb antworten auch `GET`/`HEAD` auf
+  `/api/attest` mit der Zahlungsaufforderung (unbezahlt 402, bezahlt ein Hinweis
+  auf POST) – so auch bei PayAI/„read-only probe" („GET paths answering 405 …
+  are refused").
+* **30-Tage-Regel:** Der CDP-Index blendet Ressourcen ohne Aktivität nach
+  30 Tagen aus → mindestens **ein bezahlter Call pro Monat**.
+* **Spiegel-Verzeichnisse (ziehen CDP automatisch):** x402.new, x402scan.com,
+  agentic.market, Onyx Bazaar.
+
+**Manuelle Einträge (PR / Issue / Formular):**
+
+| Kanal | Einreichung |
+|---|---|
+| <https://github.com/xpaysh/awesome-x402> | PR in die Servicetabelle |
+| <https://github.com/Rug-Munch-Media-LLC/awesome-x402> | PR („Submit a PR") |
+| <https://github.com/rawgroundbeef/x402.eco> | PR mit JSON in `data/ecosystem/services-endpoints/` |
+| <https://github.com/Haustorium12/gold-402> | Einreichung, lebende 402 auf GET zwingend |
+| <https://agent-tools.cloud/submit?type=x402> | Formular inkl. Kontakt-E-Mail |
+| <https://github.com/x402-index/x402-discovery-index> | GitHub-Issue: URL, payTo, Beschreibung |
+| Saylor-Bazaar | `POST /submit` mit Manifest `/.well-known/x402.json` |
+
+* `POST /api/register` – **simuliert** die Registrierung: schreibt
+  `attest/state/registration_request.json` und liefert Payload, Ziele (CDP-Bazaar,
+  Spiegel, manuelle Verzeichnisse) und die manuellen Schritte. Es wird kein
+  externer Dienst aufgerufen.

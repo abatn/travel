@@ -126,6 +126,31 @@ def main() -> int:
         check((bazaar.get("info", {}).get("input", {}).get("method") == "POST"),
               "Discovery: bazaar input POST")
 
+        # Verzeichnis-Probing: CDP /v2/x402/validate, PayAI und gold-402 prüfen
+        # per HEAD/GET auf 402. Ohne 402 für diese Methoden wird die Ressource
+        # nicht katalogisiert (returns_402 failed -> resource abgelehnt).
+        import base64 as _b64
+
+        for method in ("GET", "HEAD"):
+            probe = httpx.request(method, f"{BASE}/api/attest", timeout=10)
+            check(probe.status_code == 402,
+                  f"Probe: {method} /api/attest -> 402", str(probe.status_code))
+            challenge = probe.headers.get("payment-required", "")
+            try:
+                decoded = json.loads(_b64.b64decode(challenge + "=" * (-len(challenge) % 4)))
+            except Exception:  # noqa: BLE001
+                decoded = {}
+            check(str(decoded.get("resource", {}).get("url", "")).endswith("/api/attest"),
+                  f"Probe: {method} nennt resource")
+            check(bool((decoded.get("extensions") or {}).get("bazaar")),
+                  f"Probe: {method} enthält bazaar-Extension")
+            check(bool(decoded.get("accepts")), f"Probe: {method} enthält accepts")
+
+        # unbezahlter POST bleibt 402 (unverändert)
+        post_probe = httpx.post(f"{BASE}/api/attest", json={}, timeout=10)
+        check(post_probe.status_code == 402, "Probe: POST /api/attest -> 402",
+              str(post_probe.status_code))
+
         # register
         reg = httpx.post(f"{BASE}/api/register", timeout=10)
         check(reg.status_code == 200, "POST /api/register -> 200", str(reg.status_code))
