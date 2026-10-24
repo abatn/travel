@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 {% block title %}Reise suchen{% endblock %}
 {% block content %}
-<h1>Reise suchen</h1>
+<h1>{{ t('search.title') }}</h1>
 {% if error %}<p class="alert error">{{ error }}</p>{% endif %}
 
 <section class="card home-agent" id="home-agent" aria-labelledby="home-agent-title">
   <div class="home-agent-head">
-    <h2 id="home-agent-title">So arbeitet der Reise-Agent</h2>
+    <h2 id="home-agent-title">{{ t('home.title') }}</h2>
     <p class="muted small">
-      Live-Schaubild: Der Agent fragt Flüge, Hotels, Fähren und Kreuzfahrten parallel ab.
-      <span class="legend"><i class="lg waiting"></i> wartet</span>
-      <span class="legend"><i class="lg ok"></i> antwortet</span>
-      <span class="legend"><i class="lg error"></i> blockiert</span>
+      {{ t('home.subtitle') }}
+      <span class="legend"><i class="lg waiting"></i> {{ t('home.legend.waiting') }}</span>
+      <span class="legend"><i class="lg ok"></i> {{ t('home.legend.ok') }}</span>
+      <span class="legend"><i class="lg error"></i> {{ t('home.legend.error') }}</span>
     </p>
   </div>
   <div class="home-map" id="home-agent-map">
@@ -19,85 +19,84 @@
          role="img" aria-label="Schaubild: zentraler Agent, verbunden mit Flügen, Hotels, Fähren und Kreuzfahrten; Schleife Wahrnehmen, Planen, Handeln, Beobachten">
     </svg>
   </div>
-  <p class="home-status" id="home-agent-status" aria-live="polite">Bereit.</p>
+  <p class="home-status" id="home-agent-status" aria-live="polite">{{ t('home.status.ready') }}</p>
 </section>
 
 <form class="card search" method="post" action="/api/search" id="searchform">
   <div class="grid">
-    <label>Start
+    <label>{{ t('search.origin') }}
       <input name="origin" value="{{ request.query_params.get('origin', 'BER') }}" placeholder="BER" required>
     </label>
-    <label>Ziel
+    <label>{{ t('search.destination') }}
       <input name="destination" value="{{ request.query_params.get('destination', 'FCO') }}" placeholder="FCO" required>
     </label>
-    <label>Abreise
+    <label>{{ t('search.depart') }}
       <input type="date" name="depart_date" value="{{ default_depart }}" required>
     </label>
-    <label>Rückkehr
+    <label>{{ t('search.return') }}
       <input type="date" name="return_date" value="{{ default_return }}">
     </label>
-    <label>Erwachsene
+    <label>{{ t('search.adults') }}
       <input type="number" name="adults" min="1" max="9" value="1">
     </label>
-    <label>Kinder
+    <label>{{ t('search.children') }}
       <input type="number" name="children" min="0" max="8" value="0">
     </label>
-    <label>Währung
+    <label>{{ t('search.currency') }}
       <input name="currency" value="EUR" maxlength="3">
     </label>
-    <label>Max. Stopps
+    <label>{{ t('search.max_stops') }}
       <select name="max_stops">
-        <option value="one_stop">max. 1 Stopp</option>
-        <option value="any">beliebig</option>
+        <option value="one_stop">{{ t('search.one_stop') }}</option>
+        <option value="any">{{ t('search.any_stops') }}</option>
       </select>
     </label>
-    <label>Hotelsterne
+    <label>{{ t('search.stars') }}
       <input type="number" name="hotel_stars" min="1" max="5" value="4">
     </label>
-    <label>Budget (€)
-      <input type="number" name="budget" min="0" step="10" placeholder="optional">
+    <label>{{ t('search.budget') }}
+      <input type="number" name="budget" min="0" step="10" placeholder="{{ t('search.optional') }}">
     </label>
   </div>
 
   <fieldset class="cats">
-    <legend>Was suchen?</legend>
+    <legend>{{ t('search.categories') }}</legend>
     {% for c in categories %}
     <label class="cat">
       <input type="checkbox" name="categories" value="{{ c }}" {% if c == 'flights' %}checked{% endif %}>
-      {{ labels[c] }}
+      {{ t('cat.' ~ c) }}
     </label>
     {% endfor %}
   </fieldset>
 
   <details class="more">
-    <summary>Erweiterte Angaben (Fähren / Kreuzfahrten)</summary>
+    <summary>{{ t('search.more') }}</summary>
     <div class="grid">
-      <label>Fähre ab
+      <label>{{ t('search.ferry_from') }}
         <input name="ferry_origin" placeholder="z. B. Palma">
       </label>
-      <label>Fähre nach
+      <label>{{ t('search.ferry_to') }}
         <input name="ferry_destination" placeholder="z. B. Barcelona">
       </label>
-      <label>Kreuzfahrt ab
+      <label>{{ t('search.cruise_from') }}
         <input name="cruise_origin" placeholder="z. B. HAM">
       </label>
-      <label>Kreuzfahrt nach
+      <label>{{ t('search.cruise_to') }}
         <input name="cruise_destination" placeholder="z. B. MIA">
       </label>
-      <label>Zeitlimit je Quelle (s)
-        <input type="number" name="timeout_seconds" min="10" max="240" placeholder="Standard">
+      <label>{{ t('search.timeout') }}
+        <input type="number" name="timeout_seconds" min="10" max="240" placeholder="{{ t('search.default') }}">
       </label>
     </div>
   </details>
 
-  <button type="submit" class="primary">Suche starten</button>
-  <span class="hint">Die Suche fragt alle Quellen parallel ab (bis ~2 Minuten). Die Ergebnisseite zeigt
-    währenddessen live, welche Quelle antwortet.</span>
+  <button type="submit" class="primary">{{ t('search.submit') }}</button>
+  <span class="hint">{{ t('search.hint') }}</span>
 </form>
 
 {% if landing_links %}
 <section class="card">
-  <h2>Nach Reiseart suchen</h2>
+  <h2>{{ t('search.by_category') }}</h2>
   <ul class="linklist">
     {% for slug, label in landing_links %}
     <li><a href="/{{ slug }}">{{ label }}</a></li>
@@ -107,7 +106,7 @@
 {% endif %}
 
 <section class="card">
-  <h2>Quellen derzeit aktiv</h2>
+  <h2>{{ t('search.active_sources') }}</h2>
   {% for cat, items in status.categories.items() %}
     {% if cat in ['flights','hotels','ferries','cruises'] %}
     <h3>{{ status.labels.get(cat, cat) }} <span class="muted">({{ items|length }} Quellen)</span></h3>
@@ -118,7 +117,7 @@
         <b>{{ it.id }}</b>
         <span class="muted">{{ it.transport }}</span>
         {% if it.blocked_until %}<span class="tag warn">gesperrt bis {{ it.blocked_until }}</span>{% endif %}
-        {% if not it.enabled %}<span class="tag off">deaktiviert</span>{% endif %}
+        {% if not it.enabled %}<span class="tag off">{{ t('search.disabled') }}</span>{% endif %}
         {% if it.note %}<span class="muted small">{{ it.note }}</span>{% endif %}
       </li>
       {% endfor %}

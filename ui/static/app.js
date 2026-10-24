@@ -1,3 +1,20 @@
+// Übersetzungen aus dem Server (base.html: #i18n-data)
+const I18N = (function () {
+  try {
+    const el = document.getElementById('i18n-data');
+    return el ? JSON.parse(el.textContent || '{}') : {};
+  } catch (e) { return {}; }
+})();
+function T(key, params) {
+  let text = I18N[key] || key;
+  if (params) {
+    Object.keys(params).forEach(function (k) {
+      text = text.split('{' + k + '}').join(params[k]);
+    });
+  }
+  return text;
+}
+
 // Live-Anzeige des Suchlaufs: pollt den Job-Status und fuellt die Ergebnislisten.
 (function () {
   const form = document.getElementById('searchform');
@@ -153,7 +170,7 @@
     const rec = comp.recommendation || {};
     const money = v => (v === null || v === undefined) ? 'n/v'
       : v.toFixed(2).replace('.', ',') + ' ' + (comp.currency || 'EUR');
-    let html = '<h2>Bündelungsvorschlag</h2>';
+    let html = '<h2>' + T('results.bundling') + '</h2>';
     if (rec.id) {
       html += '<div class="best"><div><span class="label">Empfehlung</span>' +
         '<span class="price">' + money(rec.total) + '</span>' +
@@ -337,7 +354,7 @@
       const c = cats[cat];
       if (c.state !== 'done') {
         if (!tbody.dataset.filled) {
-          tbody.innerHTML = '<tr><td colspan="5" class="muted">Suche läuft …</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="5" class="muted">' + T('results.running') + '</td></tr>';
         }
         return;
       }
@@ -345,7 +362,7 @@
       const rows = (c.top || []);
       tbody.dataset.filled = 'done';
       if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="5" class="muted">Keine Angebote in dieser Kategorie.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="muted">' + T('results.none') + '</td></tr>';
         return;
       }
       tbody.innerHTML = rows.map((r, i) =>
@@ -371,8 +388,8 @@
         finished = true;
         const hint = document.getElementById('live-hint');
         if (hint) hint.textContent = d.state === 'done'
-          ? 'Suche abgeschlossen – die Preise gelten für den Moment der Abfrage.'
-          : 'Suche fehlgeschlagen: ' + (d.error || 'unbekannter Fehler');
+          ? T('results.done')
+          : T('results.failed', {error: d.error || '-'});
         return;
       }
       setTimeout(tick, 1500);
@@ -388,10 +405,10 @@
   const NS = 'http://www.w3.org/2000/svg';
   const CX = 450, CY = 260;
   const CATS = [
-    { id: 'flights', label: 'Flüge',        x: CX,  y: 64 },
-    { id: 'hotels',  label: 'Hotels',       x: 790, y: CY },
-    { id: 'ferries', label: 'Fähren',       x: CX,  y: 456 },
-    { id: 'cruises', label: 'Kreuzfahrten', x: 110, y: CY }
+    { id: 'flights', label: T('cat.flights'),        x: CX,  y: 64 },
+    { id: 'hotels',  label: T('cat.hotels'),       x: 790, y: CY },
+    { id: 'ferries', label: T('cat.ferries'),       x: CX,  y: 456 },
+    { id: 'cruises', label: T('cat.cruises'), x: 110, y: CY }
   ];
   const counts = {};
   const el = function (name, attrs) {
@@ -417,10 +434,10 @@
 
   // Schleife: Wahrnehmen -> Planen -> Handeln -> Beobachten
   centerG.appendChild(el('circle', { cx: CX, cy: CY, r: 118, class: 'home-loop' }));
-  [['Wahrnehmen', CX - 100, CY - 92, 'p1'],
-   ['Planen',     CX + 100, CY - 92, 'p2'],
-   ['Handeln',    CX + 100, CY + 106, 'p3'],
-   ['Beobachten', CX - 100, CY + 106, 'p4']].forEach(function (p) {
+  [[T('home.loop.perceive'), CX - 100, CY - 92, 'p1'],
+   [T('home.loop.plan'),     CX + 100, CY - 92, 'p2'],
+   [T('home.loop.act'),      CX + 100, CY + 106, 'p3'],
+   [T('home.loop.observe'),  CX - 100, CY + 106, 'p4']].forEach(function (p) {
     const t = el('text', { x: p[1], y: p[2], 'text-anchor': 'middle', class: 'home-phase ' + p[3] });
     t.textContent = p[0];
     centerG.appendChild(t);
@@ -451,12 +468,12 @@
     edges[c.id] = edge;
 
     const g = el('g', { class: 'home-node waiting', 'data-cat': c.id, tabindex: '0',
-                        role: 'button', 'aria-label': c.label + ' auswählen' });
+                        role: 'button', 'aria-label': T('home.node.selected', {label: c.label}) });
     g.appendChild(el('rect', { x: c.x - 86, y: c.y - 30, width: 172, height: 60, rx: 12 }));
     const label = el('text', { x: c.x - 70, y: c.y - 4, class: 'label' });
     label.textContent = c.label;
     const sub = el('text', { x: c.x - 70, y: c.y + 14, class: 'sub' });
-    sub.textContent = 'wird geprüft';
+    sub.textContent = T('status.waiting');
     g.appendChild(label);
     g.appendChild(sub);
     g.appendChild(el('circle', { cx: c.x + 66, cy: c.y - 14, r: 5, class: 'dot' }));
@@ -467,7 +484,7 @@
       const box = document.querySelector('input[name="categories"][value="' + c.id + '"]');
       if (box) {
         box.checked = true;
-        mind.textContent = c.label + ' ausgewählt';
+        mind.textContent = T('home.node.selected', {label: c.label});
       }
     };
     g.addEventListener('click', activate);
@@ -492,14 +509,14 @@
       const items = (d.categories || {})[c.id] || [];
       const active = items.filter(function (p) { return p.enabled !== false; });
       const blocked = active.filter(function (p) { return p.blocked_until; });
-      if (!active.length) { setCategory(c.id, 'error', 'keine Quelle'); return; }
+      if (!active.length) { setCategory(c.id, 'error', T('home.node.no_source')); return; }
       if (blocked.length === active.length) {
-        setCategory(c.id, 'error', active.length + ' blockiert'); return;
+        setCategory(c.id, 'error', T('home.node.blocked', {count: active.length})); return;
       }
       counts[c.id] = active.length;
-      setCategory(c.id, 'waiting', active.length + ' Quellen');
+      setCategory(c.id, 'waiting', T('home.node.sources', {count: active.length}));
     });
-    mind.textContent = 'bereit · ' + total() + ' Quellen';
+    mind.textContent = T('home.status.sources', {count: total()});
   }
 
   function fromJob(d) {
@@ -514,7 +531,7 @@
       setCategory(cat, good === 0 ? 'error' : 'ok', good + '/' + providers.length + ' ok');
     });
     if (all) {
-      mind.textContent = 'letzte Suche · ' + ok + '/' + all + ' ok';
+      mind.textContent = T('home.status.last', {ok: ok, total: all});
     } else {
       // Lauf ohne Ergebnisse (z. B. noch nicht gestartet) -> normaler Status
       lastJob = null;
@@ -527,7 +544,7 @@
   function refreshStatus() {
     fetch('/api/status').then(function (r) { return r.json(); })
       .then(function (d) { if (!lastJob) fromStatus(d); })
-      .catch(function () { mind.textContent = 'Status nicht verfügbar'; });
+      .catch(function () { mind.textContent = T('status.error'); });
   }
   try { lastJob = localStorage.getItem('lastJob'); } catch (e) {}
   if (lastJob) {
@@ -549,11 +566,11 @@
   window.homeAgentRun = function (params) {
     const chosen = params.getAll('categories');
     CATS.forEach(function (c) {
-      if (chosen.indexOf(c.id) >= 0) setCategory(c.id, 'running', 'läuft');
+      if (chosen.indexOf(c.id) >= 0) setCategory(c.id, 'running', T('home.node.running'));
     });
-    mind.textContent = 'Analysiere Anfrage …';
-    setTimeout(function () { mind.textContent = 'Frage ' + Math.max(chosen.length, 1) + ' Kategorien ab …'; }, 350);
-    setTimeout(function () { mind.textContent = 'Ergebnisse werden zusammengeführt …'; }, 800);
+    mind.textContent = T('home.status.analyzing');
+    setTimeout(function () { mind.textContent = T('home.status.asking', {count: Math.max(chosen.length, 1)}); }, 350);
+    setTimeout(function () { mind.textContent = T('home.status.merging'); }, 800);
     return 1150;
   };
 })();

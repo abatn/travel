@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="{{ lang | default('de') }}" dir="{{ dir | default('ltr') }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,12 +10,20 @@
   <link rel="stylesheet" href="/static/app.css?v={{ asset_v('app.css') }}">
 </head>
 <body>
-<header class="topbar"><a class="brand" href="/">✈ Reise-Agent</a></header>
+<header class="topbar"><a class="brand" href="/">✈ Reise-Agent</a>
+  <div class="lang-switch" role="group" aria-label="{{ t('lang.switch') }}">
+    {% for code in supported_langs | default(['de']) %}
+    <a href="{{ request.url.path }}?lang={{ code }}" hreflang="{{ code }}" lang="{{ code }}"
+       class="{% if code == lang %}active{% endif %}">{{ t('lang.name.' ~ code) }}</a>
+    {% endfor %}
+  </div>
+</header>
 <main class="wrap">
 <h1>{{ title }}</h1>
+{% if lang != 'de' %}<p class="alert warn">{{ t('legal.notice') }}</p>{% endif %}
 {% if not configured %}
 <div class="card legal">
-  <p class="alert warn"><b>Noch nicht konfiguriert.</b> Die Betreiberangaben fehlen in
+  <p class="alert warn"><b>{{ t('legal.not_configured') }}</b> Die Betreiberangaben fehlen in
     <code>ui/legal.yaml</code>. Diese Seite ist deshalb auf <code>noindex</code> gesetzt und
     sollte vor dem Livegang vervollständigt werden.</p>
   <p class="muted">Benötigt werden: Name/Firma, Anschrift, E-Mail, ggf. Telefon und
@@ -33,9 +41,8 @@
   {{ content | safe }}
 </div>
 {% endif %}
-<p><a href="/">← zurück zur Suche</a></p>
+<p><a href="/">{{ t('legal.back') }}</a></p>
 </main>
-<footer class="foot"><p>Affiliate-Hinweis: Buchungslinks können Affiliate-Links sein („Anzeige“).
-  Wir sind Reisevermittler, nicht Reiseveranstalter.</p></footer>
+<footer class="foot"><p>{{ t('legal.footer') }}</p></footer>
 </body>
 </html>

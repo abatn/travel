@@ -36,12 +36,30 @@ import pages as seo_pages  # noqa: E402
 import routes_cache  # noqa: E402
 import sitemap as seo_sitemap  # noqa: E402
 import legal_config  # noqa: E402
+import i18n as i18n_core  # noqa: E402
 
 app = FastAPI(title="Reise-Agent UI", version="1.2",
               docs_url=None, redoc_url=None, openapi_url=None)   # S6: keine API-Docs
 app.add_middleware(GZipMiddleware, minimum_size=500)
 app.mount("/static", StaticFiles(directory=os.path.join(HERE, "static")), name="static")
 templates = Jinja2Templates(directory=os.path.join(HERE, "templates"))
+
+@app.middleware("http")
+async def _i18n_middleware(request, call_next):
+    """Sprache auflösen (Query/Cookie/Header), Cookie setzen, Cache steuern."""
+    lang = i18n_core.resolve(request)
+    request.state.lang = lang
+    response = await call_next(request)
+    response.headers["Content-Language"] = lang
+    if i18n_core.swatch_update_needed(request, lang):
+        response.set_cookie(i18n_core.COOKIE, lang, max_age=31536000,
+                            samesite="lax", path="/")
+    if request.url.path in ("/", "/impressum", "/datenschutz", "/llms.txt",
+                            "/.well-known/agent-payments.json", "/capabilities"):
+        response.headers["Cache-Control"] = "private, max-age=0, must-revalidate"
+        response.headers["Vary"] = "Cookie, Accept-Language"
+    return response
+
 
 
 @app.middleware("http")
@@ -92,8 +110,17 @@ def _base(request: Request) -> str:
 
 def _render(request: Request, template: str, context: dict, meta: dict,
             jsonld: list | None = None, status_code: int = 200):
+    lang = getattr(request.state, "lang", i18n_core.DEFAULT)
+    meta = dict(meta)
+    meta["lang"] = lang
+    meta["og_locale"] = {"de": "de_DE", "en": "en_US", "fr": "fr_FR",
+                         "es": "es_ES", "ar": "ar_AR"}.get(lang, "de_DE")
     ctx = {"request": request, "meta": meta,
-           "jsonld": [seo_jsonld.to_script_tag(x) for x in (jsonld or []) if x]}
+           "jsonld": [seo_jsonld.to_script_tag(x) for x in (jsonld or []) if x],
+           "t": i18n_core.translator(lang), "lang": lang,
+           "dir": i18n_core.direction(lang),
+           "supported_langs": i18n_core.SUPPORTED,
+           "i18n_js": i18n_core.load(lang)}
     ctx.update(context)
     return templates.TemplateResponse(request, template, ctx, status_code=status_code)
 
@@ -317,7 +344,8 @@ def _legal_page(request: Request, kind: str):
     d = data.get("datenschutz") or {}
     configured = legal_config.is_complete(data, kind)
     missing = legal_config.missing(data, kind)
-    title = "Impressum" if kind == "impressum" else "Datenschutz"
+    lang = getattr(request.state, "lang", i18n_core.DEFAULT)
+    title = i18n_core.t(lang, "legal.imprint" if kind == "impressum" else "legal.privacy")
     meta = seo_meta.build(
         f"{title} – Reise-Agent",
         ("Anbieterkennzeichnung nach § 5 DDG." if kind == "impressum"
@@ -388,6 +416,10 @@ def _legal_page(request: Request, kind: str):
     return templates.TemplateResponse(request, "legal.html", {
         "request": request, "meta": meta, "jsonld": [], "title": title,
         "configured": configured, "content": content, "missing": missing,
+        "t": i18n_core.translator(lang), "lang": lang,
+        "dir": i18n_core.direction(lang),
+        "supported_langs": i18n_core.SUPPORTED,
+        "i18n_js": i18n_core.load(lang),
         "asset_v": _asset_v})
 
 
@@ -443,6 +475,14 @@ def llms_txt(request: Request):
         pass
     contact = str(((legal_config.load().get("betreiber") or {}).get("email")) or "").strip()
     text = text.replace("{{CONTACT_EMAIL}}", contact or "siehe /impressum")
+    lang = getattr(request.state, "lang", i18n_core.DEFAULT)
+    if lang != "de":
+        intro = (
+            f"# Reise-Agent ({i18n_core.t(lang, 'lang.name.' + lang)})\n\n"
+            f"> {i18n_core.t(lang, 'discovery.description')}\n\n"
+            f"> {i18n_core.t(lang, 'legal.notice')}\n\n---\n\n"
+        )
+        text = intro + text
     return PlainTextResponse(text, media_type="text/plain; charset=utf-8",
                              headers={"Cache-Control": "public, max-age=300"})
 

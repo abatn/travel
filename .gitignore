@@ -12,6 +12,7 @@
 !/bundling/
 !/attest/
 !/docs/
+!/i18n/
 !/deploy/
 !/scripts/
 !/llms.txt

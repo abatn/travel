@@ -25,6 +25,7 @@ from .billing import record_invoice
 from .capabilities import capabilities_document
 from .config import Settings, load_settings
 from .discovery import SAMPLE_INPUT, SAMPLE_OUTPUT, atomic_amount, bazaar_extension, contact_email
+from i18n import SUPPORTED as I18N_SUPPORTED, t as i18n_t
 from .models import Observation
 from .plausibility import check_observation
 from .signing import IssuerKey, load_or_create_key, verify_document
@@ -264,6 +265,9 @@ def discovery_document(base: str) -> dict[str, Any]:
             "refund_policy": "keine Rückerstattung nach Settlement (kein Chargeback)",
         },
         "contact": {"email": email or None, "url": f"{base}/impressum"},
+        "languages": list(I18N_SUPPORTED),
+        "description_i18n": {c: i18n_t(c, "discovery.description") for c in I18N_SUPPORTED},
+        "serviceName_i18n": {c: i18n_t(c, "nav.pricing") for c in I18N_SUPPORTED},
         "lastUpdated": _iso(_now()),
     }
 

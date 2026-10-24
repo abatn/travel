@@ -1,18 +1,18 @@
 {% extends "base.html" %}
-{% block title %}Ergebnisse{% endblock %}
+{% block title %}{{ t('results.title') }}{% endblock %}
 {% block content %}
-<h1>Ergebnisse</h1>
+<h1>{{ t('results.title') }}</h1>
 {% if job.params.return_date %}
 <p class="muted">
   {{ job.params.origin }} → {{ job.params.destination }} ·
   {{ job.params.depart_date }}{% if job.params.return_date %} → {{ job.params.return_date }}{% endif %} ·
-  {{ job.params.adults }} Person(en) · {{ job.params.currency }}
+  {{ t('results.persons', count=job.params.adults) }} · {{ job.params.currency }}
   · Lauf <code>{{ job.job_id }}</code> · gestartet {{ job.started_at }}
 </p>
 {% else %}
 <p class="muted">
   {{ job.params.origin }} → {{ job.params.destination }} ·
-  {{ job.params.depart_date }} (einseitig) ·
+  {{ job.params.depart_date }} {{ t('results.trip_oneway') }} ·
   {{ job.params.adults }} Person(en) · {{ job.params.currency }}
   · Lauf <code>{{ job.job_id }}</code> · gestartet {{ job.started_at }}
 </p>
@@ -22,7 +22,7 @@
 
 {% if affiliate and (affiliate.demo_active or (affiliate.partners | selectattr('configured') | list | length > 0)) %}
 <div class="aff-banner">
-  <b>Anzeige:</b> Einige Buchungslinks sind Affiliate-Links. Buchst du darüber, erhalten wir vom
+  <b>{{ t('results.ad') }}</b> Einige Buchungslinks sind Affiliate-Links. Buchst du darüber, erhalten wir vom
   Anbieter eine Provision – der Preis ändert sich dadurch nicht. Die Empfehlung richtet sich
   ausschließlich nach dem Preis, nie nach der Provision.
   {% if affiliate.demo_active %}<br><span class="warn">Hinweis: Es ist eine Testkennung aktiv
@@ -31,23 +31,23 @@
 {% endif %}
 
 <section class="card" id="livebox">
-  <h2>Quellenstatus <span class="muted">(live)</span></h2>
+  <h2>{{ t('results.live') }} <span class="muted">{{ t('results.live_suffix') }}</span></h2>
 
   <div class="agent-graph" id="agent-graph"
        role="img" aria-label="Agent fragt Quellen ab – Netzwerk aus Quelle und Verbindungen">
     <svg id="agent-svg" viewBox="0 0 900 380" preserveAspectRatio="xMidYMid meet"></svg>
   </div>
-  <p class="progress-label" id="progress-label">Suche startet …</p>
+  <p class="progress-label" id="progress-label">{{ t('results.searching') }}</p>
 
   <div id="live-status" class="live">
     <div class="live-scroll">
       <table class="table live-table">
-        <thead><tr><th>Kategorie</th><th>Quelle</th><th aria-label="Statuspunkt"></th>
-          <th>Status</th><th>Angebote</th><th>Dauer</th><th>Hinweis</th></tr></thead>
+        <thead><tr><th>{{ t('results.category') }}</th><th>{{ t('results.source') }}</th><th aria-label="Statuspunkt"></th>
+          <th>{{ t('results.status') }}</th><th>{{ t('results.offers') }}</th><th>{{ t('results.duration') }}</th><th>{{ t('results.note') }}</th></tr></thead>
         <tbody>
           {% for row in live_rows %}
           <tr data-source="{{ row.source }}">
-            <td class="muted small">{{ labels.get(row.category, row.category) }}</td>
+            <td class="muted small">{{ t('cat.' ~ row.category) }}</td>
             <td>{{ row.source }}</td>
             <td><span class="dot {{ 'ok' if row.status == 'ok' else ('warn' if row.status in ['skipped','corrupt'] else ('err' if row.status == 'error' else 'wait')) }}"></span></td>
             <td class="st {{ 'ok' if row.status == 'ok' else ('warn' if row.status in ['skipped','corrupt'] else ('err' if row.status == 'error' else '')) }}">{{ 'wartet' if not row.status or row.status == 'waiting' else row.status }}</td>

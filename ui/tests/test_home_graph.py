@@ -77,7 +77,7 @@ def main() -> int:
         ws = websocket.create_connection(target["webSocketDebuggerUrl"], timeout=30)
         cdp(ws, 1, "Page.enable")
         cdp(ws, 2, "Runtime.enable")
-        cdp(ws, 3, "Page.navigate", {"url": BASE + "/"})
+        cdp(ws, 3, "Page.navigate", {"url": BASE + "/?lang=de"})
         time.sleep(1.5)
         # frischer Zustand: gemerkten Lauf aus früheren Testläufen entfernen
         evaljs(ws, "(function(){try{localStorage.clear()}catch(e){};return JSON.stringify(true)})()")

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ meta.lang | default('de') }}">
+<html lang="{{ lang | default(meta.lang | default('de')) }}" dir="{{ dir | default('ltr') }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -26,34 +26,37 @@
   {% for block in jsonld %}{{ block | safe }}{% endfor %}
 </head>
 <body>
-<a class="skip" href="#main">Zum Inhalt springen</a>
+<a class="skip" href="#main">{{ t('nav.skip') }}</a>
 <header class="topbar">
-  <a class="brand" href="/" title="Reise-Agent – Preisvergleich Startseite">✈ Reise-Agent</a>
-  <nav aria-label="Hauptnavigation">
-    <a href="/preisvergleich">Preisvergleich</a>
-    <a href="/fluege">Flüge</a>
-    <a href="/hotels">Hotels</a>
-    <a href="/faehren">Fähren</a>
-    <a href="/kreuzfahrten">Kreuzfahrten</a>
-    <a href="/alarms">Preisalarme</a>
+  <a class="brand" href="/" title="{{ t('brand.title') }}">✈ Reise-Agent</a>
+  <nav aria-label="{{ t('nav.main') }}">
+    <a href="/preisvergleich">{{ t('nav.pricing') }}</a>
+    <a href="/fluege">{{ t('nav.flights') }}</a>
+    <a href="/hotels">{{ t('nav.hotels') }}</a>
+    <a href="/faehren">{{ t('nav.ferries') }}</a>
+    <a href="/kreuzfahrten">{{ t('nav.cruises') }}</a>
+    <a href="/alarms">{{ t('nav.alerts') }}</a>
   </nav>
+  <div class="lang-switch" role="group" aria-label="{{ t('lang.switch') }}">
+    {% for code in supported_langs | default(['de']) %}
+    <a href="{{ request.url.path }}?lang={{ code }}" hreflang="{{ code }}"
+       lang="{{ code }}" class="{% if code == lang %}active{% endif %}">{{ t('lang.name.' ~ code) }}</a>
+    {% endfor %}
+  </div>
 </header>
 <main class="wrap" id="main">
   {% block content %}{% endblock %}
 </main>
 <footer class="foot">
-  <p>Preise sind Live-Daten der jeweiligen Anbieter. Steuerstatus und Endpreis stammen aus den Detailraten der
-  Quelle; ohne Beleg wird „nicht verfügbar“ angezeigt.</p>
-  <p>Affiliate-Hinweis: Buchungslinks können Affiliate-Links sein („Anzeige“). Wir erhalten dann vom Anbieter
-  eine Provision; der Preis bleibt gleich. Wir sind Reisevermittler, nicht Reiseveranstalter – der Vertrag
-  kommt ausschließlich mit dem Anbieter zustande, dort wird auch bezahlt. Wir nehmen keine Zahlungen entgegen
-  und speichern keine Zahlungsdaten. Vergleiche und Summen sind keine Gesamtpreis-Angebote (§ 651b BGB).</p>
-  <p><a href="/preisvergleich">Preisvergleich</a> · <a href="/fluege">Flüge</a> · <a href="/hotels">Hotels</a> ·
-    <a href="/faehren">Fähren</a> · <a href="/kreuzfahrten">Kreuzfahrten</a> ·
-    <a href="/alarms">Preisalarme</a> · <a href="/impressum">Impressum</a> ·
+  <p>{{ t('footer.prices') }}</p>
+  <p>{{ t('footer.affiliate') }}</p>
+  <p><a href="/preisvergleich">{{ t('nav.pricing') }}</a> · <a href="/fluege">{{ t('nav.flights') }}</a> · <a href="/hotels">{{ t('nav.hotels') }}</a> ·
+    <a href="/faehren">{{ t('nav.ferries') }}</a> · <a href="/kreuzfahrten">{{ t('nav.cruises') }}</a> ·
+    <a href="/alarms">{{ t('nav.alerts') }}</a> · <a href="/impressum">Impressum</a> ·
     <a href="/datenschutz">Datenschutz</a></p>
 </footer>
 <datalist id="places"></datalist>
+<script id="i18n-data" type="application/json">{{ i18n_js | tojson }}</script>
 <script src="/static/app.js?v={{ asset_v('app.js') }}" defer></script>
 </body>
 </html>
