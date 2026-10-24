@@ -39,22 +39,22 @@
 # =============================================================================
 
 betreiber:
-  name: "[Batnini Abdelkader]"    # Pflicht: Vor- und Nachname oder Firma
-  strasse: "[wildgansweg 34]"     # Pflicht: Straße und Hausnummer
-  plz_ort: "[70378 Stuttgart]"    # Pflicht: PLZ und Ort
-  land: "Deutschland"            # Pflicht
+  name: "Mohamed Larbi Nakti"     # Pflicht: Vor- und Nachname oder Firma
+  strasse: "13 rue des usines, ZI Sidi Rezig"  # Pflicht: Straße und Hausnummer
+  plz_ort: "2033 Ben Arous"       # Pflicht: PLZ und Ort
+  land: "Tunesien"                # Pflicht
   email: "batniniabdelkader@yahoo.com"  # Pflicht: erreichbare E-Mail-Adresse
-  telefon: "004915777774764"      # optional (E-Mail genügt für § 5 DDG)
-  umsatzsteuer_id: '[USt-IdNr. oder "keine"]'  # Pflicht: USt-IdNr. oder "keine"
-  verantwortlich: "[Batnini Abdelkader]"  # Pflicht: Name, § 18 Abs. 2 MStV
+  telefon: "0021652369325"        # optional (E-Mail genügt für § 5 DDG)
+  umsatzsteuer_id: "1096754w"     # Pflicht: USt-IdNr. oder "keine"
+  verantwortlich: "Mohamed Larbi Nakti"  # Pflicht: Name, § 18 Abs. 2 MStV
   registergericht: ""            # optional, nur bei eingetragenen Firmen
   registernummer: ""             # optional, z. B. HRB 12345
 
 datenschutz:
-  hosting: "[Contabo GmbH, München]"  # Pflicht: z. B. "Hetzner Online GmbH, Nürnberg"
+  hosting: "Contabo GmbH"         # Pflicht: z. B. "Hetzner Online GmbH, Nürnberg"
   kontakt_datenschutz: "batniniabdelkader@yahoo.com"  # Pflicht: E-Mail für Datenschutzanfragen
   aufbewahrung_logs: "30 Tage"   # Pflicht: Aufbewahrungsdauer der Server-Logs
-  aufsichtsbehoerde: "[Der Landesbeauftragte für den Datenschutz und die Informationsfreiheit Baden-Württemberg]"  # Pflicht
-  stand: "[24.10.2026]"           # Pflicht: z. B. "23.10.2026"
+  aufsichtsbehoerde: "INPDP (Instance Nationale de Protection des Données Personnelles), Tunis, Tunesien"  # Pflicht
+  stand: "24.10.2026"             # Pflicht: z. B. "23.10.2026"
   email_hosting: ""              # optional: E-Mail-Dienstleister
   auftragsverarbeiter: ""        # optional: weitere Dienstleister (kommagetrennt)
