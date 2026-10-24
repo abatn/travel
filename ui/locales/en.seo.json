@@ -1,0 +1,18 @@
+{
+  "seo.fluege.title": "Cheap flights compared",
+  "seo.fluege.h1": "Compare cheap flights",
+  "seo.fluege.description": "Live flight prices from multiple sources – cheapest first, no sign-up.",
+  "seo.fluege.intro": "We query several flight sources at once and show the cheapest price first. The final price including baggage is only shown when the source provides it.",
+  "seo.hotels.title": "Hotels compared",
+  "seo.hotels.h1": "Compare hotels",
+  "seo.hotels.description": "Hotel prices from multiple sources – per night and room, transparent, no sign-up.",
+  "seo.hotels.intro": "Hotel prices are shown per night and room. Whether taxes and fees are included is stated in the source's rate details.",
+  "seo.faehren.title": "Ferries compared",
+  "seo.faehren.h1": "Compare ferries",
+  "seo.faehren.description": "Ferry prices from multiple sources – per person, transparent, no sign-up.",
+  "seo.faehren.intro": "Ferry prices differ by basis: seat per person, cabin or vehicle. We state the price basis for every offer.",
+  "seo.kreuzfahrten.title": "Cruises compared",
+  "seo.kreuzfahrten.h1": "Compare cruises",
+  "seo.kreuzfahrten.description": "Cruise prices from multiple sources – per person, transparent, no sign-up.",
+  "seo.kreuzfahrten.intro": "Cruise prices apply per person for the whole trip. We state the price basis and whether taxes are included."
+}

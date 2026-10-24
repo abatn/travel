@@ -1,0 +1,23 @@
+{
+  "seo.overview.title": "Comparateur de prix de voyage : vols, hôtels, ferries, croisières",
+  "seo.overview.description": "Comparez les prix en direct de plus de 20 sources : vols, hôtels, ferries et croisières. Avec prix final, statut des taxes, état des sources et lien de réservation.",
+  "seo.overview.h1": "Comparateur de prix de voyage",
+  "seo.fluege.faq.0.q": "Le prix affiché est-il le prix final ?",
+  "seo.fluege.faq.0.a": "Uniquement si la source l'indique. Pour de nombreux tarifs, nous indiquons en plus le prix final incluant le bagage à main et le bagage en soute ; si cette information manque, il est explicitement indiqué « non disponible ».",
+  "seo.fluege.faq.1.q": "Pourquoi certaines compagnies aériennes manquent-elles ?",
+  "seo.fluege.faq.1.a": "Parce qu'une source ne les fournit pas ou est temporairement bloquée (limite de requêtes). L'aperçu des sources indique quelles sources répondent et lesquelles sont en pause.",
+  "seo.fluege.faq.2.q": "À quelle fréquence les prix sont-ils actualisés ?",
+  "seo.fluege.faq.2.a": "En direct à chaque recherche. Les prix affichés valent au moment de la requête ; le prix contraignant est celui du fournisseur.",
+  "seo.hotels.faq.0.q": "Les prix des hôtels sont-ils par nuit ou par séjour ?",
+  "seo.hotels.faq.0.a": "Par nuit et par chambre, dans la mesure où la source l'indique ainsi. Le prix total du séjour est calculé comme nuits × prix par nuit et affiché séparément.",
+  "seo.hotels.faq.1.q": "Les taxes sont-elles incluses ?",
+  "seo.hotels.faq.1.a": "Cela est indiqué pour chaque offre : incluses, non incluses ou non justifiées. La taxe de séjour ou taxe municipale varie selon la ville et est mentionnée lorsqu'elle est connue.",
+  "seo.faehren.faq.0.q": "Le prix s'applique-t-il par personne ou par véhicule ?",
+  "seo.faehren.faq.0.a": "Les deux sont possibles. Nous indiquons la base de prix de chaque offre (par personne ou par cabine/véhicule).",
+  "seo.faehren.faq.1.q": "Puis-je emmener une voiture ?",
+  "seo.faehren.faq.1.a": "De nombreuses compagnies de ferry le proposent ; la présence d'un véhicule dans le prix affiché est indiquée dans les conditions de la source.",
+  "seo.kreuzfahrten.faq.0.q": "Qu'est-ce qui est inclus dans le prix de la croisière ?",
+  "seo.kreuzfahrten.faq.0.a": "La cabine et les repas à bord, généralement taxes et frais inclus. Les forfaits boissons, les excursions et les pourboires sont en général en supplément – la source l'indique.",
+  "seo.kreuzfahrten.faq.1.q": "Pourquoi certains prix sont-ils en USD ?",
+  "seo.kreuzfahrten.faq.1.a": "Parce que la compagnie de croisière facture en USD. Nous ne convertissons qu'avec un taux de change justifié et le signalons ; sinon, nous affichons le prix d'origine."
+}

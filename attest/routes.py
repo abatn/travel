@@ -26,12 +26,15 @@ from .capabilities import capabilities_document
 from .config import Settings, load_settings
 from .discovery import SAMPLE_INPUT, SAMPLE_OUTPUT, atomic_amount, bazaar_extension, contact_email
 try:
-    from i18n import SUPPORTED as I18N_SUPPORTED, t as i18n_t
-except ModuleNotFoundError:  # Deploy ohne i18n: nur Deutsch, kein Absturz
-    I18N_SUPPORTED = ("de",)
+    from ui.i18n_core import SUPPORTED as I18N_SUPPORTED, t as i18n_t
+except ModuleNotFoundError:  # Fallback: keine Übersetzungen, kein Absturz
+    try:
+        from i18n import SUPPORTED as I18N_SUPPORTED, t as i18n_t
+    except ModuleNotFoundError:
+        I18N_SUPPORTED = ("de",)
 
-    def i18n_t(lang, key, default=None, **params):
-        return default if default is not None else key
+        def i18n_t(lang, key, default=None, **params):
+            return default if default is not None else key
 from .models import Observation
 from .plausibility import check_observation
 from .signing import IssuerKey, load_or_create_key, verify_document

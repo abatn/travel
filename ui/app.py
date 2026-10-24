@@ -37,7 +37,7 @@ import routes_cache  # noqa: E402
 import sitemap as seo_sitemap  # noqa: E402
 import legal_config  # noqa: E402
 try:
-    import i18n as i18n_core  # noqa: E402
+    import i18n_core  # noqa: E402  (ui/i18n_core.py)
 except ModuleNotFoundError:  # Deploy ohne i18n-Verzeichnis: Deutsch statt Absturz
     class _I18nFallback:
         SUPPORTED = ("de",)
