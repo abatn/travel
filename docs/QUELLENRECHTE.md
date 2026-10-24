@@ -67,10 +67,26 @@ Diese Zahlungen sind **kein** Umsatz:
 
 `deploy/payment_watch.py` filtert diese Wallets und meldet nur fremde Zahler.
 
+## Umsetzung im Code
+
+- `providers/rights.py` filtert Quellen vor jeder Suche.
+- `providers/registry.yaml` hat je Quelle einen Block:
+  ```yaml
+  rights:
+    status: own | approved | unverified | prohibited
+    evidence: "Beleg / Quelle"
+    checked_at: 2026-10-24
+  ```
+- **Standard:** `prohibited` wird nicht angezeigt (Flüge 9→6, Fähren 3→2).
+  `unverified` bleibt sichtbar, bis die AGB geklärt sind.
+- Strenger (nur `own`/`approved`): `RIGHTS_INCLUDE_UNVERIFIED=0`.
+- Filter aus (nur lokale Forschung): `RIGHTS_ENFORCE=0`.
+- Test: `python3 -m providers.tests.test_rights`.
+
 ## Offene Punkte
 
 1. Für jede „prüfen“-Quelle die AGB des Anbieters lesen (Weiterverkauf/Anzeige
-   erlaubt?) oder Quelle streichen.
+   erlaubt?) oder Quelle streichen; danach Status auf `approved`/`prohibited`.
 2. Für M1 (Pay-per-Crawl) gilt die Tabelle oben: Nur freigegebene Quellen dürfen
    hinter der Bezahlschranke angezeigt werden.
 3. M2 braucht keine Allowlist; die Attestierung weist die Quelle als

@@ -31,6 +31,8 @@ def main() -> int:
         time.sleep(0.8)
         reg_path = build_registry(tmp, PORT)
         env = dict(os.environ)
+        # Stub-Szenario, keine oeffentliche Anzeige: Quellenrechte-Sperre aus.
+        env["RIGHTS_ENFORCE"] = "0"
         env["TRVL_BREAKER_FILE"] = os.path.join(tmp, "breakers.json")
         env["TRVL_CALLS_FILE"] = os.path.join(tmp, "last_call.json")
 

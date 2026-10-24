@@ -32,6 +32,7 @@ from mcp_http import MCPHttpClient  # noqa: E402
 from score import score_offers  # noqa: E402
 from plausibility import screen as plausibility_screen, message_for_source, message_global  # noqa: E402
 from mcp_stdio import MCPStdioClient  # noqa: E402
+from rights import filter_providers  # noqa: E402
 
 
 # ---------------------------------------------------------------- Registry
@@ -688,9 +689,11 @@ def run(reg: dict, category: str, ctx: dict, only: list[str] | None = None,
     defaults = reg.get("defaults", {}) or {}
     timeout = float(ctx.get("_timeout") or defaults.get("timeout_seconds", 180))
     workers = int(defaults.get("max_workers", 8))
-    specs = [s for s in reg.get("providers", [])
-             if category in _categories(s) and s.get("enabled", True)
-             and (not only or s.get("id") in only)]
+    candidates = [s for s in reg.get("providers", [])
+                  if category in _categories(s) and s.get("enabled", True)
+                  and (not only or s.get("id") in only)]
+    # Quellenrechte: gesperrte Quellen (z. B. Google-Scraper) nicht anzeigen.
+    specs = filter_providers(candidates)
     results: list[dict] = []
     with futures.ThreadPoolExecutor(max_workers=workers) as pool:
         fut_map = {pool.submit(query_provider, s, ctx, timeout, defaults): s for s in specs}

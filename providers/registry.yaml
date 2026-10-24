@@ -60,6 +60,10 @@ defaults:
 providers:
   # ---------------------------------------------------------------- FLÜGE
   - id: trvl_flights
+    rights:
+      status: prohibited
+      evidence: "PolyForm Noncommercial 1.0.0 (docs/SOURCES_FETCH.md)"
+      checked_at: 2026-10-24
     price_scope: per_person
     category: flights
     transport: mcp_stdio
@@ -95,6 +99,10 @@ providers:
       warnings: warnings
       booking_url: booking_url
   - id: fli_flights
+    rights:
+      status: unverified
+      evidence: "AGB nicht geprueft, Default-Deny (docs/QUELLENRECHTE.md)"
+      checked_at: 2026-10-24
     price_scope: per_person
     category: flights
     transport: mcp_stdio
@@ -122,6 +130,10 @@ providers:
       booking_url: [booking_url, url, deep_link]
       legs: legs
   - id: skiplagged_flights
+    rights:
+      status: unverified
+      evidence: "AGB nicht geprueft, Default-Deny (docs/QUELLENRECHTE.md)"
+      checked_at: 2026-10-24
     price_scope: per_person
     price_scope_confidence: confirmed
     category: flights
@@ -164,6 +176,10 @@ providers:
       partner: null
       note: "Metasuche ohne eigenes Partnerprogramm in der Auswahl."
   - id: rome_hotel_taxes
+    rights:
+      status: own
+      evidence: "eigener Code, keine fremden Daten"
+      checked_at: 2026-10-24
     price_scope: per_night
     category: hotels
     transport: mcp_stdio
@@ -205,6 +221,10 @@ providers:
         lat: lat
         lon: lng
   - id: skiplagged_hotels
+    rights:
+      status: unverified
+      evidence: "AGB nicht geprueft, Default-Deny (docs/QUELLENRECHTE.md)"
+      checked_at: 2026-10-24
     category: hotels
     transport: mcp_http
     enabled: false
@@ -228,6 +248,10 @@ providers:
 
   # ------------------- NEU (Recherche 21.10.2026, keyless, mit Steuerfeldern)
   - id: maqami-travel
+    rights:
+      status: unverified
+      evidence: "AGB nicht geprueft, Default-Deny (docs/QUELLENRECHTE.md)"
+      checked_at: 2026-10-24
     price_scope: total
     category: flights
     transport: mcp_http
@@ -267,6 +291,10 @@ providers:
       booking_url: cheapestOffer.bookingUrl
       legs: segments
   - id: octotrip-flights
+    rights:
+      status: unverified
+      evidence: "AGB nicht geprueft, Default-Deny (docs/QUELLENRECHTE.md)"
+      checked_at: 2026-10-24
     price_scope: total
     category: flights
     transport: mcp_http
@@ -300,6 +328,10 @@ providers:
       booking_url: booking_url
       bag_breakdown: baggage
   - id: callstay
+    rights:
+      status: unverified
+      evidence: "AGB nicht geprueft, Default-Deny (docs/QUELLENRECHTE.md)"
+      checked_at: 2026-10-24
     price_scope: per_night
     category: hotels
     transport: mcp_http
@@ -344,6 +376,10 @@ providers:
       all_in: rooms.0.total_all_in
       booking_url: url
   - id: alice-flights
+    rights:
+      status: unverified
+      evidence: "AGB nicht geprueft, Default-Deny (docs/QUELLENRECHTE.md)"
+      checked_at: 2026-10-24
     category: flights
     transport: http
     enabled: true
@@ -379,6 +415,10 @@ providers:
       currency: flowCurrencyCode
       stops: segments.0.flights
   - id: flights-gf
+    rights:
+      status: prohibited
+      evidence: "keine Lizenzdatei, Google-Flights-Scraper (docs/SOURCES_FETCH.md)"
+      checked_at: 2026-10-24
     category: flights
     transport: mcp_stdio
     enabled: true
@@ -409,6 +449,10 @@ providers:
       stops: stops
       legs: legs
   - id: pilotplans-hotels
+    rights:
+      status: unverified
+      evidence: "AGB nicht geprueft, Default-Deny (docs/QUELLENRECHTE.md)"
+      checked_at: 2026-10-24
     category: hotels
     transport: mcp_http
     enabled: true
@@ -443,6 +487,10 @@ providers:
       lon: coordinates.longitude
       booking_url: url
   - id: bookresorts
+    rights:
+      status: unverified
+      evidence: "AGB nicht geprueft, Default-Deny (docs/QUELLENRECHTE.md)"
+      checked_at: 2026-10-24
     category: hotels
     transport: mcp_http
     enabled: true
@@ -474,6 +522,10 @@ providers:
       name: name
       booking_url: url
   - id: maqami-travel-hotels
+    rights:
+      status: unverified
+      evidence: "AGB nicht geprueft, Default-Deny (docs/QUELLENRECHTE.md)"
+      checked_at: 2026-10-24
     category: hotels
     transport: mcp_http
     enabled: true
@@ -528,6 +580,10 @@ providers:
         booking_url: deeplinkUrl
       # tax_lines: retailRate.taxesAndFees[] (description, amount, included) - je Position
   - id: googleflights-local
+    rights:
+      status: prohibited
+      evidence: "README: 'personal/local use only', Google-ToS (github.com/altunoren/googleflights-mcp)"
+      checked_at: 2026-10-24
     category: flights
     transport: mcp_stdio
     enabled: true
@@ -557,6 +613,10 @@ providers:
       stops: stops
       legs: legs
   - id: easygroupflights
+    rights:
+      status: unverified
+      evidence: "AGB nicht geprueft, Default-Deny (docs/QUELLENRECHTE.md)"
+      checked_at: 2026-10-24
     price_scope: per_person
     price_scope_confidence: confirmed
     category: flights
@@ -585,6 +645,10 @@ providers:
       partner: null
       note: "Text-OTA, kein Partnerprogramm."
   - id: ferryhopper_mcp
+    rights:
+      status: unverified
+      evidence: "AGB nicht geprueft, Default-Deny (docs/QUELLENRECHTE.md)"
+      checked_at: 2026-10-24
     price_scope: per_person
     price_scope_confidence: confirmed
     category: ferries
@@ -610,6 +674,10 @@ providers:
       note: "Kein Partnerprogramm in der Auswahl; Direct Ferries/12Go greifen nur bei passendem Zielhost."
 
   - id: trvl_ferries
+    rights:
+      status: prohibited
+      evidence: "PolyForm Noncommercial 1.0.0 (docs/SOURCES_FERRIES.md)"
+      checked_at: 2026-10-24
     category: ferries
     transport: mcp_stdio
     enabled: true
@@ -643,6 +711,10 @@ providers:
       name: departure.station
       legs: legs
   - id: finnlines_ferry
+    rights:
+      status: unverified
+      evidence: "AGB nicht geprueft, Default-Deny (docs/QUELLENRECHTE.md)"
+      checked_at: 2026-10-24
     category: ferries
     transport: http
     enabled: true
@@ -695,6 +767,10 @@ providers:
       name: shipName
       provider: null
   - id: stays_hotels
+    rights:
+      status: unverified
+      evidence: "AGB nicht geprueft, Default-Deny (docs/QUELLENRECHTE.md)"
+      checked_at: 2026-10-24
     price_scope: per_night
     price_scope_confidence: confirmed
     category: hotels
@@ -732,6 +808,10 @@ providers:
       note: "Booking.com-Links: Awin-Programm (4 Prozent, eine Session Cookie) moeglich."
 
   - id: hal-cruises
+    rights:
+      status: unverified
+      evidence: "AGB nicht geprueft, Default-Deny (docs/QUELLENRECHTE.md)"
+      checked_at: 2026-10-24
     category: cruises
     transport: http
     enabled: true
@@ -771,6 +851,10 @@ providers:
       sortPrice_EUR ist der FLEXIBLE-Preis und NICHT der guenstigste - nicht als Preis nehmen.
       {origin}/{destination} = HAL-Hafencodes (MIA, FLL, HAM, BCN, ...).
   - id: rcl-cruises
+    rights:
+      status: unverified
+      evidence: "AGB nicht geprueft, Default-Deny (docs/QUELLENRECHTE.md)"
+      checked_at: 2026-10-24
     category: cruises
     transport: cli
     enabled: true
@@ -808,6 +892,10 @@ providers:
       (BAHAM/CARIB/MED/ALASKA/...). Preisbasis belegt: Rechnung skaliert linear mit
       der Personenzahl (1/2/3 Erw. -> 561.15 / 696.30 / 1060.45 USD fuer dieselbe Abfahrt).
   - id: hal-price-api
+    rights:
+      status: unverified
+      evidence: "AGB nicht geprueft, Default-Deny (docs/QUELLENRECHTE.md)"
+      checked_at: 2026-10-24
     category: cruises
     transport: http
     enabled: false          # aktivieren, sobald ein 2-Schritt-Followup im Runner existiert

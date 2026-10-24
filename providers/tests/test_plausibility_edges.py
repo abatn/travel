@@ -34,6 +34,8 @@ def run_case(name: str, price: float, only_stub: bool, port: int) -> dict:
         srv = serve(port, price, 27.99, not only_stub)
         time.sleep(0.8)
         reg_path = build_registry(tmp, port)
+        # Stub-Szenario, keine oeffentliche Anzeige: Quellenrechte-Sperre aus.
+        os.environ["RIGHTS_ENFORCE"] = "0"
         os.environ["TRVL_BREAKER_FILE"] = os.path.join(tmp, "breakers.json")
         os.environ["TRVL_CALLS_FILE"] = os.path.join(tmp, "last_call.json")
         out_path = os.path.join(tmp, "result.json")

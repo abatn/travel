@@ -71,6 +71,8 @@ def main() -> int:
 
         # 2) Registry mit Stub
         reg_path = build_registry(tmp, PORT)
+        # Stub-Szenario, keine oeffentliche Anzeige: Quellenrechte-Sperre aus.
+        os.environ["RIGHTS_ENFORCE"] = "0"
         os.environ["TRVL_BREAKER_FILE"] = os.path.join(tmp, "breakers.json")
         os.environ["TRVL_CALLS_FILE"] = os.path.join(tmp, "last_call.json")
 
