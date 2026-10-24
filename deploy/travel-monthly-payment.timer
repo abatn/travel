@@ -1,0 +1,11 @@
+[Unit]
+Description=Monatliche x402-Selbstzahlung fuer Reise-Agent Attest
+
+[Timer]
+OnCalendar=*-*-01 03:17:00
+Persistent=true
+RandomizedDelaySec=1h
+Unit=travel-monthly-payment.service
+
+[Install]
+WantedBy=timers.target

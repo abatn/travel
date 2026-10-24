@@ -1,0 +1,14 @@
+[Unit]
+Description=Monatliche x402-Selbstzahlung (0.01 USDC) fuer Reise-Agent Attest
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=batnini
+Group=batnini
+WorkingDirectory=/home/batnini/mimo-agents
+EnvironmentFile=/etc/reise-agent.env
+Environment=PATH=/home/batnini/mimo-agents/.venv/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/local/bin/travel_monthly_payment.sh
+TimeoutStartSec=300

@@ -86,6 +86,29 @@ curl -s https://travel.hanibal-ai.com/.well-known/agent-payments.json
 curl -s -o /dev/null -w '%{http_code}\n' https://travel.hanibal-ai.com/
 ```
 
+## Monatliche Selbstzahlung (30-Tage-Regel)
+
+Dateien: `deploy/travel-monthly-payment.{sh,service,timer}`. Der Timer zahlt
+einmal monatlich 0,01 USDC an den eigenen Endpunkt, damit das Listing im
+CDP-Bazaar nicht nach 30 Tagen ohne Aktivität entfernt wird.
+
+Installation auf dem Server (als root, einmalig; bei Neuinstallation wiederholen):
+
+```sh
+install -m 755 deploy/travel-monthly-payment.sh /usr/local/bin/travel_monthly_payment.sh
+install -m 644 deploy/travel-monthly-payment.service deploy/travel-monthly-payment.timer /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now travel-monthly-payment.timer
+```
+
+Voraussetzungen: `attest/keys/buyer.key` (Rechte 600, Besitzer batnini) und
+`/etc/reise-agent.env` mit `CDP_API_KEY_ID`/`CDP_API_KEY_SECRET`. Der Key
+liegt nicht im Git (Deploy-Excludes).
+
+Prüfen: `systemctl list-timers travel-monthly-payment.timer` und
+`journalctl -u travel-monthly-payment.service`. Testlauf: `systemctl start travel-monthly-payment.service`
+(kostet 0,01 USDC). Ergebnis-Rechnungen stehen in `attest/state/invoices.jsonl`.
+
 ## Auto-Deploy über GitHub Actions
 
 Push auf `main` löst aus:
