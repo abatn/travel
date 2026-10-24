@@ -519,8 +519,8 @@ def llms_txt(request: Request):
 async def api_search(request: Request):
     form = await request.form()
     params = {
-        "origin": (form.get("origin") or "BER").strip(),
-        "destination": (form.get("destination") or "FCO").strip(),
+        "origin": (form.get("origin") or "").strip(),
+        "destination": (form.get("destination") or "").strip(),
         "city": (form.get("city") or form.get("destination") or "").strip(),
         "depart_date": (form.get("depart_date") or "").strip(),
         "return_date": (form.get("return_date") or "").strip(),

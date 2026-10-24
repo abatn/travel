@@ -6,13 +6,13 @@
   "seo.hotels.title": "Hôtels comparés",
   "seo.hotels.h1": "Comparer les hôtels",
   "seo.hotels.description": "Prix des hôtels de plusieurs sources – par nuit et par chambre, sans inscription.",
-  "seo.hotels.intro": "Les prix des hôtels sont indiqués par nuit et par chambre. Les taxes et frais inclus figurent dans le détail des tarifs de la source.",
+  "seo.hotels.intro": "Les prix d'hôtels sont fournis par nuit ou par séjour selon la source. Nous indiquons la base de prix pour chaque offre ; taxes et frais seulement si la source les mentionne.",
   "seo.faehren.title": "Ferries comparés",
   "seo.faehren.h1": "Comparer les ferries",
   "seo.faehren.description": "Prix des ferries de plusieurs sources – par personne, sans inscription.",
-  "seo.faehren.intro": "Les prix des ferries varient selon la base : siège par personne, cabine ou véhicule. Nous indiquons la base de prix pour chaque offre.",
+  "seo.faehren.intro": "Les prix des ferries varient selon la base : siège par personne ou cabine. Nous indiquons la base de prix pour chaque offre. Les tarifs véhicule ne sont pas pris en charge.",
   "seo.kreuzfahrten.title": "Croisières comparées",
   "seo.kreuzfahrten.h1": "Comparer les croisières",
   "seo.kreuzfahrten.description": "Prix des croisières de plusieurs sources – par personne, sans inscription.",
-  "seo.kreuzfahrten.intro": "Les prix des croisières s'entendent par personne pour tout le voyage. Nous indiquons la base de prix et si les taxes sont incluses."
+  "seo.kreuzfahrten.intro": "Les prix des croisières s'entendent par personne pour tout le voyage. L'inclusion des taxes et frais varie selon la source – nous l'indiquons pour chaque offre."
 }

@@ -58,11 +58,12 @@
   <h2>{{ t('pages.landing.compare_title') }}</h2>
   <form class="search" method="post" action="/api/search" id="searchform">
     <div class="grid">
+      {% if page.key == 'flights' %}
       <label>{{ t('pages.common.origin') }}
-        <input name="origin" value="{{ preset.origin or 'BER' }}" placeholder="BER" required>
+        <input name="origin" value="{{ preset.origin or '' }}" placeholder="BER" required>
       </label>
       <label>{{ t('pages.common.destination') }}
-        <input name="destination" value="{{ preset.destination or 'FCO' }}" placeholder="FCO" required>
+        <input name="destination" value="{{ preset.destination or '' }}" placeholder="FCO" required>
       </label>
       <label>{{ t('pages.common.depart') }}
         <input type="date" name="depart_date" value="{{ default_depart }}" required>
@@ -73,9 +74,84 @@
       <label>{{ t('pages.common.persons') }}
         <input type="number" name="adults" min="1" max="9" value="{{ preset.adults or 1 }}">
       </label>
+      <label>{{ t('pages.common.children') }}
+        <input type="number" name="children" min="0" max="8" value="0">
+      </label>
+      <label>{{ t('pages.common.max_stops') }}
+        <select name="max_stops">
+          <option value="one_stop">{{ t('search.one_stop') }}</option>
+          <option value="any">{{ t('search.any_stops') }}</option>
+        </select>
+      </label>
       <label>{{ t('pages.common.currency') }}
         <input name="currency" value="EUR" maxlength="3">
       </label>
+
+      {% elif page.key == 'hotels' %}
+      <label>{{ t('pages.common.city') }}
+        <input name="city" value="{{ preset.city or preset.destination or '' }}" placeholder="Rom" required>
+      </label>
+      <label>{{ t('pages.common.checkin') }}
+        <input type="date" name="depart_date" value="{{ default_depart }}" required>
+      </label>
+      <label>{{ t('pages.common.checkout') }}
+        <input type="date" name="return_date" value="{{ default_return }}">
+      </label>
+      <label>{{ t('pages.common.persons') }}
+        <input type="number" name="adults" min="1" max="9" value="{{ preset.adults or 1 }}">
+      </label>
+      <label>{{ t('pages.common.children') }}
+        <input type="number" name="children" min="0" max="8" value="0">
+      </label>
+      <label>{{ t('pages.common.stars') }}
+        <select name="hotel_stars">
+          {% for s in [1,2,3,4,5] %}<option value="{{ s }}" {% if s == 4 %}selected{% endif %}>{{ s }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>{{ t('pages.common.currency') }}
+        <input name="currency" value="EUR" maxlength="3">
+      </label>
+
+      {% elif page.key == 'ferries' %}
+      <label>{{ t('pages.common.ferry_from') }}
+        <input name="ferry_origin" value="{{ preset.ferry_origin or '' }}" placeholder="Ancona" required>
+      </label>
+      <label>{{ t('pages.common.ferry_to') }}
+        <input name="ferry_destination" value="{{ preset.ferry_destination or '' }}" placeholder="Igoumenitsa" required>
+      </label>
+      <label>{{ t('pages.common.depart') }}
+        <input type="date" name="depart_date" value="{{ default_depart }}" required>
+      </label>
+      <label>{{ t('pages.common.persons') }}
+        <input type="number" name="adults" min="1" max="9" value="{{ preset.adults or 1 }}">
+      </label>
+      <label>{{ t('pages.common.children') }}
+        <input type="number" name="children" min="0" max="8" value="0">
+      </label>
+      <label>{{ t('pages.common.currency') }}
+        <input name="currency" value="EUR" maxlength="3">
+      </label>
+
+      {% elif page.key == 'cruises' %}
+      <label>{{ t('pages.common.cruise_from') }}
+        <input name="cruise_origin" value="{{ preset.cruise_origin or '' }}" placeholder="Hamburg" required>
+      </label>
+      <label>{{ t('pages.common.cruise_to') }}
+        <input name="cruise_destination" value="{{ preset.cruise_destination or '' }}" placeholder="Miami" required>
+      </label>
+      <label>{{ t('pages.common.depart') }}
+        <input type="date" name="depart_date" value="{{ default_depart }}" required>
+      </label>
+      <label>{{ t('pages.common.persons') }}
+        <input type="number" name="adults" min="1" max="9" value="{{ preset.adults or 1 }}">
+      </label>
+      <label>{{ t('pages.common.children') }}
+        <input type="number" name="children" min="0" max="8" value="0">
+      </label>
+      <label>{{ t('pages.common.currency') }}
+        <input name="currency" value="EUR" maxlength="3">
+      </label>
+      {% endif %}
     </div>
     <input type="hidden" name="categories" value="{{ page.key }}">
     <button type="submit" class="primary">{{ action_label or t('pages.landing.search_submit') }}</button>
@@ -96,6 +172,12 @@
   </ul>
 </section>
 {% endif %}
+
+<section class="card">
+  <h2>{{ t('pages.common.capabilities_title') }}</h2>
+  <p>{{ t('seo.' ~ slug ~ '.can') }}</p>
+  <p class="muted">{{ t('seo.' ~ slug ~ '.cannot') }}</p>
+</section>
 
 <section class="card">
   <h2>{{ t('pages.landing.faq_title') }}</h2>

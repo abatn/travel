@@ -6,13 +6,13 @@
   "seo.hotels.title": "Hotels vergleichen",
   "seo.hotels.h1": "Hotels vergleichen",
   "seo.hotels.description": "Hotelpreise aus mehreren Quellen – je Nacht und Zimmer, transparent ohne Anmeldung.",
-  "seo.hotels.intro": "Hotelpreise sind je Nacht und Zimmer angegeben. Ob Steuern und Gebühren enthalten sind, steht in den Detailraten der Quelle.",
+  "seo.hotels.intro": "Hotelpreise werden je Quelle pro Nacht oder pro Aufenthalt geliefert. Wir weisen die Preisbasis je Angebot aus; Steuern und Gebühren nur, wenn die Quelle sie nennt.",
   "seo.faehren.title": "Fähren vergleichen",
   "seo.faehren.h1": "Fähren vergleichen",
   "seo.faehren.description": "Fährpreise aus mehreren Quellen – je Person, transparent ohne Anmeldung.",
-  "seo.faehren.intro": "Fähren unterscheiden sich in der Preisbasis: Sitzplatz je Person, Kabine oder Fahrzeug. Wir weisen die Preisbasis je Angebot aus.",
+  "seo.faehren.intro": "Fähren unterscheiden sich in der Preisbasis: Sitzplatz je Person oder Kabine. Wir weisen die Preisbasis je Angebot aus. Fahrzeugtarife unterstützen wir derzeit nicht.",
   "seo.kreuzfahrten.title": "Kreuzfahrten vergleichen",
   "seo.kreuzfahrten.h1": "Kreuzfahrten vergleichen",
   "seo.kreuzfahrten.description": "Kreuzfahrtpreise aus mehreren Quellen – je Person, transparent ohne Anmeldung.",
-  "seo.kreuzfahrten.intro": "Kreuzfahrtpreise gelten je Person für die ganze Reise. Wir nennen die Preisbasis und ob Steuern enthalten sind."
+  "seo.kreuzfahrten.intro": "Kreuzfahrtpreise gelten je Person für die ganze Reise. Ob Steuern und Gebühren enthalten sind, unterscheidet sich je Quelle – wir weisen es je Angebot aus."
 }

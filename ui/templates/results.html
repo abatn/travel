@@ -103,7 +103,7 @@
     <div>
       <span class="label">{{ t('results.cheapest') }}</span>
       <span class="price">{{ data.cheapest.price | money(data.cheapest.currency) }}</span>
-      <span class="muted">{{ t('pages.common.per_person') }} · {{ t('results.source') }} {{ data.cheapest.source }}</span>
+      <span class="muted">{{ t('price_scope.' ~ (data.cheapest.price_scope or 'per_person')) }} · {{ t('results.source') }} {{ data.cheapest.source }}</span>
     </div>
     <div class="muted small">
       {% if data.cheapest.all_in is not none %}

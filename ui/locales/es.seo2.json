@@ -9,15 +9,15 @@
   "seo.fluege.faq.2.q": "¿Con qué frecuencia se actualizan los precios?",
   "seo.fluege.faq.2.a": "En directo en cada búsqueda. Los precios mostrados valen en el momento de la consulta; el precio vinculante es el del proveedor.",
   "seo.hotels.faq.0.q": "¿Los precios de hotel son por noche o por estancia?",
-  "seo.hotels.faq.0.a": "Por noche y habitación, siempre que la fuente lo indique así. El precio total de la estancia se calcula como noches × precio por noche y se muestra por separado.",
+  "seo.hotels.faq.0.a": "Depende de la fuente. Indicamos la base de precio de cada oferta y no calculamos un total propio si la fuente no lo proporciona.",
   "seo.hotels.faq.1.q": "¿Están incluidos los impuestos?",
-  "seo.hotels.faq.1.a": "Se indica en cada oferta: incluidos, no incluidos o no acreditados. La tasa turística o municipal varía según la ciudad y se menciona cuando se conoce.",
-  "seo.faehren.faq.0.q": "¿El precio es por persona o por vehículo?",
-  "seo.faehren.faq.0.a": "Ambas opciones son posibles. Indicamos la base del precio de cada oferta (por persona o por camarote/vehículo).",
+  "seo.hotels.faq.1.a": "Cada oferta lo indica: incluidos, no incluidos o no documentados. Solo reproducimos lo que indica la fuente.",
+  "seo.faehren.faq.0.q": "¿El precio es por persona o por camarote?",
+  "seo.faehren.faq.0.a": "Indicamos la base de precio de cada oferta. No admitimos tarifas de vehículo; esos datos provienen de la fuente.",
   "seo.faehren.faq.1.q": "¿Puedo llevar un coche?",
-  "seo.faehren.faq.1.a": "Muchas navieras lo ofrecen; si un vehículo está incluido en el precio mostrado se indica en las condiciones de la fuente.",
+  "seo.faehren.faq.1.a": "Nuestras fuentes no ofrecen tarifas de vehículo. Si se puede y a qué precio solo lo indica el proveedor.",
   "seo.kreuzfahrten.faq.0.q": "¿Qué incluye el precio del crucero?",
-  "seo.kreuzfahrten.faq.0.a": "Camarote y comidas a bordo, normalmente con impuestos y tasas incluidos. Los paquetes de bebidas, las excursiones y las propinas suelen ser extras: la fuente lo indica.",
+  "seo.kreuzfahrten.faq.0.a": "Según la fuente: camarote y comidas a bordo, con impuestos variables. Bebidas, excursiones y propinas suelen ser extras; prevalece lo que indique la fuente.",
   "seo.kreuzfahrten.faq.1.q": "¿Por qué algunos precios están en USD?",
-  "seo.kreuzfahrten.faq.1.a": "Porque la naviera factura en USD. Solo convertimos con un tipo de cambio acreditado y lo señalamos; de lo contrario, mostramos el precio original."
+  "seo.kreuzfahrten.faq.1.a": "Porque la naviera factura en USD. Solo convertimos con un tipo documentado y lo indicamos; si no, mostramos el precio original."
 }

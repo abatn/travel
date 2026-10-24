@@ -6,13 +6,13 @@
   "seo.hotels.title": "Hoteles comparados",
   "seo.hotels.h1": "Comparar hoteles",
   "seo.hotels.description": "Precios de hoteles de varias fuentes: por noche y habitación, sin registro.",
-  "seo.hotels.intro": "Los precios de hoteles se indican por noche y habitación. Si incluyen impuestos y tasas se detalla en las tarifas de la fuente.",
+  "seo.hotels.intro": "Los precios de hoteles se ofrecen por noche o por estancia según la fuente. Indicamos la base de precio de cada oferta; impuestos y tasas solo si la fuente los menciona.",
   "seo.faehren.title": "Ferris comparados",
   "seo.faehren.h1": "Comparar ferris",
   "seo.faehren.description": "Precios de ferris de varias fuentes: por persona, sin registro.",
-  "seo.faehren.intro": "Los precios de ferris varían según la base: asiento por persona, camarote o vehículo. Indicamos la base de precio de cada oferta.",
+  "seo.faehren.intro": "Los precios de ferris varían según la base: asiento por persona o camarote. Indicamos la base de precio de cada oferta. No admitimos tarifas de vehículo.",
   "seo.kreuzfahrten.title": "Cruceros comparados",
   "seo.kreuzfahrten.h1": "Comparar cruceros",
   "seo.kreuzfahrten.description": "Precios de cruceros de varias fuentes: por persona, sin registro.",
-  "seo.kreuzfahrten.intro": "Los precios de cruceros se aplican por persona para todo el viaje. Indicamos la base de precio y si incluyen impuestos."
+  "seo.kreuzfahrten.intro": "Los precios de cruceros se aplican por persona para todo el viaje. La inclusión de impuestos y tasas varía según la fuente: lo indicamos en cada oferta."
 }

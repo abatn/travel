@@ -9,15 +9,15 @@
   "seo.fluege.faq.2.q": "How often are prices updated?",
   "seo.fluege.faq.2.a": "Live with every search. The prices shown apply at the moment of the query; the binding price is the one at the provider.",
   "seo.hotels.faq.0.q": "Are hotel prices per night or per stay?",
-  "seo.hotels.faq.0.a": "Per night and room, provided the source states it that way. The total price for the stay is calculated as nights × nightly rate and shown separately.",
+  "seo.hotels.faq.0.a": "It depends on the source. We label the price basis for every offer and do not compute our own total when the source does not provide one.",
   "seo.hotels.faq.1.q": "Are taxes included?",
-  "seo.hotels.faq.1.a": "That is stated for every offer: included, not included or not evidenced. Resort/city tax differs by city and is mentioned when known.",
-  "seo.faehren.faq.0.q": "Does the price apply per person or per vehicle?",
-  "seo.faehren.faq.0.a": "Both are possible. We state the price basis for each offer (per person or per cabin/vehicle).",
+  "seo.hotels.faq.1.a": "Every offer states this: included, not included or not documented. We only pass on what the source states.",
+  "seo.faehren.faq.0.q": "Is the price per person or per cabin?",
+  "seo.faehren.faq.0.a": "We state the price basis for every offer. Vehicle fares are not supported at present; any such information comes from the source.",
   "seo.faehren.faq.1.q": "Can I bring a car?",
-  "seo.faehren.faq.1.a": "Many ferry companies offer this; whether a vehicle is included in the price shown is stated in the source's terms and conditions.",
+  "seo.faehren.faq.1.a": "Our sources currently provide no vehicle fares. Whether and at what price a car can be brought is only stated by the provider.",
   "seo.kreuzfahrten.faq.0.q": "What is included in the cruise price?",
-  "seo.kreuzfahrten.faq.0.a": "Cabin and meals on board, usually including taxes and fees. Drinks packages, shore excursions and gratuities are usually extra – the source states this.",
+  "seo.kreuzfahrten.faq.0.a": "Depending on the source: cabin and board meals, with taxes varying. Drinks packages, excursions and gratuities are usually extra; the source's statement is decisive.",
   "seo.kreuzfahrten.faq.1.q": "Why are some prices in USD?",
-  "seo.kreuzfahrten.faq.1.a": "Because the cruise line bills in USD. We only convert using a documented exchange rate and mark it; otherwise we show the original price."
+  "seo.kreuzfahrten.faq.1.a": "Because the cruise line bills in USD. We convert only with a documented exchange rate and mark it; otherwise we show the original price."
 }
