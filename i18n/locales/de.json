@@ -123,5 +123,11 @@
   "home.meta.title": "Flüge, Hotels, Fähren, Kreuzfahrten – Reise-Agent",
   "home.meta.description": "Live-Preise aus über 20 Quellen für Flüge, Hotels, Fähren und Kreuzfahrten. Endpreis, Steuerstatus und Quellenlage transparent – ohne Anmeldung.",
   "home.svg_label": "Schaubild: zentraler Agent, verbunden mit Flügen, Hotels, Fähren und Kreuzfahrten; Schleife Wahrnehmen, Planen, Handeln, Beobachten",
-  "nav.start": "Start"
+  "nav.start": "Start",
+  "results.graph_label": "Agent fragt Quellen ab – Netzwerk aus Quelle und Verbindungen",
+  "results.price": "Preis",
+  "results.final_price": "Endpreis",
+  "results.provider": "Anbieter",
+  "results.meta.title": "Suchergebnisse – Reise-Agent",
+  "results.meta.description": "Live-Preise für deine Suche: Flüge, Hotels, Fähren und Kreuzfahrten im Vergleich."
 }

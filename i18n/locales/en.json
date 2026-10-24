@@ -123,5 +123,11 @@
   "home.meta.title": "Flights, hotels, ferries, cruises – Reise-Agent",
   "home.meta.description": "Live prices from more than 20 sources for flights, hotels, ferries and cruises. Final price, tax status and source status transparent – no sign-up.",
   "home.svg_label": "Diagram: central agent connected to flights, hotels, ferries and cruises; loop perceive, plan, act, observe",
-  "nav.start": "Home"
+  "nav.start": "Home",
+  "results.graph_label": "Agent querying sources – network of sources and connections",
+  "results.price": "Price",
+  "results.final_price": "Final price",
+  "results.provider": "Provider",
+  "results.meta.title": "Search results – Reise-Agent",
+  "results.meta.description": "Live prices for your search: flights, hotels, ferries and cruises compared."
 }

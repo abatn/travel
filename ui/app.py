@@ -512,7 +512,10 @@ def job_page(request: Request, job_id: str):
             "landing_links": []}, meta, status_code=404)
     snap = job.snapshot()
     base = _base(request)
-    meta = seo_meta.for_job(base, job_id)
+    lang = getattr(request.state, "lang", i18n_core.DEFAULT)
+    meta = seo_meta.for_job(base, job_id,
+                            title=i18n_core.t(lang, "results.meta.title"),
+                            description=i18n_core.t(lang, "results.meta.description"))
     # JSON-LD für die tatsächlich angezeigten Angebote (Seite selbst ist noindex)
     offers_ld = []
     for cat, data in (snap.get("categories") or {}).items():

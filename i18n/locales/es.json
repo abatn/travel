@@ -123,5 +123,11 @@
   "home.meta.title": "Vuelos, hoteles, ferris, cruceros – Reise-Agent",
   "home.meta.description": "Precios en directo de más de 20 fuentes para vuelos, hoteles, ferris y cruceros. Precio final, estado fiscal y fuentes con transparencia, sin registro.",
   "home.svg_label": "Esquema: agente central conectado con vuelos, hoteles, ferris y cruceros; bucle percibir, planificar, actuar, observar",
-  "nav.start": "Inicio"
+  "nav.start": "Inicio",
+  "results.graph_label": "El agente consulta las fuentes: red de fuentes y conexiones",
+  "results.price": "Precio",
+  "results.final_price": "Precio final",
+  "results.provider": "Proveedor",
+  "results.meta.title": "Resultados de búsqueda – Reise-Agent",
+  "results.meta.description": "Precios en directo para tu búsqueda: vuelos, hoteles, ferris y cruceros comparados."
 }

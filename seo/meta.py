@@ -58,11 +58,13 @@ def build(title: str, description: str, path: str, *, base_url: str,
     return meta
 
 
-def for_job(base_url: str, job_id: str) -> dict:
+def for_job(base_url: str, job_id: str, *, title: str | None = None,
+            description: str | None = None) -> dict:
     """Ergebnisseite: nutzerspezifischer Lauf -> nicht indexieren."""
     return build(
-        "Suchergebnisse – Reise-Agent",
-        "Live-Preise für deine Suche: Flüge, Hotels, Fähren und Kreuzfahrten im Vergleich.",
+        title or "Suchergebnisse – Reise-Agent",
+        description or ("Live-Preise für deine Suche: Flüge, Hotels, Fähren "
+                        "und Kreuzfahrten im Vergleich."),
         f"/jobs/{job_id}",
         base_url=base_url, robots="noindex,follow",
     )

@@ -34,7 +34,7 @@
   <h2>{{ t('results.live') }} <span class="muted">{{ t('results.live_suffix') }}</span></h2>
 
   <div class="agent-graph" id="agent-graph"
-       role="img" aria-label="Agent fragt Quellen ab – Netzwerk aus Quelle und Verbindungen">
+       role="img" aria-label="{{ t('results.graph_label') }}">
     <svg id="agent-svg" viewBox="0 0 900 380" preserveAspectRatio="xMidYMid meet"></svg>
   </div>
   <p class="progress-label" id="progress-label">{{ t('results.searching') }}</p>
@@ -129,7 +129,7 @@
   {% endif %}
 
   <table class="table" id="tbl-{{ cat }}">
-    <thead><tr><th>Preis</th><th>Endpreis</th><th>Anbieter</th><th>Quelle</th><th></th></tr></thead>
+    <thead><tr><th>{{ t('results.price') }}</th><th>{{ t('results.final_price') }}</th><th>{{ t('results.provider') }}</th><th>{{ t('results.source') }}</th><th></th></tr></thead>
     <tbody>
       {% for it in data.top or [] %}
       <tr>

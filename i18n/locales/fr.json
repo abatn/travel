@@ -123,5 +123,11 @@
   "home.meta.title": "Vols, hôtels, ferries, croisières – Reise-Agent",
   "home.meta.description": "Prix en direct de plus de 20 sources pour vols, hôtels, ferries et croisières. Prix final, statut fiscal et sources en toute transparence – sans inscription.",
   "home.svg_label": "Schéma : agent central relié aux vols, hôtels, ferries et croisières ; boucle percevoir, planifier, agir, observer",
-  "nav.start": "Accueil"
+  "nav.start": "Accueil",
+  "results.graph_label": "L'agent interroge les sources – réseau de sources et de connexions",
+  "results.price": "Prix",
+  "results.final_price": "Prix final",
+  "results.provider": "Fournisseur",
+  "results.meta.title": "Résultats de recherche – Reise-Agent",
+  "results.meta.description": "Prix en direct pour votre recherche : vols, hôtels, ferries et croisières comparés."
 }
