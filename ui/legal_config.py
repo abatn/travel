@@ -1,7 +1,9 @@
 """Betreiberangaben: Laden, Pflichtfeldprüfung, Indexierbarkeit.
 
 Die Seiten /impressum und /datenschutz sind nur dann indexierbar, wenn alle
-Pflichtfelder echte Werte enthalten. Erfundene Angaben werden nie erzeugt.
+Pflichtfelder echte Werte enthalten. Platzhalter in eckigen Klammern
+(`[Name]`, `[deine@mail.de]`) gelten bewusst als "nicht ausgefüllt".
+Erfundene Angaben werden nie erzeugt.
 """
 from __future__ import annotations
 
@@ -33,8 +35,15 @@ DATENSCHUTZ_REQUIRED: dict[str, str] = {
     "stand": "Stand der Datenschutzerklärung",
 }
 
-OPTIONAL_IMPRESSUM = ("telefon", "registergericht", "registernummer")
-OPTIONAL_DATENSCHUTZ = ("email_hosting", "auftragsverarbeiter")
+OPTIONAL_IMPRESSUM: dict[str, str] = {
+    "telefon": "Telefon",
+    "registergericht": "Registergericht",
+    "registernummer": "Registernummer",
+}
+OPTIONAL_DATENSCHUTZ: dict[str, str] = {
+    "email_hosting": "E-Mail-Hosting",
+    "auftragsverarbeiter": "Auftragsverarbeiter",
+}
 
 
 def config_path(path: str | Path | None = None) -> Path:
@@ -64,11 +73,36 @@ def _value(data: dict[str, Any], section: str, key: str) -> str:
     return str(block.get(key) or "").strip()
 
 
+def is_placeholder(value: str) -> bool:
+    """True für typische Platzhalter, die noch ersetzt werden müssen."""
+    value = str(value or "").strip()
+    if not value:
+        return False
+    if (value.startswith("[") and value.endswith("]")) or (
+        value.startswith("<") and value.endswith(">")
+    ):
+        return True
+    return value.upper() in {"TODO", "TBD", "CHANGEME", "PLATZHALTER"}
+
+
 def missing(data: dict[str, Any], kind: str) -> list[str]:
-    """Liefert die Labels der fehlenden Pflichtfelder."""
+    """Liefert die Labels der fehlenden Pflichtfelder (leer oder Platzhalter)."""
     fields = IMPRESSUM_REQUIRED if kind == "impressum" else DATENSCHUTZ_REQUIRED
+    optional = OPTIONAL_IMPRESSUM if kind == "impressum" else OPTIONAL_DATENSCHUTZ
     section = "betreiber" if kind == "impressum" else "datenschutz"
-    return [label for key, label in fields.items() if not _value(data, section, key)]
+
+    def not_filled(key: str) -> bool:
+        value = _value(data, section, key)
+        return (not value) or is_placeholder(value)
+
+    missing_required = [label for key, label in fields.items() if not_filled(key)]
+    # Optionale Felder dürfen leer sein – aber ein Platzhalter muss ersetzt
+    # oder das Feld geleert werden, sonst bleibt die Seite noindex.
+    placeholder_optional = [
+        f"{label} (Platzhalter)" for key, label in optional.items()
+        if is_placeholder(_value(data, section, key))
+    ]
+    return missing_required + placeholder_optional
 
 
 def is_complete(data: dict[str, Any], kind: str) -> bool:

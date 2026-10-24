@@ -2,6 +2,7 @@
 """Beweist: leere legal.yaml -> noindex, vollständige -> indexierbar."""
 from __future__ import annotations
 
+import copy
 import os
 import socket
 import subprocess
@@ -60,6 +61,25 @@ def serve(legal_path: Path, port: int):
             proc.kill()
 
 
+PLACEHOLDER = {
+    "betreiber": {
+        "name": "[Batnini Abdelkader]",
+        "strasse": "[wildgansweg 34]",
+        "plz_ort": "[70378 Stuttgart]",
+        "land": "Deutschland",
+        "email": "[deine@email.de]",
+        "umsatzsteuer_id": '[USt-IdNr. oder "keine"]',
+        "verantwortlich": "[Batnini Abdelkader]",
+    },
+    "datenschutz": {
+        "hosting": "[Contabo GmbH, München]",
+        "kontakt_datenschutz": "[deine@email.de]",
+        "aufbewahrung_logs": "30 Tage",
+        "aufsichtsbehoerde": "[Landesbeauftragter für den Datenschutz und die Informationsfreiheit Baden-Württemberg]",
+        "stand": "[24.10.2026]",
+    },
+}
+
 FILLED = {
     "betreiber": {
         "name": "Test GmbH",
@@ -81,6 +101,10 @@ FILLED = {
 }
 
 
+OPTIONAL_PLACEHOLDER = copy.deepcopy(FILLED)
+OPTIONAL_PLACEHOLDER["betreiber"]["telefon"] = "[42313095876]"
+
+
 def main() -> int:
     checks: list[tuple[bool, str]] = []
 
@@ -93,6 +117,10 @@ def main() -> int:
         empty.write_text(yaml.safe_dump({"betreiber": {}, "datenschutz": {}}), encoding="utf-8")
         filled = Path(tmp) / "filled.yaml"
         filled.write_text(yaml.safe_dump(FILLED, allow_unicode=True), encoding="utf-8")
+        placeholders = Path(tmp) / "placeholders.yaml"
+        placeholders.write_text(yaml.safe_dump(PLACEHOLDER, allow_unicode=True), encoding="utf-8")
+        optional_placeholder = Path(tmp) / "optional_placeholder.yaml"
+        optional_placeholder.write_text(yaml.safe_dump(OPTIONAL_PLACEHOLDER, allow_unicode=True), encoding="utf-8")
 
         # 1) Leer -> noindex
         with serve(empty, 8082) as base:
@@ -103,7 +131,25 @@ def main() -> int:
                 label = "Name / Firma" if path == "/impressum" else "Hosting-Anbieter"
                 check(label in html, f"{path}: fehlende Pflichtfelder gelistet")
 
-        # 2) Vollständig -> index
+        # 2) Platzhalter -> weiterhin noindex
+        with serve(placeholders, 8084) as base:
+            imp = httpx.get(base + "/impressum", timeout=10).text
+            ds = httpx.get(base + "/datenschutz", timeout=10).text
+            check('content="noindex,follow"' in imp, "/impressum: noindex bei Platzhaltern")
+            check('content="noindex,follow"' in ds, "/datenschutz: noindex bei Platzhaltern")
+            check("Name / Firma" in imp, "/impressum: Platzhalter als fehlend gelistet")
+            check("Hosting-Anbieter" in ds, "/datenschutz: Platzhalter als fehlend gelistet")
+            check("Batnini" not in imp, "/impressum: keine Platzhalterdaten gerendert")
+
+        # 3) Optionaler Platzhalter -> weiterhin noindex
+        with serve(optional_placeholder, 8085) as base:
+            imp = httpx.get(base + "/impressum", timeout=10).text
+            check('content="noindex,follow"' in imp,
+                  "/impressum: noindex bei optionalem Platzhalter")
+            check("Telefon (Platzhalter)" in imp,
+                  "/impressum: optionaler Platzhalter gelistet")
+
+        # 4) Vollständig -> index
         with serve(filled, 8083) as base:
             imp = httpx.get(base + "/impressum", timeout=10).text
             ds = httpx.get(base + "/datenschutz", timeout=10).text
