@@ -6,6 +6,9 @@
   <title>{{ meta.title }}</title>
   <meta name="description" content="{{ meta.description }}">
   <link rel="canonical" href="{{ meta.canonical }}">
+  {% for code in supported_langs | default(['de']) %}
+  <link rel="alternate" hreflang="{{ code }}" href="{{ meta.canonical }}{% if '?' in meta.canonical %}&{% else %}?{% endif %}lang={{ code }}">
+  {% endfor %}
   <meta name="robots" content="{{ meta.robots }}">
   <meta name="theme-color" content="#0f1420">
 
@@ -52,8 +55,8 @@
   <p>{{ t('footer.affiliate') }}</p>
   <p><a href="/preisvergleich">{{ t('nav.pricing') }}</a> · <a href="/fluege">{{ t('nav.flights') }}</a> · <a href="/hotels">{{ t('nav.hotels') }}</a> ·
     <a href="/faehren">{{ t('nav.ferries') }}</a> · <a href="/kreuzfahrten">{{ t('nav.cruises') }}</a> ·
-    <a href="/alarms">{{ t('nav.alerts') }}</a> · <a href="/impressum">Impressum</a> ·
-    <a href="/datenschutz">Datenschutz</a></p>
+    <a href="/alarms">{{ t('nav.alerts') }}</a> · <a href="/impressum">{{ t('nav.imprint') }}</a> ·
+    <a href="/datenschutz">{{ t('nav.privacy') }}</a></p>
 </footer>
 <datalist id="places"></datalist>
 <script id="i18n-data" type="application/json">{{ i18n_js | tojson }}</script>

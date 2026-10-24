@@ -27,7 +27,7 @@ def _script(obj: dict | list) -> dict:
     return {"@context": "https://schema.org", **obj} if isinstance(obj, dict) else obj
 
 
-def website(base_url: str) -> dict:
+def website(base_url: str, lang: str = "de") -> dict:
     base = base_url.rstrip("/")
     # S5: SearchAction entfernt - die Sitelinks-Searchbox hat Google am 21.11.2024
     # abgeschafft; das Markup hätte keinen Effekt mehr.
@@ -35,19 +35,19 @@ def website(base_url: str) -> dict:
         "@type": "WebSite",
         "name": SITE_NAME,
         "url": base + "/",
-        "inLanguage": "de",
+        "inLanguage": lang,
     })
 
 
-def organization(base_url: str) -> dict:
+def organization(base_url: str, lang: str = "de", description: str | None = None) -> dict:
     base = base_url.rstrip("/")
     return _script({
         "@type": "Organization",
         "name": SITE_NAME,
         "url": base + "/",
-        "description": ("Preisvergleich für Flüge, Hotels, Fähren und Kreuzfahrten. "
-                        "Vermittler, nicht Reiseveranstalter."),
-        "knowsLanguage": "de",
+        "description": description or ("Preisvergleich für Flüge, Hotels, Fähren und "
+                                       "Kreuzfahrten. Vermittler, nicht Reiseveranstalter."),
+        "knowsLanguage": lang,
     })
 
 

@@ -92,6 +92,26 @@ def main() -> int:
     check("Recherche" in jr.text or "résultats" in jr.text.lower() or "Ergebnisse" not in jr.text,
           "Ergebnisseite übersetzt")
 
+
+    # Weitere Seiten + Fehler + Rechtstext
+    import json as _json
+    for lang, probe in (("en", "Compare cheap flights"), ("fr", "Comparer les vols pas chers"),
+                        ("es", "Comparar vuelos baratos"), ("ar", "قارن الرحلات الجوية الرخيصة")):
+        lp = s.get(f"{BASE}/fluege?lang={lang}")
+        check(lp.status_code == 200 and probe in lp.text, f"{lang}: Kategorieseite übersetzt")
+    ov = s.get(f"{BASE}/preisvergleich?lang=en")
+    check(ov.status_code == 200 and "Preisvergleich" not in ov.text.split("<h1>")[1].split("</h1>")[0],
+          "en: Übersichtsseite übersetzt")
+    err = s.get(f"{BASE}/gibtsnicht?lang=en")
+    check(err.status_code == 404 and "Not found." in err.text, "en: 404 übersetzt")
+    pr = s.get(f"{BASE}/datenschutz?lang=en")
+    check("Controller within the meaning of the GDPR" in pr.text, "en: Datenschutz-Text übersetzt")
+    faq_de = _json.load(open("i18n/locales/de.seo2.json", encoding="utf-8"))
+    faq_fr = _json.load(open("i18n/locales/fr.seo2.json", encoding="utf-8"))
+    fl = s.get(f"{BASE}/fluege?lang=fr")
+    check(faq_fr["seo.fluege.faq.0.q"] in fl.text, "fr: FAQ übersetzt")
+    check(faq_de["seo.fluege.faq.0.q"] not in fl.text, "fr: keine deutsche FAQ")
+
     failed = [label for ok, label in results if not ok]
     print(f"\nErgebnis: {len(results) - len(failed)}/{len(results)} Prüfungen bestanden")
     if failed:

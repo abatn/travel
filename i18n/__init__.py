@@ -20,13 +20,22 @@ LOCALES = Path(__file__).resolve().parent / "locales"
 
 @lru_cache(maxsize=None)
 def load(lang: str) -> dict[str, str]:
-    """Lädt eine Locale; unbekannte Sprachen fallen auf Deutsch zurück."""
+    """Lädt eine Locale (Basis + optionale Zusatzdateien), Fallback Deutsch.
+
+    Zusatzdateien erlauben paralleles Arbeiten ohne Konflikte:
+    ``<code>.json`` (Basis), ``<code>.pages.json``, ``<code>.legal.json``.
+    """
     code = lang if lang in SUPPORTED else DEFAULT
-    path = LOCALES / f"{code}.json"
-    try:
-        return json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {}
+    merged: dict[str, str] = {}
+    for suffix in ("", ".pages", ".legal", ".seo", ".seo2", ".sources"):
+        path = LOCALES / f"{code}{suffix}.json"
+        if not path.is_file():
+            continue
+        try:
+            merged.update(json.loads(path.read_text(encoding="utf-8")))
+        except (OSError, ValueError):
+            continue
+    return merged
 
 
 @lru_cache(maxsize=None)
@@ -34,12 +43,14 @@ def _bundle() -> dict[str, dict[str, str]]:
     return {code: load(code) for code in SUPPORTED}
 
 
-def t(lang: str, key: str, **params: Any) -> str:
-    """Übersetzt einen Schlüssel; Fallback: Zielsprache → Deutsch → Schlüssel."""
+def t(lang: str, key: str, default: str | None = None, **params: Any) -> str:
+    """Übersetzt einen Schlüssel; Fallback: Zielsprache → Deutsch → default → Schlüssel."""
     code = lang if lang in SUPPORTED else DEFAULT
     text = _bundle().get(code, {}).get(key)
     if text is None:
-        text = _bundle()[DEFAULT].get(key, key)
+        text = _bundle()[DEFAULT].get(key)
+    if text is None:
+        text = default if default is not None else key
     if params:
         try:
             return text.format(**params)

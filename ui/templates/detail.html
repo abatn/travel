@@ -1,94 +1,92 @@
 {% extends "base.html" %}
-{% block title %}Angebot im Detail{% endblock %}
+{% block title %}{{ t('pages.detail.title') }}{% endblock %}
 {% block content %}
-<p><a href="/jobs/{{ job_id }}">← zurück zu den Ergebnissen</a></p>
-<h1>{{ labels.get(category, category) }}: {{ item.name or item.provider or 'Angebot' }}</h1>
+<p><a href="/jobs/{{ job_id }}">{{ t('pages.detail.back') }}</a></p>
+<h1>{{ labels.get(category, category) }}: {{ item.name or item.provider or t('pages.common.offer') }}</h1>
 
 <div class="card">
   <div class="grid two">
     <div>
-      <span class="label">Preis (je Person)</span>
+      <span class="label">{{ t('pages.detail.price_per_person') }}</span>
       <span class="price big">{{ item.price | money(item.currency) }}</span>
       {% if item.all_in is not none %}
-        <p class="muted">Endpreis inkl. Gepäck/Steuern: <b>{{ item.all_in | money(item.currency) }}</b></p>
+        <p class="muted">{{ t('pages.detail.end_price_label') }} <b>{{ item.all_in | money(item.currency) }}</b></p>
         {% if item.bag_breakdown %}<p class="muted small">{{ item.bag_breakdown }}</p>{% endif %}
       {% else %}
-        <p class="muted">Endpreis (inkl. Gepäck/Steuern): <b>nicht verfügbar</b> –
-          die Quelle weist ihn für dieses Angebot nicht aus.</p>
+        <p class="muted">{{ t('pages.detail.end_price_missing_label') }} <b>{{ t('pages.common.not_available') }}</b> –
+          {{ t('pages.detail.end_price_missing_note') }}</p>
       {% endif %}
       {% if item.price_scope %}
-        <p class="muted small">Preisbasis: {{ item.price_scope }}
+        <p class="muted small">{{ t('pages.detail.price_basis') }} {{ item.price_scope }}
           {% if item.price_scope_confidence %} ({{ item.price_scope_confidence }}){% endif %}</p>
       {% endif %}
     </div>
     <div>
       {% if link and link.url %}
         {% if link.affiliate and link.verified %}
-          <p class="aff-disclosure">Anzeige · Affiliate-Link</p>
+          <p class="aff-disclosure">{{ t('pages.detail.ad_affiliate') }}</p>
           <a class="primary btn" href="{{ safe_url(link.url) }}"
              target="{{ link.attrs.target }}" rel="{{ link.attrs.rel }}">
-            Zum Anbieter buchen ↗</a>
-          <p class="muted small">Link geprüft: erreichbar
-            {%- if link.verify_cached %} (aus dem Prüf-Cache){% endif %}
-            · Partner: {{ link.network }}
-            {%- if link.cookie_days %} · Cookie-Laufzeit {{ link.cookie_days }} Tage{% endif %}</p>
+            {{ t('pages.common.book_provider') }}</a>
+          <p class="muted small">{{ t('pages.detail.link_verified') }}
+            {%- if link.verify_cached %} {{ t('pages.detail.link_cached') }}{% endif %}
+            · {{ t('pages.detail.partner') }} {{ link.network }}
+            {%- if link.cookie_days %} · {{ t('pages.detail.cookie_days', days=link.cookie_days) }}{% endif %}</p>
           <p class="muted small">{{ affiliate.disclosure_long }}</p>
         {% elif link.affiliate and not link.verified %}
-          <p class="aff-disclosure">Anzeige · Affiliate-Link</p>
+          <p class="aff-disclosure">{{ t('pages.detail.ad_affiliate') }}</p>
           <a class="primary btn" href="{{ safe_url(link.url) }}"
              target="{{ link.attrs.target }}" rel="{{ link.attrs.rel }}">
-            Zum Anbieter buchen ↗</a>
-          <p class="alert warn small">Der Link konnte nicht verifiziert werden
-            ({{ link.verify_error or 'unbekannter Grund' }}). Er wird deshalb <b>nicht</b> als
-            geprüfter Affiliate-Link ausgewiesen.</p>
+            {{ t('pages.common.book_provider') }}</a>
+          <p class="alert warn small">{{ t('pages.detail.link_unverified',
+            reason=link.verify_error or t('pages.common.unknown_reason')) | safe }}</p>
         {% else %}
           <a class="primary btn" href="{{ safe_url(link.url) }}" target="_blank" rel="noopener">
-            Zum Anbieter ↗</a>
+            {{ t('pages.common.to_provider') }}</a>
           {% if link.reason %}
-            <p class="muted small">Kein Affiliate-Link: {{ link.reason }}</p>
+            <p class="muted small">{{ t('pages.detail.no_affiliate_reason', reason=link.reason) }}</p>
           {% endif %}
         {% endif %}
-        <p class="muted small">{{ affiliate.no_payment_note }} Der Vertrag kommt ausschließlich mit
-          dem Anbieter zustande.</p>
+        <p class="muted small">{{ affiliate.no_payment_note }} {{ t('pages.detail.contract_note') }}</p>
       {% elif item.booking_url and safe_url(item.booking_url) %}
         <a class="primary btn" href="{{ safe_url(item.booking_url) }}" target="_blank" rel="noopener">
-          Zum Anbieter buchen ↗</a>
-        <p class="muted small">Die Buchung erfolgt beim Anbieter; diese Oberfläche nimmt keine Zahlung vor.</p>
+          {{ t('pages.common.book_provider') }}</a>
+        <p class="muted small">{{ t('pages.detail.booking_note') }}</p>
       {% else %}
-        <p class="muted">Kein Buchungslink vorhanden.</p>
+        <p class="muted">{{ t('pages.detail.no_link') }}</p>
       {% endif %}
     </div>
   </div>
 </div>
 
 <div class="card">
-  <h2>Details</h2>
+  <h2>{{ t('pages.common.details') }}</h2>
   <table class="table kv">
-    <tr><th>Anbieter / Airline</th><td>{{ item.provider or 'nicht verfügbar' }}</td></tr>
-    <tr><th>Quelle</th><td>{{ item.source }}</td></tr>
-    <tr><th>Stopps</th><td>{{ item.stops if item.stops is not none else 'nicht verfügbar' }}</td></tr>
-    <tr><th>Direkt / Flugtyp</th><td>{{ item.fare_type or 'nicht verfügbar' }}</td></tr>
+    <tr><th>{{ t('pages.detail.th_provider') }}</th><td>{{ item.provider or t('pages.common.not_available') }}</td></tr>
+    <tr><th>{{ t('pages.common.source') }}</th><td>{{ item.source }}</td></tr>
+    <tr><th>{{ t('pages.detail.th_stops') }}</th><td>{{ item.stops if item.stops is not none else t('pages.common.not_available') }}</td></tr>
+    <tr><th>{{ t('pages.detail.th_fare') }}</th><td>{{ item.fare_type or t('pages.common.not_available') }}</td></tr>
     {% if item.score is not none %}
-    <tr><th>Score (Mehrkriterien)</th><td>{{ item.score }}
+    <tr><th>{{ t('pages.detail.th_score') }}</th><td>{{ item.score }}
       {% if item.score_parts %} <span class="muted small">{{ item.score_parts }}</span>{% endif %}</td></tr>
     {% endif %}
     {% if item.gate_failed %}
-    <tr><th>Gate</th><td class="warn">{{ item.gate_failed }}</td></tr>
+    <tr><th>{{ t('pages.detail.th_gate') }}</th><td class="warn">{{ item.gate_failed }}</td></tr>
     {% endif %}
-    <tr><th>Steuerstatus</th>
+    <tr><th>{{ t('pages.detail.th_tax_status') }}</th>
       <td>{% if item.taxes_included is none %}
-        <span class="warn">nicht verfügbar – die Quelle weist den Steuerstatus für dieses Angebot nicht aus</span>
+        <span class="warn">{{ t('pages.detail.tax_missing') }}</span>
         {% elif item.taxes_included %}
-        inklusive Steuern/Gebühren (Quelle)
+        {{ t('pages.detail.tax_included') }}
         {% else %}
-        Steuern/Gebühren sind in diesem Preis <b>nicht</b> enthalten (Quelle)
+        {{ t('pages.detail.tax_excluded') | safe }}
         {% endif %}
       </td></tr>
-    <tr><th>Währung</th>
+    <tr><th>{{ t('pages.common.currency') }}</th>
       <td>{{ item.currency }}
         {% if item.fx_converted_from %}
-          <span class="muted small">(umgerechnet aus {{ item.fx_converted_from }} zum Kurs
-            {{ item.fx_rate }} – {{ item.fx_source }})</span>
+          <span class="muted small">{{ t('pages.detail.fx_note', from=item.fx_converted_from,
+            rate=item.fx_rate, source=item.fx_source) }}</span>
         {% endif %}
       </td></tr>
   </table>
@@ -96,17 +94,19 @@
 
 {% if item.legs %}
 <div class="card">
-  <h2>Flugabschnitte</h2>
+  <h2>{{ t('pages.detail.legs') }}</h2>
   <table class="table">
-    <thead><tr><th>Ab</th><th>An</th><th>Abflug</th><th>Ankunft</th><th>Dauer</th><th>Flug</th></tr></thead>
+    <thead><tr><th>{{ t('pages.detail.th_from') }}</th><th>{{ t('pages.detail.th_to') }}</th>
+      <th>{{ t('pages.detail.th_departure') }}</th><th>{{ t('pages.detail.th_arrival') }}</th>
+      <th>{{ t('pages.common.duration') }}</th><th>{{ t('pages.detail.th_flight') }}</th></tr></thead>
     <tbody>
       {% for leg in item.legs %}
       <tr>
         <td>{{ leg.departure_airport.code if leg.departure_airport else '?' }}</td>
         <td>{{ leg.arrival_airport.code if leg.arrival_airport else '?' }}</td>
-        <td>{{ leg.departure_time or 'nicht verfügbar' }}</td>
-        <td>{{ leg.arrival_time or 'nicht verfügbar' }}</td>
-        <td>{{ leg.duration if leg.duration is not none else 'nicht verfügbar' }}</td>
+        <td>{{ leg.departure_time or t('pages.common.not_available') }}</td>
+        <td>{{ leg.arrival_time or t('pages.common.not_available') }}</td>
+        <td>{{ leg.duration if leg.duration is not none else t('pages.common.not_available') }}</td>
         <td>{{ leg.airline }} {{ leg.flight_number or '' }}</td>
       </tr>
       {% endfor %}
@@ -116,33 +116,30 @@
 {% endif %}
 
 <div class="card">
-  <h2>Einschränkungen</h2>
+  <h2>{{ t('pages.detail.limits') }}</h2>
   <ul class="notes">
-    <li>Der Preis ist der von der Quelle gemeldete Preis; er ist das Minimum der antwortenden Quellen,
-        nicht der Markt.</li>
+    <li>{{ t('pages.detail.limit_price') }}</li>
     {% if item.warnings %}
       {% for w in item.warnings %}<li class="warn">{{ w }}</li>{% endfor %}
     {% else %}
-      <li>Die Quelle meldet für dieses Angebot keine Warnhinweise.</li>
+      <li>{{ t('pages.detail.no_warnings') }}</li>
     {% endif %}
     {% if provider_status %}
-      <li>Quellenstatus: {{ provider_status.status }}
+      <li>{{ t('pages.detail.provider_status') }} {{ provider_status.status }}
         {% if provider_status.error %}– {{ provider_status.error }}{% endif %}
-        ({{ provider_status.elapsed_s }} s)</li>
+        ({{ t('pages.detail.seconds', value=provider_status.elapsed_s) }})</li>
     {% endif %}
     {% if plausibility and plausibility.rejected %}
-      <li class="warn">In diesem Lauf wurden {{ plausibility.rejected | length }} unplausible Preise verworfen:
-        {{ plausibility.message }}</li>
+      <li class="warn">{{ t('pages.detail.rejected', count=plausibility.rejected | length,
+        message=plausibility.message) }}</li>
     {% endif %}
-    <li>Getrennte Tickets, Selbstverbindung und Gepäckzuschläge können im Endpreis enthalten sein –
-        verbindlich ist nur die Angabe der Quelle.</li>
+    <li>{{ t('pages.detail.limit_separate') }}</li>
   </ul>
 </div>
 
 <div class="card legal">
-  <h2>Rechtlicher Hinweis</h2>
+  <h2>{{ t('pages.detail.legal_title') }}</h2>
   <p>{{ affiliate.legal_notice }}</p>
-  <p class="muted small">Affiliate-Kennzeichnung nach § 5a UWG / § 6 DDG. Wir sind Vermittler,
-    nicht Reiseveranstalter (§§ 651b, 651c, 651w BGB).</p>
+  <p class="muted small">{{ t('pages.detail.legal_note') }}</p>
 </div>
 {% endblock %}

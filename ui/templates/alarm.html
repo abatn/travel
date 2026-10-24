@@ -1,43 +1,43 @@
 {% extends "base.html" %}
-{% block title %}Alarm {{ alarm.name }}{% endblock %}
+{% block title %}{{ t('pages.alarm.title', name=alarm.name) }}{% endblock %}
 {% block content %}
-<p><a href="/alarms">← alle Alarme</a></p>
+<p><a href="/alarms">{{ t('pages.alarm.back_all') }}</a></p>
 <h1>{{ alarm.name }}</h1>
 <p class="muted">{{ labels.get(alarm.category, alarm.category) }} · {{ alarm.origin }} → {{ alarm.destination }}
   · {{ alarm.depart_date }}{% if alarm.return_date %} → {{ alarm.return_date }}{% endif %}
-  · {{ alarm.adults }} Person(en) · angelegt {{ alarm.created_at }}</p>
+  · {{ t('pages.alarm.adults_count', count=alarm.adults) }} · {{ t('pages.alarm.created', date=alarm.created_at) }}</p>
 
 <div class="card">
-  <h2>Regeln</h2>
+  <h2>{{ t('pages.alarm.rules') }}</h2>
   <table class="table kv">
-    <tr><th>Budget</th><td>{{ alarm.budget | money(alarm.currency) }}
-      ({{ 'je Person' if alarm.budget_scope == 'per_person' else 'für die ganze Reise' }})</td></tr>
-    <tr><th>Tiefpunkt</th>
-      <td>{% if alarm.trough_enabled %}aktiv – Modus {{ alarm.trough_mode }}, Faktor {{ alarm.trough_factor }},
-        Fenster {{ alarm.lookback_days }} Tage, mind. {{ alarm.min_observations }} Beobachtungen
-        {% else %}inaktiv{% endif %}</td></tr>
-    <tr><th>Preissturz</th>
-      <td>{% if alarm.drop_enabled %}aktiv – ab {{ alarm.drop_percent }} % unter der Hochwasser-Marke
-        {% else %}inaktiv{% endif %}</td></tr>
-    <tr><th>Cooldown</th><td>{{ alarm.cooldown_hours }} h</td></tr>
-    <tr><th>Konfiguration</th><td><code>{{ alarm.config_path }}</code></td></tr>
+    <tr><th>{{ t('pages.common.budget') }}</th><td>{{ alarm.budget | money(alarm.currency) }}
+      ({{ t('pages.common.per_person') if alarm.budget_scope == 'per_person' else t('pages.common.whole_trip') }})</td></tr>
+    <tr><th>{{ t('pages.alarm.trough') }}</th>
+      <td>{% if alarm.trough_enabled %}{{ t('pages.alarm.trough_active', mode=alarm.trough_mode,
+        factor=alarm.trough_factor, days=alarm.lookback_days,
+        observations=alarm.min_observations) }}
+        {% else %}{{ t('pages.common.inactive') }}{% endif %}</td></tr>
+    <tr><th>{{ t('pages.alarm.drop') }}</th>
+      <td>{% if alarm.drop_enabled %}{{ t('pages.alarm.drop_active', percent=alarm.drop_percent) }}
+        {% else %}{{ t('pages.common.inactive') }}{% endif %}</td></tr>
+    <tr><th>{{ t('pages.alarm.cooldown') }}</th><td>{{ t('pages.alarm.hours', value=alarm.cooldown_hours) }}</td></tr>
+    <tr><th>{{ t('pages.alarm.configuration') }}</th><td><code>{{ alarm.config_path }}</code></td></tr>
   </table>
   <form method="post" action="/alarms/{{ alarm.id }}/run">
-    <button type="submit" class="primary">Wächter jetzt einmal laufen lassen</button>
+    <button type="submit" class="primary">{{ t('pages.alarm.run_now') }}</button>
   </form>
-  <p class="muted small">Der Wächter liest seine Regeln aus dieser Konfiguration; die Regelauswertung selbst
-    liegt unverändert in alerts/watcher.py.</p>
+  <p class="muted small">{{ t('pages.alarm.watcher_note') }}</p>
 </div>
 
 <div class="card">
-  <h2>Messwerte</h2>
-  <p class="muted">{{ state.history_size }} Beobachtungen ·
-    Median {{ state.median | money(alarm.currency) }} ·
-    Minimum {{ state.min | money(alarm.currency) }} ·
-    Maximum {{ state.max | money(alarm.currency) }}</p>
+  <h2>{{ t('pages.alarm.metrics') }}</h2>
+  <p class="muted">{{ t('pages.alarm.metrics_line', count=state.history_size,
+    median=state.median | money(alarm.currency),
+    min=state.min | money(alarm.currency),
+    max=state.max | money(alarm.currency)) }}</p>
   {% if state.history %}
   <table class="table">
-    <thead><tr><th>Zeit</th><th>Preis</th><th>Quelle</th></tr></thead>
+    <thead><tr><th>{{ t('pages.common.time') }}</th><th>{{ t('pages.common.price') }}</th><th>{{ t('pages.common.source') }}</th></tr></thead>
     <tbody>
       {% for h in state.history[-12:]|reverse %}
       <tr><td>{{ h.ts }}</td><td>{{ h.effective_price | money(h.currency) }}</td><td>{{ h.source }}</td></tr>
@@ -45,15 +45,15 @@
     </tbody>
   </table>
   {% else %}
-  <p class="muted">Noch keine Beobachtung – der Wächter muss einmal laufen.</p>
+  <p class="muted">{{ t('pages.alarm.no_observations') }}</p>
   {% endif %}
 </div>
 
 <div class="card">
-  <h2>Ausgelöste Alarme</h2>
+  <h2>{{ t('pages.alarm.triggered') }}</h2>
   {% if state.alerts %}
   <table class="table">
-    <thead><tr><th>Zeit</th><th>Regel</th><th>Preis</th><th>Begründung</th></tr></thead>
+    <thead><tr><th>{{ t('pages.common.time') }}</th><th>{{ t('pages.alarm.rule') }}</th><th>{{ t('pages.common.price') }}</th><th>{{ t('pages.alarm.reason') }}</th></tr></thead>
     <tbody>
       {% for a in state.alerts|reverse %}
       <tr>
@@ -65,13 +65,13 @@
     </tbody>
   </table>
   {% else %}
-  <p class="muted">Noch kein Alarm ausgelöst.</p>
+  <p class="muted">{{ t('pages.alarm.no_alerts') }}</p>
   {% endif %}
   {% if state.pending %}
-  <h3>Offene Zustellungen</h3>
+  <h3>{{ t('pages.alarm.pending') }}</h3>
   <ul class="notes">
     {% for p in state.pending %}
-    <li>{{ p.status }} · {{ p.attempts }} Versuch(e) · {{ p.event_key[:10] }}</li>
+    <li>{{ p.status }} · {{ t('pages.alarm.attempts', count=p.attempts) }} · {{ p.event_key[:10] }}</li>
     {% endfor %}
   </ul>
   {% endif %}

@@ -1,0 +1,23 @@
+{
+  "legal.imprint.email": "Correo electrónico:",
+  "legal.imprint.phone": "Teléfono:",
+  "legal.imprint.ust_none": "Número de identificación a efectos del IVA: no disponible.",
+  "legal.imprint.ust": "Número de identificación fiscal / a efectos del IVA: {id}",
+  "legal.imprint.court": "Juzgado de registro: {court}",
+  "legal.imprint.register_no": "Número de registro: {number}",
+  "legal.imprint.responsible": "Responsable del contenido conforme al art. 18, apdo. 2, MStV (Tratado alemán sobre medios de comunicación): {name}",
+  "legal.imprint.agency": "Actuamos como intermediarios en servicios de viaje (no somos organizadores de viajes). El contrato de cada servicio se celebra exclusivamente con el proveedor correspondiente.",
+  "legal.imprint.dispute": "No estamos dispuestos ni obligados a participar en procedimientos de resolución de litigios ante un organismo de arbitraje de consumo.",
+
+  "legal.privacy.responsible": "Responsable del tratamiento en el sentido del RGPD",
+  "legal.privacy.hosting": "Alojamiento: {host}. Los registros del servidor se conservan {retention} (base jurídica: art. 6, apdo. 1, letra f) del RGPD – seguridad y estabilidad del servicio).",
+  "legal.privacy.purposes": "Finalidades y bases jurídicas: consultas de búsqueda y comparaciones de precios (art. 6, apdo. 1, letra b) del RGPD), funcionamiento técnico y registros (letra f)), alertas de precios y correos electrónicos solo con consentimiento (letra a)), conservación legal (letra c)).",
+  "legal.privacy.recipients": "Destinatarios: proveedores de alojamiento, proveedores de servicios de correo electrónico, redes de afiliación al hacer clic en un enlace de reserva, así como el facilitador x402 para el procesamiento de pagos.",
+  "legal.privacy.processors": "Otros encargados del tratamiento: {list}.",
+  "legal.privacy.x402": "Pagos x402: al emitir una atestación de precio, se procesa un pago en USDC en una cadena de bloques pública. La dirección de la cartera, el importe y el hash de la transacción son, por tanto, visibles de forma pública y permanente. Con fines contables, también almacenamos datos de facturación (importe, fecha, hash de la transacción, servicio).",
+  "legal.privacy.affiliate": "Enlaces de afiliación: al hacer clic en un enlace de reserva se abre el sitio del proveedor, donde se aplica su propia política de privacidad. No utilizamos cookies de marketing propias.",
+  "legal.privacy.retention": "Plazo de conservación: registros según lo indicado anteriormente; datos de facturación y contabilidad conforme a los plazos legales de conservación (§ 147 AO, Código Fiscal alemán, por regla general 8–10 años).",
+  "legal.privacy.rights": "Sus derechos: acceso, rectificación, supresión, limitación, portabilidad de los datos y oposición (art. 15–21 del RGPD). Puede retirar en cualquier momento el consentimiento que haya otorgado.",
+  "legal.privacy.complaint": "Reclamación: {authority}",
+  "legal.privacy.updated": "Última actualización: {date}"
+}

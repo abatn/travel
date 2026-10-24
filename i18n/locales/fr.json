@@ -114,5 +114,14 @@
   "search.default": "Par défaut",
   "results.finished": "Terminé – {ok}/{total} sources ont répondu",
   "results.bundling": "Proposition de regroupement",
-  "results.running": "Recherche en cours …"
+  "results.running": "Recherche en cours …",
+  "search.blocked_until": "bloqué jusqu'à {until}",
+  "search.eg_palma": "p. ex. Palma",
+  "search.eg_barcelona": "p. ex. Barcelone",
+  "search.eg_ham": "p. ex. HAM",
+  "search.eg_mia": "p. ex. MIA",
+  "home.meta.title": "Vols, hôtels, ferries, croisières – Reise-Agent",
+  "home.meta.description": "Prix en direct de plus de 20 sources pour vols, hôtels, ferries et croisières. Prix final, statut fiscal et sources en toute transparence – sans inscription.",
+  "home.svg_label": "Schéma : agent central relié aux vols, hôtels, ferries et croisières ; boucle percevoir, planifier, agir, observer",
+  "nav.start": "Accueil"
 }

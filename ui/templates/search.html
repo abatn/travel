@@ -16,7 +16,7 @@
   </div>
   <div class="home-map" id="home-agent-map">
     <svg id="home-agent-svg" viewBox="0 0 900 520"
-         role="img" aria-label="Schaubild: zentraler Agent, verbunden mit Flügen, Hotels, Fähren und Kreuzfahrten; Schleife Wahrnehmen, Planen, Handeln, Beobachten">
+         role="img" aria-label="{{ t('home.svg_label') }}">
     </svg>
   </div>
   <p class="home-status" id="home-agent-status" aria-live="polite">{{ t('home.status.ready') }}</p>
@@ -73,16 +73,16 @@
     <summary>{{ t('search.more') }}</summary>
     <div class="grid">
       <label>{{ t('search.ferry_from') }}
-        <input name="ferry_origin" placeholder="z. B. Palma">
+        <input name="ferry_origin" placeholder="{{ t('search.eg_palma') }}">
       </label>
       <label>{{ t('search.ferry_to') }}
-        <input name="ferry_destination" placeholder="z. B. Barcelona">
+        <input name="ferry_destination" placeholder="{{ t('search.eg_barcelona') }}">
       </label>
       <label>{{ t('search.cruise_from') }}
-        <input name="cruise_origin" placeholder="z. B. HAM">
+        <input name="cruise_origin" placeholder="{{ t('search.eg_ham') }}">
       </label>
       <label>{{ t('search.cruise_to') }}
-        <input name="cruise_destination" placeholder="z. B. MIA">
+        <input name="cruise_destination" placeholder="{{ t('search.eg_mia') }}">
       </label>
       <label>{{ t('search.timeout') }}
         <input type="number" name="timeout_seconds" min="10" max="240" placeholder="{{ t('search.default') }}">
@@ -109,16 +109,16 @@
   <h2>{{ t('search.active_sources') }}</h2>
   {% for cat, items in status.categories.items() %}
     {% if cat in ['flights','hotels','ferries','cruises'] %}
-    <h3>{{ status.labels.get(cat, cat) }} <span class="muted">({{ items|length }} Quellen)</span></h3>
+    <h3>{{ t('cat.' ~ cat) }} <span class="muted">({{ t('search.sources_count', count=items|length) }})</span></h3>
     <ul class="sources">
       {% for it in items %}
       <li>
         <span class="dot {{ 'ok' if it.enabled and not it.blocked_until else ('warn' if it.enabled else 'off') }}"></span>
         <b>{{ it.id }}</b>
         <span class="muted">{{ it.transport }}</span>
-        {% if it.blocked_until %}<span class="tag warn">gesperrt bis {{ it.blocked_until }}</span>{% endif %}
+        {% if it.blocked_until %}<span class="tag warn">{{ t('search.blocked_until', until=it.blocked_until) }}</span>{% endif %}
         {% if not it.enabled %}<span class="tag off">{{ t('search.disabled') }}</span>{% endif %}
-        {% if it.note %}<span class="muted small">{{ it.note }}</span>{% endif %}
+        {% if it.note %}<span class="muted small">{{ t('source.' ~ it.id ~ '.note', default=it.note) }}</span>{% endif %}
       </li>
       {% endfor %}
     </ul>

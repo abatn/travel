@@ -114,5 +114,14 @@
   "search.default": "Standard",
   "results.finished": "Fertig – {ok}/{total} Quellen haben geantwortet",
   "results.bundling": "Bündelungsvorschlag",
-  "results.running": "Suche läuft …"
+  "results.running": "Suche läuft …",
+  "search.blocked_until": "gesperrt bis {until}",
+  "search.eg_palma": "z. B. Palma",
+  "search.eg_barcelona": "z. B. Barcelona",
+  "search.eg_ham": "z. B. HAM",
+  "search.eg_mia": "z. B. MIA",
+  "home.meta.title": "Flüge, Hotels, Fähren, Kreuzfahrten – Reise-Agent",
+  "home.meta.description": "Live-Preise aus über 20 Quellen für Flüge, Hotels, Fähren und Kreuzfahrten. Endpreis, Steuerstatus und Quellenlage transparent – ohne Anmeldung.",
+  "home.svg_label": "Schaubild: zentraler Agent, verbunden mit Flügen, Hotels, Fähren und Kreuzfahrten; Schleife Wahrnehmen, Planen, Handeln, Beobachten",
+  "nav.start": "Start"
 }

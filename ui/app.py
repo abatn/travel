@@ -164,10 +164,10 @@ templates.env.globals["asset_v"] = _asset_v
 def search_form(request: Request):
     today = date.today()
     base = _base(request)
+    lang = getattr(request.state, "lang", i18n_core.DEFAULT)
     meta = seo_meta.build(
-        "Flüge, Hotels, Fähren, Kreuzfahrten – Reise-Agent",
-        ("Live-Preise aus über 20 Quellen für Flüge, Hotels, Fähren und Kreuzfahrten. "
-         "Endpreis, Steuerstatus und Quellenlage transparent – ohne Anmeldung."),
+        i18n_core.t(lang, "home.meta.title"),
+        i18n_core.t(lang, "home.meta.description"),
         "/", base_url=base)
     return _render(request, "search.html", {
         "categories": service.CATEGORIES,
@@ -175,11 +175,13 @@ def search_form(request: Request):
         "default_depart": (today + timedelta(days=7)).isoformat(),
         "default_return": (today + timedelta(days=9)).isoformat(),
         "status": service.source_status(),
-        "landing_links": [(slug, cfg["h1"]) for slug, cfg in seo_pages.CATEGORIES.items()],
+        "landing_links": [(slug, i18n_core.t(
+            getattr(request.state, "lang", i18n_core.DEFAULT), f"seo.{slug}.h1"))
+            for slug in seo_pages.CATEGORIES],
     }, meta, [
-        seo_jsonld.website(base),
-        seo_jsonld.organization(base),
-        seo_jsonld.breadcrumb(base, [("Start", "/")]),
+        seo_jsonld.website(base, lang),
+        seo_jsonld.organization(base, lang, i18n_core.t(lang, "home.meta.description")),
+        seo_jsonld.breadcrumb(base, [(i18n_core.t(lang, "nav.start"), "/")]),
     ])
 
 
@@ -212,7 +214,15 @@ def _offers_for_view(data: dict | None) -> list[dict]:
 
 
 def _landing(request: Request, slug: str):
-    page = seo_pages.CATEGORIES[slug]
+    page = dict(seo_pages.CATEGORIES[slug])
+    lang = getattr(request.state, "lang", i18n_core.DEFAULT)
+    # Übersetzte SEO-Texte, Fallback auf die deutsche Quelle
+    page["title"] = i18n_core.t(lang, f"seo.{slug}.title")
+    page["h1"] = i18n_core.t(lang, f"seo.{slug}.h1")
+    page["description"] = i18n_core.t(lang, f"seo.{slug}.description")
+    page_intro = i18n_core.t(lang, f"seo.{slug}.intro")
+    if page_intro and not page_intro.startswith("seo."):
+        page["intro"] = page_intro
     base = _base(request)
     routes = _route_entries(page["key"], slug)
     newest = routes[0]["data"] if routes else None
@@ -230,6 +240,15 @@ def _landing(request: Request, slug: str):
             tz_offset = 0
     route_label = (f"{newest.get('origin')} → {newest.get('destination')}"
                    if newest else None)
+    german_faq = list(page.get("faq") or [])
+    if lang != i18n_core.DEFAULT:
+        translated = []
+        for idx, (q_de, a_de) in enumerate(german_faq):
+            q = i18n_core.t(lang, f"seo.{slug}.faq.{idx}.q")
+            a = i18n_core.t(lang, f"seo.{slug}.faq.{idx}.a")
+            translated.append((q if not q.startswith("seo.") else q_de,
+                               a if not a.startswith("seo.") else a_de))
+        page["faq"] = translated
     meta = seo_meta.for_landing(base, slug, page)
     breadcrumb = seo_jsonld.breadcrumb(base, [("Start", "/"), (page["h1"], f"/{slug}")])
     blocks = [breadcrumb, seo_jsonld.faq(page["faq"])]
@@ -241,7 +260,7 @@ def _landing(request: Request, slug: str):
         "tz_offset": tz_offset, "stale": stale, "route": bool(newest),
         "route_label": route_label,
         "preset": page.get("presets", {}),
-        "action_label": f"Jetzt {page['h1'].lower()}",
+        "action_label": f"{i18n_core.t(lang, 'search.submit')}: {page['h1']}",
         "default_depart": (date.today() + timedelta(days=7)).isoformat(),
         "default_return": (date.today() + timedelta(days=9)).isoformat(),
         "other_categories": [(s, c) for s, c in seo_pages.CATEGORIES.items() if s != slug],
@@ -252,15 +271,21 @@ def _landing(request: Request, slug: str):
 @app.get("/preisvergleich", response_class=HTMLResponse)
 def overview_page(request: Request):
     base = _base(request)
-    meta = seo_meta.build(seo_pages.OVERVIEW_TITLE, seo_pages.OVERVIEW_DESCRIPTION,
+    lang = getattr(request.state, "lang", i18n_core.DEFAULT)
+    title = i18n_core.t(lang, "seo.overview.title")
+    description = i18n_core.t(lang, "seo.overview.description")
+    meta = seo_meta.build(title, description,
                           f"/{seo_pages.OVERVIEW_SLUG}", base_url=base)
-    cats = [(slug, cfg) for slug, cfg in seo_pages.CATEGORIES.items()]
+    cats = [(slug, {**cfg,
+                     "h1": i18n_core.t(lang, f"seo.{slug}.h1"),
+                     "description": i18n_core.t(lang, f"seo.{slug}.description")})
+            for slug, cfg in seo_pages.CATEGORIES.items()]
     return _render(request, "overview.html", {
         "categories": cats, "default_depart": (date.today() + timedelta(days=7)).isoformat(),
         "default_return": (date.today() + timedelta(days=9)).isoformat(),
-    }, meta, [seo_jsonld.website(base), seo_jsonld.organization(base),
-              seo_jsonld.breadcrumb(base, [("Start", "/"),
-                                           ("Preisvergleich", f"/{seo_pages.OVERVIEW_SLUG}")])])
+    }, meta, [seo_jsonld.website(base, lang), seo_jsonld.organization(base, lang, description),
+              seo_jsonld.breadcrumb(base, [(i18n_core.t(lang, "nav.start"), "/"),
+                                           (title, f"/{seo_pages.OVERVIEW_SLUG}")])])
 
 
 for _slug in seo_pages.CATEGORIES:
@@ -353,66 +378,14 @@ def _legal_page(request: Request, kind: str):
         f"/{kind}", base_url=_base(request),
         robots="index,follow" if configured else "noindex,follow")
 
-    content = ""
-    if configured and kind == "impressum":
-        ust = str(b.get("umsatzsteuer_id") or "").strip()
-        ust_html = (
-            "<p>Umsatzsteuer-Identifikationsnummer: keine vorhanden.</p>"
-            if ust.lower() == "keine"
-            else f"<p>Steuer-/Umsatzsteuer-Identifikationsnummer: {_e(ust)}</p>"
-        )
-        register = ""
-        if b.get("registergericht") or b.get("registernummer"):
-            register = (f"<p>Registergericht: {_e(b.get('registergericht'))}<br>"
-                        f"Registernummer: {_e(b.get('registernummer'))}</p>")
-        content = (
-            f"<p><b>{_e(b.get('name'))}</b><br>{_e(b.get('strasse'))}<br>"
-            f"{_e(b.get('plz_ort'))}<br>{_e(b.get('land'))}</p>"
-            f"<p>E-Mail: <a href=\"mailto:{_e(b.get('email'))}\">{_e(b.get('email'))}</a>"
-            + (f"<br>Telefon: {_e(b.get('telefon'))}" if b.get("telefon") else "")
-            + "</p>"
-            + ust_html
-            + register
-            + f"<p>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV: "
-              f"{_e(b.get('verantwortlich'))}</p>"
-            + "<p>Wir vermitteln Reiseleistungen (keine Reiseveranstaltung). Der Vertrag über "
-              "jede Leistung kommt ausschließlich mit dem jeweiligen Anbieter zustande.</p>"
-            + "<p>Wir sind nicht bereit und nicht verpflichtet, an Streitbeilegungsverfahren "
-              "vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>"
-        )
-    elif configured and kind == "datenschutz":
-        verarbeiter = str(d.get("auftragsverarbeiter") or "").strip()
-        content = (
-            "<p><b>Verantwortlich im Sinne der DSGVO</b><br>"
-            f"{_e(b.get('name'))}<br>{_e(b.get('strasse'))}<br>{_e(b.get('plz_ort'))}<br>"
-            f"{_e(b.get('land'))}<br>E-Mail: {_e(b.get('kontakt_datenschutz') or b.get('email'))}</p>"
-            f"<p><b>Hosting:</b> {_e(d.get('hosting'))}. Server-Logs werden "
-            f"{_e(d.get('aufbewahrung_logs'))} gespeichert (Rechtsgrundlage: Art. 6 Abs. 1 "
-            "lit. f DSGVO – Sicherheit und Stabilität des Angebots).</p>"
-            "<p><b>Zwecke und Rechtsgrundlagen:</b> Suchanfragen und Preisvergleiche "
-            "(Art. 6 Abs. 1 lit. b DSGVO), technischer Betrieb und Logs (lit. f), "
-            "Preisalarme und E-Mails nur mit Einwilligung (lit. a), gesetzliche "
-            "Aufbewahrung (lit. c).</p>"
-            "<p><b>Empfänger:</b> Hosting-Dienstleister, E-Mail-Dienstleister, "
-            "Affiliate-Netzwerke beim Klick auf einen Buchungslink sowie der x402-Facilitator "
-            "zur Zahlungsabwicklung."
-            + (f" Weitere Auftragsverarbeiter: {_e(verarbeiter)}." if verarbeiter else "")
-            + "</p>"
-            "<p><b>x402-Zahlungen:</b> Bei einer Preis-Attestierung wird eine USDC-Zahlung "
-            "auf einer öffentlichen Blockchain abgewickelt. Dabei sind Wallet-Adresse, Betrag "
-            "und Transaktionshash öffentlich und dauerhaft einsehbar. Wir speichern zur "
-            "Buchhaltung zusätzlich Rechnungsdaten (Betrag, Datum, Tx-Hash, Leistung).</p>"
-            "<p><b>Affiliate-Links:</b> Beim Klick auf einen Buchungslink wird der Anbieter "
-            "aufgerufen; dort gelten dessen Datenschutzbestimmungen. Wir setzen keine eigenen "
-            "Marketing-Cookies.</p>"
-            "<p><b>Speicherdauer:</b> Logs gemäß oben; Rechnungs- und Buchhaltungsdaten nach "
-            "den gesetzlichen Aufbewahrungsfristen (§ 147 AO, in der Regel 8–10 Jahre).</p>"
-            "<p><b>Ihre Rechte:</b> Auskunft, Berichtigung, Löschung, Einschränkung, "
-            "Datenübertragbarkeit und Widerspruch (Art. 15–21 DSGVO). Eine erteilte "
-            "Einwilligung können Sie jederzeit widerrufen.</p>"
-            f"<p><b>Beschwerde:</b> {_e(d.get('aufsichtsbehoerde'))}</p>"
-            f"<p><b>Stand:</b> {_e(d.get('stand'))}</p>"
-        )
+    if configured:
+        from i18n import legal as i18n_legal
+
+        builder = (i18n_legal.imprint_html if kind == "impressum"
+                   else i18n_legal.privacy_html)
+        content = builder(lang, i18n_core.translator(lang), _e, data)
+    else:
+        content = ""
     return templates.TemplateResponse(request, "legal.html", {
         "request": request, "meta": meta, "jsonld": [], "title": title,
         "configured": configured, "content": content, "missing": missing,
@@ -684,6 +657,38 @@ async def api_affiliate():
 @app.get("/api/status")
 async def api_status():
     return JSONResponse(service.source_status())
+
+
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+
+@app.exception_handler(StarletteHTTPException)
+async def _http_error_handler(request: Request, exc: StarletteHTTPException):
+    lang = getattr(request.state, "lang", i18n_core.DEFAULT)
+    message = (i18n_core.t(lang, "error.not_found") if exc.status_code == 404
+               else i18n_core.t(lang, "error.server"))
+    if request.url.path.startswith("/api"):
+        return JSONResponse({"error": message}, status_code=exc.status_code)
+    meta = seo_meta.build(f"{exc.status_code} – Reise-Agent", message,
+                          request.url.path, base_url=_base(request),
+                          robots="noindex,follow")
+    return _render(request, "error.html",
+                   {"code": exc.status_code, "message": message},
+                   meta, status_code=exc.status_code)
+
+
+@app.exception_handler(RequestValidationError)
+async def _validation_error_handler(request: Request, exc: RequestValidationError):
+    lang = getattr(request.state, "lang", i18n_core.DEFAULT)
+    message = i18n_core.t(lang, "error.invalid_request")
+    if request.url.path.startswith("/api"):
+        return JSONResponse({"error": message, "details": exc.errors()},
+                            status_code=422)
+    meta = seo_meta.build(f"422 – Reise-Agent", message, request.url.path,
+                          base_url=_base(request), robots="noindex,follow")
+    return _render(request, "error.html", {"code": 422, "message": message},
+                   meta, status_code=422)
 
 
 @app.get("/health")

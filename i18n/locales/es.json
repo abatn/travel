@@ -114,5 +114,14 @@
   "search.default": "Predeterminado",
   "results.finished": "Listo – {ok}/{total} fuentes respondieron",
   "results.bundling": "Propuesta de combinación",
-  "results.running": "Búsqueda en curso …"
+  "results.running": "Búsqueda en curso …",
+  "search.blocked_until": "bloqueado hasta {until}",
+  "search.eg_palma": "p. ej. Palma",
+  "search.eg_barcelona": "p. ej. Barcelona",
+  "search.eg_ham": "p. ej. HAM",
+  "search.eg_mia": "p. ej. MIA",
+  "home.meta.title": "Vuelos, hoteles, ferris, cruceros – Reise-Agent",
+  "home.meta.description": "Precios en directo de más de 20 fuentes para vuelos, hoteles, ferris y cruceros. Precio final, estado fiscal y fuentes con transparencia, sin registro.",
+  "home.svg_label": "Esquema: agente central conectado con vuelos, hoteles, ferris y cruceros; bucle percibir, planificar, actuar, observar",
+  "nav.start": "Inicio"
 }

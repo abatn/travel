@@ -40,7 +40,7 @@ rsync -rlptz --delete \
   --exclude 'logs/' \
   "$REPO/ui" "$REPO/providers" "$REPO/seo" "$REPO/resolver" \
   "$REPO/affiliate" "$REPO/alerts" "$REPO/bundling" "$REPO/attest" \
-  "$REPO/docs" "$REPO/llms.txt" "$REPO/requirements-runtime.txt" \
+  "$REPO/docs" "$REPO/i18n" "$REPO/llms.txt" "$REPO/requirements-runtime.txt" \
   "$REPO/scripts" "$REPO/deploy" \
   "$APP/"
 
