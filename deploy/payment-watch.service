@@ -1,0 +1,13 @@
+[Unit]
+Description=Zahlungs-Watch: E-Mail bei Zahlung von fremder Wallet (Reise-Agent Attest)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=batnini
+Group=batnini
+WorkingDirectory=/home/batnini/mimo-agents
+EnvironmentFile=/etc/reise-agent.env
+ExecStart=/home/batnini/mimo-agents/.venv/bin/python /home/batnini/mimo-agents/deploy/payment_watch.py
+TimeoutStartSec=300

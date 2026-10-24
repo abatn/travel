@@ -1,0 +1,11 @@
+[Unit]
+Description=Zahlungs-Watch stündlich ausführen
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+RandomizedDelaySec=5min
+Unit=payment-watch.service
+
+[Install]
+WantedBy=timers.target
