@@ -43,8 +43,8 @@ betreiber:
   strasse: "[wildgansweg 34]"     # Pflicht: Straße und Hausnummer
   plz_ort: "[70378 Stuttgart]"    # Pflicht: PLZ und Ort
   land: "Deutschland"            # Pflicht
-  email: "[deine@email.de]"       # Pflicht: erreichbare E-Mail-Adresse
-  telefon: "[42313095876]"        # optional (E-Mail genügt für § 5 DDG)
+  email: "batniniabdelkader@yahoo.com"  # Pflicht: erreichbare E-Mail-Adresse
+  telefon: "004915777774764"      # optional (E-Mail genügt für § 5 DDG)
   umsatzsteuer_id: '[USt-IdNr. oder "keine"]'  # Pflicht: USt-IdNr. oder "keine"
   verantwortlich: "[Batnini Abdelkader]"  # Pflicht: Name, § 18 Abs. 2 MStV
   registergericht: ""            # optional, nur bei eingetragenen Firmen
@@ -52,7 +52,7 @@ betreiber:
 
 datenschutz:
   hosting: "[Contabo GmbH, München]"  # Pflicht: z. B. "Hetzner Online GmbH, Nürnberg"
-  kontakt_datenschutz: "[deine@email.de]"  # Pflicht: E-Mail für Datenschutzanfragen
+  kontakt_datenschutz: "batniniabdelkader@yahoo.com"  # Pflicht: E-Mail für Datenschutzanfragen
   aufbewahrung_logs: "30 Tage"   # Pflicht: Aufbewahrungsdauer der Server-Logs
   aufsichtsbehoerde: "[Der Landesbeauftragte für den Datenschutz und die Informationsfreiheit Baden-Württemberg]"  # Pflicht
   stand: "[24.10.2026]"           # Pflicht: z. B. "23.10.2026"
