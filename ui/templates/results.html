@@ -7,26 +7,22 @@
   {{ job.params.origin }} → {{ job.params.destination }} ·
   {{ job.params.depart_date }}{% if job.params.return_date %} → {{ job.params.return_date }}{% endif %} ·
   {{ t('results.persons', count=job.params.adults) }} · {{ job.params.currency }}
-  · Lauf <code>{{ job.job_id }}</code> · gestartet {{ job.started_at }}
+  · {{ t('results.job') }} <code>{{ job.job_id }}</code> · {{ t('results.started') }} {{ job.started_at }}
 </p>
 {% else %}
 <p class="muted">
   {{ job.params.origin }} → {{ job.params.destination }} ·
   {{ job.params.depart_date }} {{ t('results.trip_oneway') }} ·
-  {{ job.params.adults }} Person(en) · {{ job.params.currency }}
-  · Lauf <code>{{ job.job_id }}</code> · gestartet {{ job.started_at }}
+  {{ t('results.persons', count=job.params.adults) }} · {{ job.params.currency }}
+  · {{ t('results.job') }} <code>{{ job.job_id }}</code> · {{ t('results.started') }} {{ job.started_at }}
 </p>
-<p class="muted small">Annahme für die Bündelung: 1 Übernachtung (es wurde keine Rückkehr angegeben);
-  der Hotelposten der Empfehlung gilt für diese eine Nacht.</p>
+<p class="muted small">{{ t('results.assumption') }}</p>
 {% endif %}
 
 {% if affiliate and (affiliate.demo_active or (affiliate.partners | selectattr('configured') | list | length > 0)) %}
 <div class="aff-banner">
-  <b>{{ t('results.ad') }}</b> Einige Buchungslinks sind Affiliate-Links. Buchst du darüber, erhalten wir vom
-  Anbieter eine Provision – der Preis ändert sich dadurch nicht. Die Empfehlung richtet sich
-  ausschließlich nach dem Preis, nie nach der Provision.
-  {% if affiliate.demo_active %}<br><span class="warn">Hinweis: Es ist eine Testkennung aktiv
-  (kein echtes Partnerprogramm).</span>{% endif %}
+  <b>{{ t('results.ad') }}</b> {{ t('results.affiliate_note') }}
+  {% if affiliate.demo_active %}<br><span class="warn">{{ t('results.demo') }}</span>{% endif %}
 </div>
 {% endif %}
 
@@ -42,7 +38,7 @@
   <div id="live-status" class="live">
     <div class="live-scroll">
       <table class="table live-table">
-        <thead><tr><th>{{ t('results.category') }}</th><th>{{ t('results.source') }}</th><th aria-label="Statuspunkt"></th>
+        <thead><tr><th>{{ t('results.category') }}</th><th>{{ t('results.source') }}</th><th aria-label="{{ t('results.status_dot') }}"></th>
           <th>{{ t('results.status') }}</th><th>{{ t('results.offers') }}</th><th>{{ t('results.duration') }}</th><th>{{ t('results.note') }}</th></tr></thead>
         <tbody>
           {% for row in live_rows %}
@@ -50,14 +46,14 @@
             <td class="muted small">{{ t('cat.' ~ row.category) }}</td>
             <td>{{ row.source }}</td>
             <td><span class="dot {{ 'ok' if row.status == 'ok' else ('warn' if row.status in ['skipped','corrupt'] else ('err' if row.status == 'error' else 'wait')) }}"></span></td>
-            <td class="st {{ 'ok' if row.status == 'ok' else ('warn' if row.status in ['skipped','corrupt'] else ('err' if row.status == 'error' else '')) }}">{{ 'wartet' if not row.status or row.status == 'waiting' else row.status }}</td>
+            <td class="st {{ 'ok' if row.status == 'ok' else ('warn' if row.status in ['skipped','corrupt'] else ('err' if row.status == 'error' else '')) }}">{{ t('status.' ~ (row.status or 'waiting')) }}</td>
             <td class="it">{{ row.items if row.items is not none else '–' }}</td>
-            <td class="du">{{ row.elapsed_s ~ ' s' if row.elapsed_s else '–' }}</td>
+            <td class="du">{{ t('pages.detail.seconds', value=row.elapsed_s) if row.elapsed_s else '–' }}</td>
             <td class="er muted small">{{ (row.error or '')[:90] }}</td>
           </tr>
           {% endfor %}
           {% if not live_rows %}
-          <tr><td colspan="7" class="muted">Quellen werden vorbereitet …</td></tr>
+          <tr><td colspan="7" class="muted">{{ t('results.preparing') }}</td></tr>
           {% endif %}
         </tbody>
       </table>
@@ -68,7 +64,7 @@
 
 {% set res_any = resolved.values() | selectattr('origin') | list %}
 {% if res_any %}
-<p class="muted small">Aufgelöst:
+<p class="muted small">{{ t('results.resolved') }}
   {% for cat, r in resolved.items() %}
     {% if r and r.origin %}
       <b>{{ r.origin.input }}</b> → {{ r.origin.code }}
@@ -86,45 +82,44 @@
 
 {% for cat, data in job.categories.items() %}
 <section class="card">
-  <h2>{{ labels.get(cat, cat) }}
+  <h2>{{ t('cat.' ~ cat) }}
     {% if data.state == 'done' %}
-      <span class="tag ok" id="badge-{{ cat }}">{{ data['items'] }} Angebote</span>
+      <span class="tag ok" id="badge-{{ cat }}">{{ t('results.offers_count', count=data['items']) }}</span>
     {% elif data.state == 'error' %}
-      <span class="tag warn" id="badge-{{ cat }}">Fehler</span>
+      <span class="tag warn" id="badge-{{ cat }}">{{ t('status.error') }}</span>
     {% else %}
-      <span class="tag" id="badge-{{ cat }}">läuft</span>
+      <span class="tag" id="badge-{{ cat }}">{{ t('status.running') }}</span>
     {% endif %}
   </h2>
   {% if data.error %}
   <p class="alert error">
-    {% if data.place_error %}<b>Ort nicht gefunden.</b> {% endif %}{{ data.error }}
-    {% if data.place_error %}<br><span class="small">Tipp: Flughafenkürzel (z. B. TLS) oder den
-      Ortsnamen ohne Tippfehler eingeben – die Vorschlagsliste hilft beim Tippen.</span>{% endif %}
+    {% if data.place_error %}<b>{{ t('results.place_not_found') }}</b> {% endif %}{{ data.error }}
+    {% if data.place_error %}<br><span class="small">{{ t('results.place_tip') }}</span>{% endif %}
   </p>
   {% endif %}
 
   {% if data.cheapest %}
   <div class="best">
     <div>
-      <span class="label">Günstigstes Angebot</span>
+      <span class="label">{{ t('results.cheapest') }}</span>
       <span class="price">{{ data.cheapest.price | money(data.cheapest.currency) }}</span>
-      <span class="muted">je Person · Quelle {{ data.cheapest.source }}</span>
+      <span class="muted">{{ t('pages.common.per_person') }} · {{ t('results.source') }} {{ data.cheapest.source }}</span>
     </div>
     <div class="muted small">
       {% if data.cheapest.all_in is not none %}
-        Endpreis inkl. Gepäck: {{ data.cheapest.all_in | money(data.cheapest.currency) }}
+        {{ t('results.all_in') }} {{ data.cheapest.all_in | money(data.cheapest.currency) }}
       {% else %}
-        Endpreis (inkl. Gepäck/Steuern): nicht verfügbar
+        {{ t('results.all_in_missing') }}
       {% endif %}
-      {% if data.cheapest.stops is not none %} · {{ data.cheapest.stops }} Stopp(s){% endif %}
+      {% if data.cheapest.stops is not none %} · {{ t('results.stops', count=data.cheapest.stops) }}{% endif %}
     </div>
   </div>
   {% endif %}
 
   {% if data.price_plausibility and data.price_plausibility.rejected %}
   <p class="alert warn">
-    Unplausible Preise verworfen: {{ data.price_plausibility.rejected | length }} ·
-    {{ data.price_plausibility.message }}
+    {{ t('results.rejected', count=data.price_plausibility.rejected | length,
+         message=data.price_plausibility.message) }}
   </p>
   {% endif %}
 
@@ -134,15 +129,15 @@
       {% for it in data.top or [] %}
       <tr>
         <td>{{ it.price | money(it.currency) }}</td>
-        <td>{% if it.all_in is not none %}{{ it.all_in | money(it.currency) }}{% else %}<span class="muted">n/v</span>{% endif %}</td>
-        <td>{{ it.provider or it.name or 'k. A.' }}</td>
+        <td>{% if it.all_in is not none %}{{ it.all_in | money(it.currency) }}{% else %}<span class="muted">{{ t('pages.common.not_available_short') }}</span>{% endif %}</td>
+        <td>{{ it.provider or it.name or t('pages.common.unknown') }}</td>
         <td class="muted small">{{ it.source }}</td>
-        <td><a href="/jobs/{{ job.job_id }}/detail/{{ cat }}/{{ loop.index0 }}">Details</a></td>
+        <td><a href="/jobs/{{ job.job_id }}/detail/{{ cat }}/{{ loop.index0 }}">{{ t('pages.common.details') }}</a></td>
       </tr>
       {% else %}
       <tr><td colspan="5" class="muted">
-        {% if data.state == 'done' %}Keine Angebote in dieser Kategorie.
-        {% else %}Suche läuft …{% endif %}</td></tr>
+        {% if data.state == 'done' %}{{ t('results.none') }}
+        {% else %}{{ t('results.running') }}{% endif %}</td></tr>
       {% endfor %}
     </tbody>
   </table>
@@ -150,20 +145,20 @@
 {% endfor %}
 
 <section class="card" id="bundling">
-  <h2>Bündelungsvorschlag</h2>
+  <h2>{{ t('results.bundling') }}</h2>
 {% if job.comparison %}
   {% set rec = job.comparison.recommendation %}
   {% if rec %}
   <div class="best">
     <div>
-      <span class="label">Empfehlung</span>
+      <span class="label">{{ t('results.recommendation') }}</span>
       <span class="price">{{ rec.total | money(rec.currency) }}</span>
       <span class="muted">{{ rec.label }}</span>
     </div>
   </div>
   {% endif %}
   <table class="table">
-    <thead><tr><th>Variante</th><th>Summe</th><th>je Person/Nacht</th></tr></thead>
+    <thead><tr><th>{{ t('results.variant') }}</th><th>{{ t('results.sum') }}</th><th>{{ t('results.per_person_night') }}</th></tr></thead>
     <tbody>
       {% for v in job.comparison.variants %}
       <tr class="{{ 'win' if rec and v.id == rec.id }}">
@@ -174,22 +169,22 @@
       {% endfor %}
     </tbody>
   </table>
-  <p class="muted small legal-inline">{{ affiliate.bundle_notice }}</p>
+  <p class="muted small legal-inline">{{ t('affiliate.bundle_notice') }}</p>
   {% if job.comparison.decision_notes %}
   <ul class="notes">
     {% for n in job.comparison.decision_notes %}<li>{{ n }}</li>{% endfor %}
   </ul>
   {% endif %}
   {% if job.comparison.best_value %}
-  <p class="muted small">Preis-Leistung: {{ job.comparison.best_value.label }}
+  <p class="muted small">{{ t('results.best_value') }} {{ job.comparison.best_value.label }}
     ({{ job.comparison.best_value.price_per_person_night | money(job.comparison.best_value.currency) }}
-    je Person und Nacht) – {{ job.comparison.best_value_note }}</p>
+    {{ t('results.per_person_night_long') }}) – {{ job.comparison.best_value_note }}</p>
   {% endif %}
   {% set dq = job.comparison.data_quality %}
   {% if dq and (dq.corrupt_sources or dq.unavailable_sources) %}
-  <h3>Datenqualität</h3>
+  <h3>{{ t('results.data_quality') }}</h3>
   {% if dq.corrupt_sources %}
-    <p class="alert warn">Korrupte Quellen: {{ dq.corrupt_sources | join(', ') }}</p>
+    <p class="alert warn">{{ t('results.corrupt_sources', sources=dq.corrupt_sources | join(', ')) }}</p>
   {% endif %}
   <ul class="notes">
     {% for u in dq.unavailable_sources %}<li>{{ u }}</li>{% endfor %}
@@ -197,7 +192,7 @@
   {% endif %}
 {% else %}
   <div id="bundling-placeholder">
-    <p class="muted">Die Bündelung benötigt Flug- und Hotelpreise – sie erscheint, sobald die Suche abgeschlossen ist.</p>
+    <p class="muted">{{ t('results.bundling_waiting') }}</p>
   </div>
 {% endif %}
 </section>

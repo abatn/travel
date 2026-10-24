@@ -15,6 +15,40 @@ function T(key, params) {
   return text;
 }
 
+// Sprache der Seite (base.html setzt <html lang="...">)
+function pageLang() {
+  const raw = (document.documentElement.lang || 'de').toLowerCase().split('-')[0];
+  return raw || 'de';
+}
+
+// Zahlformat nach Seitensprache (de: 1.234,50 · en: 1,234.50)
+function fmt(value, currency) {
+  if (value === null || value === undefined || value === '') {
+    return T('pages.common.not_available_short');
+  }
+  const num = Number(value);
+  let text;
+  if (!isFinite(num)) {
+    text = String(value);
+  } else {
+    try {
+      text = new Intl.NumberFormat(pageLang(), {
+        minimumFractionDigits: 2, maximumFractionDigits: 2
+      }).format(num);
+    } catch (e) {
+      text = num.toFixed(2);
+    }
+  }
+  return currency ? text + ' ' + currency : text;
+}
+
+// Statuscode -> Text; unbekannte Codes bleiben als Rohtext sichtbar
+function statusText(code) {
+  const key = 'status.' + (code || 'waiting');
+  const text = T(key);
+  return text === key ? (code || '') : text;
+}
+
 // Live-Anzeige des Suchlaufs: pollt den Job-Status und fuellt die Ergebnislisten.
 (function () {
   const form = document.getElementById('searchform');
@@ -30,7 +64,7 @@ function T(key, params) {
           const go = () => { window.location.href = '/jobs/' + d.job_id; };
           if (delay) { setTimeout(go, delay); } else { go(); }
         })
-        .catch(err => alert('Suche konnte nicht gestartet werden: ' + err));
+        .catch(err => alert(T('error.search_failed') + ' ' + err));
     });
   }
 
@@ -108,8 +142,8 @@ function T(key, params) {
     if (placeholder) placeholder.parentElement.remove();
     row = document.createElement('tr');
     row.dataset.source = source;
-    row.innerHTML = '<td class="muted small">' + cat + '</td><td>' + source + '</td>' +
-      '<td><span class="dot wait"></span></td><td class="st">wartet</td>' +
+    row.innerHTML = '<td class="muted small">' + T('cat.' + cat) + '</td><td>' + source + '</td>' +
+      '<td><span class="dot wait"></span></td><td class="st">' + T('status.waiting') + '</td>' +
       '<td class="it">0</td><td class="du">–</td><td class="er muted small"></td>';
     // alphabetisch einsortieren
     const rows = Array.from(tbody.querySelectorAll('tr[data-source]'));
@@ -133,14 +167,14 @@ function T(key, params) {
         if (dot) dot.className = 'dot ' + cls;
         const st = row.querySelector('td.st');
         if (st) {
-          st.textContent = p.status === 'waiting' ? 'wartet' : (p.status || '');
+          st.textContent = statusText(p.status || 'waiting');
           st.className = 'st ' + cls;
         }
         const it = row.querySelector('td.it');
         if (it) it.textContent = (p.items === null || p.items === undefined) ? '–' : p.items;
         const du = row.querySelector('td.du');
         if (du) du.textContent = (p.elapsed_s === null || p.elapsed_s === undefined)
-          ? '–' : p.elapsed_s + ' s';
+          ? '–' : T('pages.detail.seconds', {value: p.elapsed_s});
         const er = row.querySelector('td.er');
         if (er) er.textContent = p.error ? String(p.error).slice(0, 90) : '';
       });
@@ -154,10 +188,10 @@ function T(key, params) {
       if (!badge) return;
       const c = cats[cat];
       if (c.state === 'done') {
-        badge.textContent = (c.items || 0) + ' Angebote';
+        badge.textContent = T('results.offers_count', {count: c.items || 0});
         badge.className = 'tag ok';
       } else if (c.state === 'error') {
-        badge.textContent = 'Fehler';
+        badge.textContent = T('status.error');
         badge.className = 'tag warn';
       }
     });
@@ -168,16 +202,15 @@ function T(key, params) {
     if (!box || !comp || box.dataset.filled === 'done') return;
     if (!comp.variants) return;
     const rec = comp.recommendation || {};
-    const money = v => (v === null || v === undefined) ? 'n/v'
-      : v.toFixed(2).replace('.', ',') + ' ' + (comp.currency || 'EUR');
+    const money = v => fmt(v, comp.currency || 'EUR');
     let html = '<h2>' + T('results.bundling') + '</h2>';
     if (rec.id) {
-      html += '<div class="best"><div><span class="label">Empfehlung</span>' +
+      html += '<div class="best"><div><span class="label">' + T('results.recommendation') + '</span>' +
         '<span class="price">' + money(rec.total) + '</span>' +
         '<span class="muted">' + (rec.label || '') + '</span></div></div>';
     }
-    html += '<table class="table"><thead><tr><th>Variante</th><th>Summe</th>' +
-      '<th>je Person/Nacht</th></tr></thead><tbody>' +
+    html += '<table class="table"><thead><tr><th>' + T('results.variant') + '</th><th>' + T('results.sum') + '</th>' +
+      '<th>' + T('results.per_person_night') + '</th></tr></thead><tbody>' +
       (comp.variants || []).map(v => '<tr' + (rec.id === v.id ? ' class="win"' : '') + '>' +
         '<td>' + (v.label || v.id) + '</td><td>' + money(v.total) + '</td>' +
         '<td>' + money(v.price_per_person_night) + '</td></tr>').join('') +
@@ -282,7 +315,7 @@ function T(key, params) {
     const halo = svgEl('circle', { cx, cy, r: 70, class: 'halo' });
     const ring = svgEl('circle', { cx, cy, r: 54, class: 'agent-ring', fill: 'url(#agentGrad)' });
     const t1 = svgEl('text', { x: cx, y: cy - 8, 'text-anchor': 'middle', class: 'agent-title' });
-    t1.textContent = 'Agent';
+    t1.textContent = T('app.agent');
     const t2 = svgEl('text', { x: cx, y: cy + 16, 'text-anchor': 'middle', class: 'agent-count' });
     t2.textContent = '0/' + sources.length;
     center.appendChild(halo);
@@ -340,8 +373,8 @@ function T(key, params) {
     if (graph.halo) graph.halo.classList.toggle('done', done);
     if (label) {
       label.textContent = done
-        ? 'Fertig – ' + answered + '/' + total + ' Quellen haben geantwortet'
-        : answered + ' von ' + total + ' Quellen geantwortet …';
+        ? T('results.finished', {ok: answered, total: total})
+        : T('results.progress', {answered: answered, total: total});
     }
     const box = document.querySelector('.agent-graph');
     if (box) box.classList.toggle('done', done);
@@ -366,10 +399,10 @@ function T(key, params) {
         return;
       }
       tbody.innerHTML = rows.map((r, i) =>
-        '<tr><td>' + (r.price === null || r.price === undefined ? 'n/v' : r.price.toFixed(2).replace('.', ',') + ' ' + (r.currency || '')) +
-        '</td><td>' + (r.all_in === null || r.all_in === undefined ? '<span class="muted">n/v</span>' : r.all_in.toFixed(2).replace('.', ',')) +
-        '</td><td>' + (r.provider || r.name || '') + '</td><td class="muted small">' + (r.source || '') + '</td>' +
-        '<td><a href="/jobs/' + jobId + '/detail/' + cat + '/' + i + '">Details</a></td></tr>').join('');
+        '<tr><td>' + fmt(r.price, r.currency) +
+        '</td><td>' + (r.all_in === null || r.all_in === undefined ? '<span class="muted">' + T('pages.common.not_available_short') + '</span>' : fmt(r.all_in)) +
+        '</td><td>' + (r.provider || r.name || T('pages.common.unknown')) + '</td><td class="muted small">' + (r.source || '') + '</td>' +
+        '<td><a href="/jobs/' + jobId + '/detail/' + cat + '/' + i + '">' + T('pages.common.details') + '</a></td></tr>').join('');
     });
   }
 
@@ -446,9 +479,9 @@ function T(key, params) {
   // Zentrum
   centerG.appendChild(el('circle', { cx: CX, cy: CY, r: 62, class: 'core' }));
   const title = el('text', { x: CX, y: CY - 6, 'text-anchor': 'middle', class: 'title' });
-  title.textContent = 'Agent';
+  title.textContent = T('app.agent');
   const mind = el('text', { x: CX, y: CY + 16, 'text-anchor': 'middle', class: 'mind' });
-  mind.textContent = 'bereit';
+  mind.textContent = T('app.ready');
   centerG.appendChild(title);
   centerG.appendChild(mind);
 
@@ -528,7 +561,7 @@ function T(key, params) {
       ok += good;
       all += providers.length;
       counts[cat] = providers.length;
-      setCategory(cat, good === 0 ? 'error' : 'ok', good + '/' + providers.length + ' ok');
+      setCategory(cat, good === 0 ? 'error' : 'ok', good + '/' + providers.length + ' ' + T('status.ok'));
     });
     if (all) {
       mind.textContent = T('home.status.last', {ok: ok, total: all});

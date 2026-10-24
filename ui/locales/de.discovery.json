@@ -1,0 +1,22 @@
+{
+  "discovery.name": "Reise-Agent Preis-Attestierungen",
+  "seo.route.title": "{category} {origin} – {destination}: Preise vergleichen",
+  "seo.route.description": "Aktuelle Preise für {category} {origin} – {destination} aus mehreren Quellen: günstigster Tarif, Endpreis, Stopps und Quellenlage. Jetzt vergleichen.",
+  "seo.alarms.title": "Preisalarme – Reise-Agent",
+  "seo.alarms.description": "Preisalarm für Flüge, Hotels, Fähren und Kreuzfahrten einrichten: Budget, Tiefpunkt und Preissturz überwachen.",
+  "seo.alarm.title": "Alarm: {name} – Reise-Agent",
+  "seo.alarm.description": "Detailansicht eines Preisalarms mit Verlauf und ausgelösten Alarmen.",
+  "place.not_found": "{label} „{query}“ nicht gefunden.",
+  "place.ambiguous": "{label} „{query}“ ist nicht eindeutig. Meintest du: {suggestions}?",
+  "place.unresolved": "Ort nicht auflösbar.",
+  "place.label.departure": "Abflug",
+  "place.label.destination": "Ziel",
+  "place.label.place": "Ort",
+  "place.label.port_departure": "Abfahrtshafen",
+  "place.label.port_arrival": "Zielhafen",
+  "place.label.port_embarkation": "Einschiffungshafen",
+  "pages.category.flights": "Flüge",
+  "pages.category.hotels": "Hotels",
+  "pages.category.ferries": "Fähren",
+  "pages.category.cruises": "Kreuzfahrten"
+}

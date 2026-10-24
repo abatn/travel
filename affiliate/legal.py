@@ -42,6 +42,25 @@ NO_PAYMENT_NOTE = (
     "Diese Oberfläche nimmt keine Zahlung vor und speichert keine Zahlungsdaten."
 )
 
+# Zuordnung der Textkonstanten zu den i18n-Schlüsseln der Oberfläche.
+_TEXT_KEYS = {
+    "DISCLOSURE_SHORT": "affiliate.disclosure_short",
+    "DISCLOSURE_TEST": "affiliate.disclosure_test",
+    "DISCLOSURE_LONG": "affiliate.disclosure_long",
+    "LEGAL_NOTICE": "affiliate.legal_notice",
+    "BUNDLE_NOTICE": "affiliate.bundle_notice",
+    "NO_PAYMENT_NOTE": "affiliate.no_payment",
+}
+
+
+def key_for(name: str) -> str:
+    """i18n-Schlüssel zu einer Textkonstanten, z. B. ``DISCLOSURE_SHORT``.
+
+    Unbekannte Namen werden unverändert zurückgegeben, damit Aufrufer nicht
+    versehentlich einen leeren Schlüssel erhalten.
+    """
+    return _TEXT_KEYS.get(name, name)
+
 
 def disclosure_for(link_info: dict | None) -> str | None:
     """Passende Kennzeichnung für einen Link (oder None, wenn kein Affiliate-Link)."""

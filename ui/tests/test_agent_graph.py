@@ -80,7 +80,7 @@ def main() -> int:
             time.sleep(0.4)
         ws = websocket.create_connection(target["webSocketDebuggerUrl"], timeout=30)
         cdp(ws, 1, "Page.enable")
-        cdp(ws, 2, "Page.navigate", {"url": f"{BASE}/jobs/{job}"})
+        cdp(ws, 2, "Page.navigate", {"url": f"{BASE}/jobs/{job}?lang=de"})
         time.sleep(1.2)
 
         first = evaljs(ws, """JSON.stringify({

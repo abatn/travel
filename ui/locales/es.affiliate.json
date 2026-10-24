@@ -1,0 +1,18 @@
+{
+  "affiliate.disclosure_short": "Anuncio · enlace de afiliado",
+  "affiliate.disclosure_test": "Anuncio · identificador de prueba (sin programa de afiliados real)",
+  "affiliate.disclosure_long": "Este es un enlace de afiliado. Si reservas a través de él, recibimos una comisión del proveedor. El precio que pagas no cambia por ello. Nuestra recomendación se basa exclusivamente en el precio, nunca en la comisión.",
+  "affiliate.legal_notice": "Actuamos como intermediarios de servicios de viaje; no somos organizadores de viajes. El contrato de cada servicio se celebra exclusivamente con el proveedor correspondiente, donde también se realiza el pago. No aceptamos pagos ni transmitimos datos de reserva o de pago a otros proveedores. Las sumas mostradas en las comparaciones son valores comparativos y no una oferta de precio total. Traducción con fines informativos; la versión alemana es la única jurídicamente vinculante.",
+  "affiliate.bundle_notice": "La combinación es una comparación de precios, no una oferta de paquete. Cada servicio se selecciona y se paga por separado en el proveedor correspondiente (§ 651b del Código Civil alemán (BGB): no hay un proceso de reserva único ni un precio total).",
+  "affiliate.no_payment": "Esta interfaz no realiza ningún pago ni almacena datos de pago.",
+  "affiliate.reason.invalid_link": "enlace http(s) no válido",
+  "affiliate.reason.no_program": "ningún programa de afiliados para este proveedor (no es posible ninguna comisión)",
+  "affiliate.reason.test_disabled": "socio de prueba desactivado en funcionamiento normal",
+  "affiliate.reason.no_id": "El proveedor {network} es conocido, pero no hay ID configurada: no hay enlace de afiliado (ningún identificador inventado)",
+  "affiliate.reason.no_template": "El proveedor {network} no tiene plantilla de enlace (copiar del panel): no hay enlace de afiliado",
+  "affiliate.reason.already_tagged": "el enlace ya está etiquetado: no se etiqueta dos veces",
+  "affiliate.reason.not_verified": "no se pudo verificar el enlace",
+  "affiliate.reason.verify_failed": "falló la comprobación estructural o de accesibilidad",
+  "affiliate.reason.unknown": "motivo desconocido",
+  "pages.detail.score_parts": "Puntuación: {parts}"
+}

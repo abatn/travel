@@ -27,10 +27,12 @@ def load(lang: str) -> dict[str, str]:
     """
     code = lang if lang in SUPPORTED else DEFAULT
     merged: dict[str, str] = {}
-    for suffix in ("", ".pages", ".legal", ".seo", ".seo2", ".sources"):
-        path = LOCALES / f"{code}{suffix}.json"
-        if not path.is_file():
-            continue
+    # Alle Dateien der Sprache, z. B. de.json, de.legal.json, de.results.json.
+    # Reihenfolge: Basis zuerst, Zusatzdateien danach (überschreiben).
+    base = LOCALES / f"{code}.json"
+    files = [base] if base.is_file() else []
+    files += sorted(LOCALES.glob(f"{code}.*.json"))
+    for path in files:
         try:
             merged.update(json.loads(path.read_text(encoding="utf-8")))
         except (OSError, ValueError):

@@ -1,0 +1,22 @@
+{
+  "discovery.name": "Atestaciones de precios de Reise-Agent",
+  "seo.route.title": "{category} {origin} – {destination}: comparar precios",
+  "seo.route.description": "Precios actuales de {category} {origin} – {destination} de varias fuentes: tarifa más barata, precio final, escalas y cobertura de fuentes. Comparar ahora.",
+  "seo.alarms.title": "Alertas de precios – Reise-Agent",
+  "seo.alarms.description": "Crear alertas de precio para vuelos, hoteles, ferris y cruceros: vigilar presupuesto, mínimo y caída de precio.",
+  "seo.alarm.title": "Alerta: {name} – Reise-Agent",
+  "seo.alarm.description": "Vista detallada de una alerta de precio con historial y alertas activadas.",
+  "place.not_found": "{label}: no se encontró «{query}».",
+  "place.ambiguous": "{label}: «{query}» no es inequívoco. ¿Quisiste decir: {suggestions}?",
+  "place.unresolved": "No se puede resolver el lugar.",
+  "place.label.departure": "Salida",
+  "place.label.destination": "Destino",
+  "place.label.place": "Lugar",
+  "place.label.port_departure": "Puerto de salida",
+  "place.label.port_arrival": "Puerto de llegada",
+  "place.label.port_embarkation": "Puerto de embarque",
+  "pages.category.flights": "Vuelos",
+  "pages.category.hotels": "Hoteles",
+  "pages.category.ferries": "Ferris",
+  "pages.category.cruises": "Cruceros"
+}

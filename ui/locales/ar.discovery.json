@@ -1,0 +1,22 @@
+{
+  "discovery.name": "شهادات أسعار Reise-Agent",
+  "seo.route.title": "{category} {origin} – {destination}: قارن الأسعار",
+  "seo.route.description": "أسعار حالية لـ {category} {origin} – {destination} من عدة مصادر: أرخص تعرفة، السعر النهائي، التوقفات وتغطية المصادر. قارن الآن.",
+  "seo.alarms.title": "تنبيهات الأسعار – Reise-Agent",
+  "seo.alarms.description": "أنشئ تنبيه سعر للرحلات الجوية والفنادق والعبّارات والرحلات البحرية: راقب الميزانية وأدنى سعر وانخفاض السعر.",
+  "seo.alarm.title": "تنبيه: {name} – Reise-Agent",
+  "seo.alarm.description": "عرض تفصيلي لتنبيه سعر مع السجل والتنبيهات التي تم تفعيلها.",
+  "place.not_found": "{label}: لم يتم العثور على «{query}».",
+  "place.ambiguous": "{label}: «{query}» غير محدد. هل تقصد: {suggestions}؟",
+  "place.unresolved": "تعذّر تحديد المكان.",
+  "place.label.departure": "المغادرة",
+  "place.label.destination": "الوجهة",
+  "place.label.place": "المكان",
+  "place.label.port_departure": "ميناء المغادرة",
+  "place.label.port_arrival": "ميناء الوصول",
+  "place.label.port_embarkation": "ميناء الصعود",
+  "pages.category.flights": "الرحلات الجوية",
+  "pages.category.hotels": "الفنادق",
+  "pages.category.ferries": "العبّارات",
+  "pages.category.cruises": "الرحلات البحرية"
+}

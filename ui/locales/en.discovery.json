@@ -1,0 +1,22 @@
+{
+  "discovery.name": "Reise-Agent price attestations",
+  "seo.route.title": "{category} {origin} – {destination}: compare prices",
+  "seo.route.description": "Current prices for {category} {origin} – {destination} from multiple sources: cheapest fare, final price, stops and source coverage. Compare now.",
+  "seo.alarms.title": "Price alerts – Reise-Agent",
+  "seo.alarms.description": "Set price alerts for flights, hotels, ferries and cruises: watch budget, trough and price drops.",
+  "seo.alarm.title": "Alert: {name} – Reise-Agent",
+  "seo.alarm.description": "Detail view of a price alert with history and triggered alerts.",
+  "place.not_found": "{label} \"{query}\" not found.",
+  "place.ambiguous": "{label} \"{query}\" is ambiguous. Did you mean: {suggestions}?",
+  "place.unresolved": "Place could not be resolved.",
+  "place.label.departure": "Departure",
+  "place.label.destination": "Destination",
+  "place.label.place": "Place",
+  "place.label.port_departure": "Departure port",
+  "place.label.port_arrival": "Destination port",
+  "place.label.port_embarkation": "Embarkation port",
+  "pages.category.flights": "Flights",
+  "pages.category.hotels": "Hotels",
+  "pages.category.ferries": "Ferries",
+  "pages.category.cruises": "Cruises"
+}

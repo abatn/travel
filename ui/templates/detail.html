@@ -2,7 +2,7 @@
 {% block title %}{{ t('pages.detail.title') }}{% endblock %}
 {% block content %}
 <p><a href="/jobs/{{ job_id }}">{{ t('pages.detail.back') }}</a></p>
-<h1>{{ labels.get(category, category) }}: {{ item.name or item.provider or t('pages.common.offer') }}</h1>
+<h1>{{ t('cat.' ~ category) }}: {{ item.name or item.provider or t('pages.common.offer') }}</h1>
 
 <div class="card">
   <div class="grid two">
@@ -32,22 +32,26 @@
             {%- if link.verify_cached %} {{ t('pages.detail.link_cached') }}{% endif %}
             · {{ t('pages.detail.partner') }} {{ link.network }}
             {%- if link.cookie_days %} · {{ t('pages.detail.cookie_days', days=link.cookie_days) }}{% endif %}</p>
-          <p class="muted small">{{ affiliate.disclosure_long }}</p>
+          <p class="muted small">{{ t('affiliate.disclosure_long') }}</p>
         {% elif link.affiliate and not link.verified %}
           <p class="aff-disclosure">{{ t('pages.detail.ad_affiliate') }}</p>
           <a class="primary btn" href="{{ safe_url(link.url) }}"
              target="{{ link.attrs.target }}" rel="{{ link.attrs.rel }}">
             {{ t('pages.common.book_provider') }}</a>
           <p class="alert warn small">{{ t('pages.detail.link_unverified',
-            reason=link.verify_error or t('pages.common.unknown_reason')) | safe }}</p>
+            reason=t('affiliate.reason.' ~ (link.verify_error_code or 'unknown'),
+                     default=link.verify_error, network=link.network or link.partner or '')
+            or t('pages.common.unknown_reason')) | safe }}</p>
         {% else %}
           <a class="primary btn" href="{{ safe_url(link.url) }}" target="_blank" rel="noopener">
             {{ t('pages.common.to_provider') }}</a>
           {% if link.reason %}
-            <p class="muted small">{{ t('pages.detail.no_affiliate_reason', reason=link.reason) }}</p>
+            <p class="muted small">{{ t('pages.detail.no_affiliate_reason',
+              reason=t('affiliate.reason.' ~ (link.reason_code or 'unknown'),
+                       default=link.reason, network=link.network or link.partner or '')) }}</p>
           {% endif %}
         {% endif %}
-        <p class="muted small">{{ affiliate.no_payment_note }} {{ t('pages.detail.contract_note') }}</p>
+        <p class="muted small">{{ t('affiliate.no_payment') }} {{ t('pages.detail.contract_note') }}</p>
       {% elif item.booking_url and safe_url(item.booking_url) %}
         <a class="primary btn" href="{{ safe_url(item.booking_url) }}" target="_blank" rel="noopener">
           {{ t('pages.common.book_provider') }}</a>
@@ -68,7 +72,8 @@
     <tr><th>{{ t('pages.detail.th_fare') }}</th><td>{{ item.fare_type or t('pages.common.not_available') }}</td></tr>
     {% if item.score is not none %}
     <tr><th>{{ t('pages.detail.th_score') }}</th><td>{{ item.score }}
-      {% if item.score_parts %} <span class="muted small">{{ item.score_parts }}</span>{% endif %}</td></tr>
+      {% if item.score_parts %} <span class="muted small">{{ t('pages.detail.score_parts',
+        parts=item.score_parts.items() | map('join', '=') | join(' · ')) }}</span>{% endif %}</td></tr>
     {% endif %}
     {% if item.gate_failed %}
     <tr><th>{{ t('pages.detail.th_gate') }}</th><td class="warn">{{ item.gate_failed }}</td></tr>
@@ -139,7 +144,7 @@
 
 <div class="card legal">
   <h2>{{ t('pages.detail.legal_title') }}</h2>
-  <p>{{ affiliate.legal_notice }}</p>
+  <p>{{ t('affiliate.legal_notice') }}</p>
   <p class="muted small">{{ t('pages.detail.legal_note') }}</p>
 </div>
 {% endblock %}

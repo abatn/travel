@@ -32,6 +32,28 @@ sys.path.insert(0, os.path.join(ROOT, "providers"))
 sys.path.insert(0, os.path.join(ROOT, "bundling"))
 sys.path.insert(0, os.path.join(ROOT, "alerts"))
 
+try:  # Übersetzungen der Platzhalter-Fehler (deploy-sicher: ohne Locales Deutsch)
+    sys.path.insert(0, HERE)
+    import i18n_core
+except ModuleNotFoundError:  # pragma: no cover
+    class _I18nFallback:
+        DEFAULT = "de"
+
+        @staticmethod
+        def t(lang, key, default=None, **params):
+            return default if default is not None else key
+
+    i18n_core = _I18nFallback()
+
+_PLACE_LABEL_FALLBACK = {
+    "place.label.departure": "Abflug",
+    "place.label.destination": "Ziel",
+    "place.label.place": "Ort",
+    "place.label.port_departure": "Abfahrtshafen",
+    "place.label.port_arrival": "Zielhafen",
+    "place.label.port_embarkation": "Einschiffungshafen",
+}
+
 # ------------------------------------------------------------------ Affiliate
 def affiliate_info() -> dict:
     """Kurzinfo für die UI: welche Partner sind konfiguriert (ohne IDs)."""
@@ -222,19 +244,31 @@ def start_search(params: dict) -> Job:
 
 
 def _place_error(label_a: str, text_a: str, res_a: dict,
-                 label_b: str | None = None, text_b: str = "", res_b: dict | None = None) -> str:
-    """Klare Meldung mit Vorschlägen statt „0 Angebote“."""
+                 label_b: str | None = None, text_b: str = "", res_b: dict | None = None,
+                 lang: str = "de") -> str:
+    """Klare, übersetzte Meldung mit Vorschlägen statt „0 Angebote“."""
     parts = []
     for label, text, res in ((label_a, text_a, res_a), (label_b, text_b, res_b)):
         if not label or res is None or res.get("ok"):
             continue
         alt = ", ".join(f"{a['label']}" for a in (res.get("alternatives") or [])[:3])
-        hint = f" Meintest du: {alt}?" if alt else ""
-        parts.append(f"{label} „{text}“ nicht gefunden.{hint}")
-    return " ".join(parts) or "Ort nicht auflösbar."
+        label_text = i18n_core.t(
+            lang, label, default=_PLACE_LABEL_FALLBACK.get(label, label))
+        if alt:
+            parts.append(i18n_core.t(
+                lang, "place.ambiguous",
+                default=f"{label_text} „{text}“ ist nicht eindeutig. Meintest du: {alt}?",
+                label=label_text, query=text, suggestions=alt))
+        else:
+            parts.append(i18n_core.t(
+                lang, "place.not_found",
+                default=f"{label_text} „{text}“ nicht gefunden.",
+                label=label_text, query=text))
+    return " ".join(parts) or i18n_core.t(lang, "place.unresolved",
+                                          default="Ort nicht auflösbar.")
 
 
-def _resolved_params(category: str, p: dict) -> tuple[dict | None, dict]:
+def _resolved_params(category: str, p: dict, lang: str = "de") -> tuple[dict | None, dict]:
     """Orte je Kategorie auflösen.
 
     Rückgabe: (fehler_text | None, aufgelöste Parameter)
@@ -244,23 +278,27 @@ def _resolved_params(category: str, p: dict) -> tuple[dict | None, dict]:
         d = places.resolve(p.get("destination"), "flights")
         resolved = {"origin": o, "destination": d}
         if not o["ok"] or not d["ok"]:
-            return _place_error("Abflug", p.get("origin"), o,
-                                "Ziel", p.get("destination"), d), resolved
+            return _place_error("place.label.departure", p.get("origin"), o,
+                                "place.label.destination", p.get("destination"), d,
+                                lang=lang), resolved
         return None, {"origin": o["code"], "destination": d["code"], "_resolved": resolved}
     if category == "hotels":
         city = p.get("city") or p.get("destination")
         d = places.resolve(city, "hotels")
         resolved = {"destination": d}
         if not d["ok"]:
-            return _place_error("Ort", city, d), resolved
+            return _place_error("place.label.place", city, d, lang=lang), resolved
         return None, {"city": d["city"], "_resolved": resolved}
     if category == "ferries":
         o = places.resolve(p.get("ferry_origin") or p.get("origin"), "ferries")
         d = places.resolve(p.get("ferry_destination") or p.get("destination"), "ferries")
         resolved = {"origin": o, "destination": d}
         if not o["ok"] or not d["ok"]:
-            return _place_error("Abfahrtshafen", p.get("ferry_origin") or p.get("origin"), o,
-                                "Zielhafen", p.get("ferry_destination") or p.get("destination"), d), resolved
+            return _place_error("place.label.port_departure",
+                                p.get("ferry_origin") or p.get("origin"), o,
+                                "place.label.port_arrival",
+                                p.get("ferry_destination") or p.get("destination"), d,
+                                lang=lang), resolved
         return None, {"origin": o["name"], "destination": d["name"],
                       "_resolved": resolved}
     # cruises: Reedereien erwarten den 3-stelligen Hafen-Code
@@ -268,8 +306,8 @@ def _resolved_params(category: str, p: dict) -> tuple[dict | None, dict]:
     d = places.resolve(p.get("cruise_destination") or p.get("destination"), "cruises")
     resolved = {"origin": o, "destination": d}
     if not o["ok"]:
-        return _place_error("Einschiffungshafen",
-                            p.get("cruise_origin") or p.get("origin"), o), resolved
+        return _place_error("place.label.port_embarkation",
+                            p.get("cruise_origin") or p.get("origin"), o, lang=lang), resolved
     return None, {"origin": o["code"], "destination": d["code"] if d["ok"] else "",
                   "_resolved": resolved}
 
@@ -348,7 +386,7 @@ def _run_job(job: Job) -> None:
     threads = []
     for category in cats:
         def work(cat: str = category):
-            error, rp = _resolved_params(cat, p)
+            error, rp = _resolved_params(cat, p, lang=p.get("lang", "de"))
             with job.lock:
                 job.resolved[cat] = rp.get("_resolved", {})
             if error:

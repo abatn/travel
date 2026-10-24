@@ -1,0 +1,77 @@
+# Reise-Agent (Français) – Attestations de prix vérifiées
+
+> Comparateur de prix de voyage indépendant. Nous ne vendons pas de réservations,
+> mais des observations de prix signées, avec source et horodatage (x402).
+> Chaque réponse est vérifiable par machine ; la recommandation reste le prix le plus bas.
+
+## Ce que fait le service
+
+- Compare des vols, hôtels, ferries et croisières issus de plusieurs sources.
+- Délivre une **attestation signée Ed25519** : trajet, date, prix,
+  base de prix, source, heure d'observation, contrôle de plausibilité.
+- L'attestation est une **observation**, pas une garantie de réservation ni de prix.
+
+## Point d'accès payant
+
+`POST {{BASE_URL}}/api/attest`
+
+Prix : **{{PRICE}} USDC** par attestation (x402 v2, scheme `exact`).
+Réseau : `{{NETWORK}}`.
+Actif : `{{ASSET}}` (USDC).
+payTo : `{{PAY_TO}}`.
+
+### Déroulement
+
+1. `POST /api/attest` sans paiement → `402 Payment Required`
+   avec l'en-tête `PAYMENT-REQUIRED` (JSON : prix, réseau, actif, payTo).
+2. Signer le paiement avec un client x402 (EIP-3009) et répéter la requête avec
+   `PAYMENT-SIGNATURE`.
+3. `200 OK` + JSON signé + `PAYMENT-RESPONSE` (hash de transaction).
+
+### Corps de requête (exemple)
+
+```json
+{
+  "route": "BER-FCO",
+  "travel_date": "2026-11-05",
+  "price": "129.99",
+  "currency": "EUR",
+  "price_scope": "per_person",
+  "source": "googleflights-local",
+  "source_url": "https://www.google.com/travel/flights",
+  "passengers": 1
+}
+```
+
+### Points d'accès gratuits
+
+- `POST {{BASE_URL}}/api/attest/validate` – précontrôle sans paiement
+- `POST {{BASE_URL}}/api/attest/verify` – vérifier une signature
+- `GET  {{BASE_URL}}/api/attest/key` – clé publique Ed25519
+- `GET  {{BASE_URL}}/.well-known/agent-payments.json` – découverte
+- `GET  {{BASE_URL}}/.well-known/capabilities.json` – catalogue des capacités (ce qui est payant, ce qui est prévu)
+- `GET  {{BASE_URL}}/capabilities` – le même catalogue sous une URL courte
+- `GET  {{BASE_URL}}/llms.txt` – ce fichier
+
+## Découverte
+
+- Métadonnées de paiement/service : `/.well-known/agent-payments.json`
+- L'extension x402 Bazaar figure dans le document de découverte et dans la réponse 402.
+- Pas de clé API, pas de compte, pas d'onboarding.
+
+## Limites
+
+- Aucune réservation, aucun paiement de voyage, aucune organisation de voyage.
+- Aucune garantie de prix ; les prix peuvent changer après l'observation.
+- Aucune évaluation ou disponibilité inventée.
+- Limite de débit et remboursement : voir `/.well-known/agent-payments.json`.
+
+## Contact
+
+- Exploitant : voir `{{BASE_URL}}/impressum` (une fois configuré).
+- Confidentialité : voir `{{BASE_URL}}/datenschutz`.
+- Contact technique : `{{CONTACT_EMAIL}}`
+
+---
+
+*Traduction fournie à titre informatif. Seule la version allemande fait foi juridiquement.*

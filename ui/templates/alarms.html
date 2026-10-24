@@ -12,7 +12,7 @@
     </label>
     <label>{{ t('pages.common.category') }}
       <select name="category">
-        {% for c in categories %}<option value="{{ c }}">{{ labels[c] }}</option>{% endfor %}
+        {% for c in categories %}<option value="{{ c }}">{{ t('pages.category.' ~ c) }}</option>{% endfor %}
       </select>
     </label>
     <label>{{ t('pages.common.origin') }}<input name="origin" placeholder="BER"></label>
@@ -62,7 +62,7 @@
       <tr>
         <td><a href="/alarms/{{ a.id }}">{{ a.name }}</a></td>
         <td>{{ a.origin }} → {{ a.destination }}</td>
-        <td>{{ labels.get(a.category, a.category) }}</td>
+        <td>{{ t('pages.category.' ~ a.category) }}</td>
         <td>{{ a.budget | money(a.currency) }} / {{ t('pages.alarms.per_person_short') if a.budget_scope == 'per_person' else t('pages.alarms.trip_short') }}</td>
         <td>{{ st.get('history_size', 0) }}</td>
         <td>{{ (st.get('last_alert') or {}).get('ts', '—') }}</td>

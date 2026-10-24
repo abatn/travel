@@ -26,15 +26,22 @@ from .capabilities import capabilities_document
 from .config import Settings, load_settings
 from .discovery import SAMPLE_INPUT, SAMPLE_OUTPUT, atomic_amount, bazaar_extension, contact_email
 try:
-    from ui.i18n_core import SUPPORTED as I18N_SUPPORTED, t as i18n_t
+    from ui.i18n_core import (SUPPORTED as I18N_SUPPORTED, t as i18n_t,
+                              resolve as i18n_resolve)
 except ModuleNotFoundError:  # Fallback: keine Übersetzungen, kein Absturz
     try:
         from i18n import SUPPORTED as I18N_SUPPORTED, t as i18n_t
+
+        def i18n_resolve(request):
+            return "de"
     except ModuleNotFoundError:
         I18N_SUPPORTED = ("de",)
 
         def i18n_t(lang, key, default=None, **params):
             return default if default is not None else key
+
+        def i18n_resolve(request):
+            return "de"
 from .models import Observation
 from .plausibility import check_observation
 from .signing import IssuerKey, load_or_create_key, verify_document
@@ -171,9 +178,14 @@ def _build_document(obs: Observation, plausibility: dict[str, Any],
 
 
 # --------------------------------------------------------------------------- public
-def discovery_document(base: str) -> dict[str, Any]:
-    """Erweitertes Discovery-Dokument inkl. x402-Bazaar-Feldern."""
+def discovery_document(base: str, lang: str = "de") -> dict[str, Any]:
+    """Erweitertes Discovery-Dokument inkl. x402-Bazaar-Feldern.
+
+    ``name``/``description`` folgen der angefragten Sprache (Fallback Deutsch);
+    die vollständige Übersicht bleibt in ``description_i18n``.
+    """
     s = settings()
+    code = lang if lang in I18N_SUPPORTED else "de"
     amount, currency = _price_parts(s.price)
     atomic = atomic_amount(amount)
     email = contact_email()
@@ -185,9 +197,10 @@ def discovery_document(base: str) -> dict[str, Any]:
         "type": "http",
         "x402Version": 2,
         "method": "POST",
-        "description": (
-            "Signierte Preis-Attestierung: Route, Datum, Preis, Quelle, Zeitstempel "
-            "und Plausibilitätsprüfung (Ed25519)."
+        "description": i18n_t(
+            code, "discovery.attest_description",
+            default=("Signierte Preis-Attestierung: Route, Datum, Preis, Quelle, "
+                     "Zeitstempel und Plausibilitätsprüfung (Ed25519)."),
         ),
         "mimeType": "application/json",
         "accepts": [{
@@ -204,10 +217,12 @@ def discovery_document(base: str) -> dict[str, Any]:
 
     return {
         "version": "1",
-        "name": "Reise-Agent Preis-Attestierungen",
-        "description": (
-            "Signierte, mit Quelle und Zeitstempel versehene Preisbeobachtungen "
-            "für Reisestrecken. Für autonome Agenten gedacht; Zahlung per x402."
+        "name": i18n_t(code, "discovery.name",
+                       default="Reise-Agent Preis-Attestierungen"),
+        "description": i18n_t(
+            code, "discovery.description",
+            default=("Signierte, mit Quelle und Zeitstempel versehene Preisbeobachtungen "
+                     "für Reisestrecken. Für autonome Agenten gedacht; Zahlung per x402."),
         ),
         "provider": {
             "name": "Reise-Agent",
@@ -283,7 +298,10 @@ def discovery_document(base: str) -> dict[str, Any]:
 
 @public_router.get("/.well-known/agent-payments.json")
 async def agent_payments(request: Request) -> JSONResponse:
-    return JSONResponse(discovery_document(_base_url(request)),
+    lang = getattr(request.state, "lang", None)
+    if lang not in I18N_SUPPORTED:
+        lang = i18n_resolve(request)
+    return JSONResponse(discovery_document(_base_url(request), lang),
                         headers={"Cache-Control": "public, max-age=60"})
 
 

@@ -1,0 +1,77 @@
+# Reise-Agent (English) – Verified price attestations
+
+> Independent travel price comparison. We do not sell bookings; we sell
+> signed price observations with source and timestamp (x402).
+> Every response is machine-verifiable; the recommendation remains the lowest price.
+
+## What the service does
+
+- Compares flights, hotels, ferries and cruises from multiple sources.
+- Issues an **Ed25519-signed attestation**: route, date, price,
+  price basis, source, observation time, plausibility check.
+- The attestation is an **observation**, not a booking or price guarantee.
+
+## Paid endpoint
+
+`POST {{BASE_URL}}/api/attest`
+
+Price: **{{PRICE}} USDC** per attestation (x402 v2, scheme `exact`).
+Network: `{{NETWORK}}`.
+Asset: `{{ASSET}}` (USDC).
+payTo: `{{PAY_TO}}`.
+
+### Flow
+
+1. `POST /api/attest` without payment → `402 Payment Required`
+   with a `PAYMENT-REQUIRED` header (JSON: price, network, asset, payTo).
+2. Sign the payment with an x402 client (EIP-3009) and repeat the request with
+   `PAYMENT-SIGNATURE`.
+3. `200 OK` + signed JSON + `PAYMENT-RESPONSE` (transaction hash).
+
+### Request body (example)
+
+```json
+{
+  "route": "BER-FCO",
+  "travel_date": "2026-11-05",
+  "price": "129.99",
+  "currency": "EUR",
+  "price_scope": "per_person",
+  "source": "googleflights-local",
+  "source_url": "https://www.google.com/travel/flights",
+  "passengers": 1
+}
+```
+
+### Free endpoints
+
+- `POST {{BASE_URL}}/api/attest/validate` – pre-check without payment
+- `POST {{BASE_URL}}/api/attest/verify` – verify a signature
+- `GET  {{BASE_URL}}/api/attest/key` – public Ed25519 key
+- `GET  {{BASE_URL}}/.well-known/agent-payments.json` – discovery
+- `GET  {{BASE_URL}}/.well-known/capabilities.json` – capability catalogue (what is payable, what is planned)
+- `GET  {{BASE_URL}}/capabilities` – the same catalogue under a short URL
+- `GET  {{BASE_URL}}/llms.txt` – this file
+
+## Discovery
+
+- Payment/service metadata: `/.well-known/agent-payments.json`
+- The x402 Bazaar extension is included in the discovery document and in the 402 response.
+- No API key, no account, no onboarding.
+
+## Limits
+
+- No booking, no payment for travel, no tour operation.
+- No price guarantee; prices may change after the observation.
+- No invented ratings or availability.
+- Rate limit and refunds: see `/.well-known/agent-payments.json`.
+
+## Contact
+
+- Operator: see `{{BASE_URL}}/impressum` (once configured).
+- Privacy: see `{{BASE_URL}}/datenschutz`.
+- Technical contact: `{{CONTACT_EMAIL}}`
+
+---
+
+*Translation for information purposes only. The German version is legally binding.*

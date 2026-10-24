@@ -129,5 +129,6 @@
   "results.final_price": "Endpreis",
   "results.provider": "Anbieter",
   "results.meta.title": "Suchergebnisse – Reise-Agent",
-  "results.meta.description": "Live-Preise für deine Suche: Flüge, Hotels, Fähren und Kreuzfahrten im Vergleich."
+  "results.meta.description": "Live-Preise für deine Suche: Flüge, Hotels, Fähren und Kreuzfahrten im Vergleich.",
+  "results.new_prices": "Neue Preise für diese Strecke"
 }

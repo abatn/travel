@@ -3,7 +3,7 @@
 {% block content %}
 <p><a href="/alarms">{{ t('pages.alarm.back_all') }}</a></p>
 <h1>{{ alarm.name }}</h1>
-<p class="muted">{{ labels.get(alarm.category, alarm.category) }} · {{ alarm.origin }} → {{ alarm.destination }}
+<p class="muted">{{ t('pages.category.' ~ alarm.category) }} · {{ alarm.origin }} → {{ alarm.destination }}
   · {{ alarm.depart_date }}{% if alarm.return_date %} → {{ alarm.return_date }}{% endif %}
   · {{ t('pages.alarm.adults_count', count=alarm.adults) }} · {{ t('pages.alarm.created', date=alarm.created_at) }}</p>
 

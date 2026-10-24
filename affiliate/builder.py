@@ -122,7 +122,8 @@ def build(url: str, cfg: dict | None = None,
         affiliate     – true, wenn ein Affiliate-Link entstanden ist
         partner       – Partnername oder None
         network       – Netzwerkname
-        reason        – Begründung, wenn nicht getaggt
+        reason        – Begründung, wenn nicht getaggt (deutscher Text)
+        reason_code   – maschinenlesbarer Grund (i18n-Schlüssel)
         structure_ok  – Strukturprüfung bestanden
         disclosure    – Kennzeichnungstext für die UI
         commission    – Provisionsangabe aus der Konfiguration (nur Anzeige)
@@ -130,11 +131,13 @@ def build(url: str, cfg: dict | None = None,
     """
     cfg = cfg or load_config()
     base = {"url": url, "affiliate": False, "partner": None, "network": None,
-            "reason": None, "structure_ok": None, "disclosure": None,
-            "commission": None, "cookie_days": None, "test_id": False}
+            "reason": None, "reason_code": None, "structure_ok": None,
+            "disclosure": None, "commission": None, "cookie_days": None,
+            "test_id": False}
 
     if not url or not re.match(r"^https?://", str(url), re.I):
         base["reason"] = "kein gueltiger http(s)-Link"
+        base["reason_code"] = "invalid_link"
         base["structure_ok"] = False
         return base
 
@@ -144,11 +147,13 @@ def build(url: str, cfg: dict | None = None,
         partners["demo"] = cfg["demo"]
     if key is None:
         base["reason"] = "kein Partnerprogramm fuer diesen Anbieter (keine Provision moeglich)"
+        base["reason_code"] = "no_program"
         return base
 
     p = partners.get(key) or {}
     if key == "demo" and not allow_demo:
         base["reason"] = "Testpartner im Normalbetrieb deaktiviert"
+        base["reason_code"] = "test_disabled"
         return base
 
     pid = str(p.get("id") or "").strip()
@@ -158,18 +163,21 @@ def build(url: str, cfg: dict | None = None,
         base["network"] = p.get("network")
         base["reason"] = (f"Partner {p.get('network', key)} bekannt, aber keine ID "
                           f"konfiguriert - kein Affiliate-Link (keine erfundene Kennung)")
+        base["reason_code"] = "no_id"
         return base
     if not template:
         base["partner"] = key
         base["network"] = p.get("network")
         base["reason"] = (f"Partner {p.get('network', key)} hat kein Link-Template "
                           f"(aus dem Dashboard kopieren) - kein Affiliate-Link")
+        base["reason_code"] = "no_template"
         return base
 
     if is_tagged(url, cfg):
         base["partner"] = key
         base["network"] = p.get("network")
         base["reason"] = "Link ist bereits getaggt - nicht doppelt taggen"
+        base["reason_code"] = "already_tagged"
         return base
 
     built = _render(template, {"id": pid, "campaign": p.get("campaign") or "",
@@ -183,10 +191,13 @@ def build(url: str, cfg: dict | None = None,
         base["url"] = url
         base["affiliate"] = False
         base["reason"] = "Strukturpruefung fehlgeschlagen - Original-Link bleibt"
+        base["reason_code"] = "verify_failed"
     elif key == "demo":
         base["disclosure"] = "Anzeige · Testkennung (kein echtes Partnerprogramm)"
+        base["reason_code"] = "ok"
     else:
         base["disclosure"] = "Anzeige · Affiliate-Link (Provision moeglich)"
+        base["reason_code"] = "ok"
     return base
 
 

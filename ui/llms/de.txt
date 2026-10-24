@@ -1,0 +1,73 @@
+# Reise-Agent – Verifizierte Preis-Attestierungen
+
+> Unabhängiger Reise-Preisvergleich. Wir verkaufen keine Buchungen, sondern
+> signierte, mit Quelle und Zeitstempel versehene Preisbeobachtungen (x402).
+> Jede Antwort ist maschinenprüfbar; die Empfehlung bleibt der günstigste Preis.
+
+## Was der Dienst macht
+
+- Vergleicht Flüge, Hotels, Fähren und Kreuzfahrten aus mehreren Quellen.
+- Gibt eine **Ed25519-signierte Attestierung** aus: Route, Datum, Preis,
+  Preisbasis, Quelle, Beobachtungszeit, Plausibilitätsprüfung.
+- Die Attestierung ist eine **Beobachtung**, keine Buchungs- oder Preisgarantie.
+
+## Bezahlter Endpunkt
+
+`POST {{BASE_URL}}/api/attest`
+
+Preis: **{{PRICE}} USDC** pro Attestierung (x402 v2, scheme `exact`).
+Netz: `{{NETWORK}}`.
+Asset: `{{ASSET}}` (USDC).
+payTo: `{{PAY_TO}}`.
+
+### Ablauf
+
+1. `POST /api/attest` ohne Bezahlung → `402 Payment Required`
+   mit `PAYMENT-REQUIRED`-Header (JSON: Preis, Netz, Asset, payTo).
+2. Zahlung mit einem x402-Client signieren (EIP-3009) und Request mit
+   `PAYMENT-SIGNATURE` wiederholen.
+3. `200 OK` + signiertes JSON + `PAYMENT-RESPONSE` (Transaktionshash).
+
+### Request-Body (Beispiel)
+
+```json
+{
+  "route": "BER-FCO",
+  "travel_date": "2026-11-05",
+  "price": "129.99",
+  "currency": "EUR",
+  "price_scope": "per_person",
+  "source": "googleflights-local",
+  "source_url": "https://www.google.com/travel/flights",
+  "passengers": 1
+}
+```
+
+### Kostenlose Endpunkte
+
+- `POST {{BASE_URL}}/api/attest/validate` – Vorprüfung ohne Zahlung
+- `POST {{BASE_URL}}/api/attest/verify` – Signatur prüfen
+- `GET  {{BASE_URL}}/api/attest/key` – öffentlicher Ed25519-Schlüssel
+- `GET  {{BASE_URL}}/.well-known/agent-payments.json` – Discovery
+- `GET  {{BASE_URL}}/.well-known/capabilities.json` – Capability-Katalog (was ist bezahlbar, was geplant)
+- `GET  {{BASE_URL}}/capabilities` – derselbe Katalog unter kurzer URL
+- `GET  {{BASE_URL}}/llms.txt` – diese Datei
+
+## Discovery
+
+- Zahlungs-/Service-Metadaten: `/.well-known/agent-payments.json`
+- x402-Bazaar-Erweiterung ist in der Discovery und im 402-Response enthalten.
+- Kein API-Key, kein Konto, kein Onboarding.
+
+## Grenzen
+
+- Keine Buchung, keine Zahlung für Reisen, keine Reiseveranstaltung.
+- Keine Preisgarantie; Preise können sich nach der Beobachtung ändern.
+- Keine erfundenen Bewertungen oder Verfügbarkeiten.
+- Ratenlimit und Erstattung: siehe `/.well-known/agent-payments.json`.
+
+## Kontakt
+
+- Betreiber: siehe `{{BASE_URL}}/impressum` (sobald konfiguriert).
+- Datenschutz: siehe `{{BASE_URL}}/datenschutz`.
+- Technischer Kontakt: `{{CONTACT_EMAIL}}`

@@ -1,0 +1,18 @@
+{
+  "affiliate.disclosure_short": "Anzeige · Affiliate-Link",
+  "affiliate.disclosure_test": "Anzeige · Testkennung (kein echtes Partnerprogramm)",
+  "affiliate.disclosure_long": "Dieser Link ist ein Affiliate-Link. Wenn du darüber buchst, erhalten wir vom Anbieter eine Provision. Für dich ändert sich der Preis dadurch nicht. Die Empfehlung richtet sich ausschließlich nach dem Preis – nicht nach der Provision.",
+  "affiliate.legal_notice": "Wir vermitteln Reiseleistungen, wir sind nicht Reiseveranstalter. Der Vertrag über jede Leistung kommt ausschließlich mit dem jeweiligen Anbieter zustande; dort wird auch bezahlt. Wir nehmen keine Zahlungen entgegen und geben keine Buchungs- oder Zahlungsdaten an weitere Anbieter weiter. Die Summen im Vergleich sind ein Vergleichswert und kein Gesamtpreis-Angebot.",
+  "affiliate.bundle_notice": "Die Bündelung ist ein Preisvergleich, kein Paketangebot. Jede Leistung wird beim jeweiligen Anbieter separat ausgewählt und bezahlt (§ 651b BGB: kein einheitlicher Buchungsvorgang, kein Gesamtpreis).",
+  "affiliate.no_payment": "Diese Oberfläche nimmt keine Zahlung vor und speichert keine Zahlungsdaten.",
+  "affiliate.reason.invalid_link": "kein gueltiger http(s)-Link",
+  "affiliate.reason.no_program": "kein Partnerprogramm fuer diesen Anbieter (keine Provision moeglich)",
+  "affiliate.reason.test_disabled": "Testpartner im Normalbetrieb deaktiviert",
+  "affiliate.reason.no_id": "Partner {network} bekannt, aber keine ID konfiguriert - kein Affiliate-Link (keine erfundene Kennung)",
+  "affiliate.reason.no_template": "Partner {network} hat kein Link-Template (aus dem Dashboard kopieren) - kein Affiliate-Link",
+  "affiliate.reason.already_tagged": "Link ist bereits getaggt - nicht doppelt taggen",
+  "affiliate.reason.not_verified": "Link konnte nicht verifiziert werden",
+  "affiliate.reason.verify_failed": "Strukturpruefung oder Erreichbarkeitspruefung fehlgeschlagen",
+  "affiliate.reason.unknown": "unbekannter Grund",
+  "pages.detail.score_parts": "Bewertung: {parts}"
+}

@@ -294,7 +294,10 @@ def _landing(request: Request, slug: str):
         "action_label": f"{i18n_core.t(lang, 'search.submit')}: {page['h1']}",
         "default_depart": (date.today() + timedelta(days=7)).isoformat(),
         "default_return": (date.today() + timedelta(days=9)).isoformat(),
-        "other_categories": [(s, c) for s, c in seo_pages.CATEGORIES.items() if s != slug],
+        "other_categories": [(s, {**c,
+                                  "h1": i18n_core.t(lang, f"seo.{s}.h1"),
+                                  "description": i18n_core.t(lang, f"seo.{s}.description")})
+                             for s, c in seo_pages.CATEGORIES.items() if s != slug],
         "affiliate": service.affiliate_info(),
     }, meta, blocks)
 
@@ -334,9 +337,25 @@ def _route_view(request: Request, slug: str, route: str):
         return HTMLResponse("Für diese Strecke liegen noch keine Preise vor – "
                             "starte eine Suche auf der Kategorieseite.", status_code=404)
     base = _base(request)
+    lang = getattr(request.state, "lang", i18n_core.DEFAULT)
     origin_label = data.get("origin_name") or data.get("origin")
     destination_label = data.get("destination_name") or data.get("destination")
-    meta = seo_meta.for_route(base, slug, route.lower(), origin_label, destination_label)
+    o_short = seo_meta.short_place(origin_label, route.split("-")[0])
+    d_short = seo_meta.short_place(destination_label, route.split("-")[-1])
+    category_label = i18n_core.t(lang, f"pages.category.{page['key']}",
+                                 default=page["h1"])
+    fallback_title = f"{category_label} {o_short} – {d_short}: Preise vergleichen"
+    fallback_desc = (f"Aktuelle Preise für {category_label} {o_short} – {d_short} aus mehreren "
+                     f"Quellen: günstigster Tarif, Endpreis, Stopps und Quellenlage. "
+                     f"Jetzt vergleichen.")
+    meta = seo_meta.for_route(
+        base, slug, route.lower(), origin_label, destination_label,
+        title=i18n_core.t(lang, "seo.route.title", default=fallback_title,
+                          category=category_label,
+                          origin=o_short, destination=d_short),
+        description=i18n_core.t(lang, "seo.route.description", default=fallback_desc,
+                                category=category_label,
+                                origin=o_short, destination=d_short))
     route_age = routes_cache.age_hours(data)
     if route_age is None or route_age > seo_sitemap.STALE_ROUTE_HOURS:
         meta["robots"] = "noindex,follow"      # veraltete Preise nicht indexieren
@@ -362,13 +381,16 @@ def _route_view(request: Request, slug: str, route: str):
         "tz_offset": tz_offset, "stale": stale, "route": True, "route_label": label,
         "preset": {"origin": data.get("origin"), "destination": data.get("destination"),
                    "categories": [page["key"]]},
-        "action_label": f"Neue Preise für diese Strecke",
+        "action_label": i18n_core.t(lang, "results.new_prices"),
         "default_depart": (date.today() + timedelta(days=7)).isoformat(),
         "default_return": (date.today() + timedelta(days=9)).isoformat(),
-        "other_categories": [(s, c) for s, c in seo_pages.CATEGORIES.items() if s != slug],
+        "other_categories": [(s, {**c,
+                                  "h1": i18n_core.t(lang, f"seo.{s}.h1"),
+                                  "description": i18n_core.t(lang, f"seo.{s}.description")})
+                             for s, c in seo_pages.CATEGORIES.items() if s != slug],
         "affiliate": service.affiliate_info(),
     }, meta, [
-        seo_jsonld.breadcrumb(base, [("Start", "/"), (page["h1"], f"/{slug}"),
+        seo_jsonld.breadcrumb(base, [(i18n_core.t(lang, "nav.start"), "/"), (page["h1"], f"/{slug}"),
                                      (label, f"/{slug}/{route.lower()}")]),
         seo_jsonld.offer_list(base, f"/{slug}/{route.lower()}", price_offers),
         seo_jsonld.aggregate_offer(base, f"/{slug}/{route.lower()}", price_offers),
@@ -457,12 +479,23 @@ def robots_txt(request: Request):
 
 @app.get("/llms.txt", response_class=PlainTextResponse)
 def llms_txt(request: Request):
-    """Maschinenlesbare Kurzbeschreibung für Agenten (llms.txt)."""
-    path = os.path.join(ROOT, "llms.txt")
-    try:
-        with open(path, encoding="utf-8") as fh:
-            text = fh.read()
-    except FileNotFoundError:
+    """Maschinenlesbare Kurzbeschreibung für Agenten (llms.txt), je Sprache.
+
+    Quelle: ``ui/llms/<lang>.txt``; Fallback Deutsch, dann Repo-``llms.txt``.
+    """
+    lang = getattr(request.state, "lang", i18n_core.DEFAULT)
+    candidates = (os.path.join(HERE, "llms", f"{lang}.txt"),
+                  os.path.join(HERE, "llms", "de.txt"),
+                  os.path.join(ROOT, "llms.txt"))
+    text = None
+    for path in candidates:
+        try:
+            with open(path, encoding="utf-8") as fh:
+                text = fh.read()
+            break
+        except FileNotFoundError:
+            continue
+    if text is None:
         return PlainTextResponse("llms.txt fehlt.\n", status_code=404)
     text = text.replace("{{BASE_URL}}", _base(request))
     try:
@@ -477,15 +510,7 @@ def llms_txt(request: Request):
     except Exception:  # noqa: BLE001
         pass
     contact = str(((legal_config.load().get("betreiber") or {}).get("email")) or "").strip()
-    text = text.replace("{{CONTACT_EMAIL}}", contact or "siehe /impressum")
-    lang = getattr(request.state, "lang", i18n_core.DEFAULT)
-    if lang != "de":
-        intro = (
-            f"# Reise-Agent ({i18n_core.t(lang, 'lang.name.' + lang)})\n\n"
-            f"> {i18n_core.t(lang, 'discovery.description')}\n\n"
-            f"> {i18n_core.t(lang, 'legal.notice')}\n\n---\n\n"
-        )
-        text = intro + text
+    text = text.replace("{{CONTACT_EMAIL}}", contact or f"{_base(request)}/impressum")
     return PlainTextResponse(text, media_type="text/plain; charset=utf-8",
                              headers={"Cache-Control": "public, max-age=300"})
 
@@ -511,6 +536,7 @@ async def api_search(request: Request):
         "cruise_origin": (form.get("cruise_origin") or "").strip(),
         "cruise_destination": (form.get("cruise_destination") or "").strip(),
         "timeout_seconds": float(form.get("timeout_seconds") or 0) or None,
+        "lang": getattr(request.state, "lang", i18n_core.DEFAULT),
     }
     if not params["categories"]:
         params["categories"] = ["flights"]
@@ -555,8 +581,9 @@ def job_page(request: Request, job_id: str):
                               "provider": it.get("provider"),
                               "route": f"{snap['params'].get('origin')} – "
                                        f"{snap['params'].get('destination')}",
-                              "category": service.CATEGORY_LABELS.get(cat, cat)})
-    blocks = [seo_jsonld.breadcrumb(base, [("Start", "/"), ("Suchergebnisse", f"/jobs/{job_id}")])]
+                              "category": i18n_core.t(lang, f"cat.{cat}")})
+    blocks = [seo_jsonld.breadcrumb(base, [(i18n_core.t(lang, "nav.start"), "/"),
+                                           (i18n_core.t(lang, "results.title"), f"/jobs/{job_id}")])]
     if offers_ld:
         blocks += [seo_jsonld.offer_list(base, f"/jobs/{job_id}", offers_ld),
                    seo_jsonld.aggregate_offer(base, f"/jobs/{job_id}", offers_ld)]
@@ -585,14 +612,17 @@ def detail_page(request: Request, job_id: str, category: str, index: int):
     plaus = data.get("price_plausibility") or {}
     link = service.decorate_link(item.get("booking_url"))
     base = _base(request)
-    meta = seo_meta.for_job(base, job_id)
+    lang = getattr(request.state, "lang", i18n_core.DEFAULT)
+    meta = seo_meta.for_job(base, job_id,
+                            title=i18n_core.t(lang, "results.meta.title"),
+                            description=i18n_core.t(lang, "results.meta.description"))
     offer_ld = seo_jsonld.offer_list(base, f"/jobs/{job_id}", [{
         "name": item.get("provider") or item.get("name"),
         "price": item.get("all_in") if item.get("all_in") is not None else item.get("price"),
         "currency": item.get("currency"), "provider": item.get("provider"),
         "url": (link or {}).get("url"),
         "route": f"{item.get('name') or ''}".strip() or "Angebot",
-        "category": service.CATEGORY_LABELS.get(category, category)}])
+        "category": i18n_core.t(lang, f"cat.{category}")}])
     return _render(request, "detail.html", {
         "item": item, "category": category, "index": index,
         "provider_status": providers.get(item.get("source")),
@@ -607,13 +637,18 @@ def alarms_page(request: Request):
     alarms = service.list_alarms()
     states = {a["id"]: service.alarm_state(a) for a in alarms}
     base = _base(request)
-    meta = seo_meta.build("Preisalarme – Reise-Agent",
-                          "Preisalarm für Flüge, Hotels, Fähren und Kreuzfahrten einrichten: "
-                          "Budget, Tiefpunkt und Preissturz überwachen.",
-                          "/alarms", base_url=base, robots="noindex,nofollow")
+    lang = getattr(request.state, "lang", i18n_core.DEFAULT)
+    labels = {c: i18n_core.t(lang, f"pages.category.{c}", default=v)
+              for c, v in service.CATEGORY_LABELS.items()}
+    meta = seo_meta.build(
+        i18n_core.t(lang, "seo.alarms.title", default="Preisalarme – Reise-Agent"),
+        i18n_core.t(lang, "seo.alarms.description",
+                    default=("Preisalarm für Flüge, Hotels, Fähren und Kreuzfahrten "
+                             "einrichten: Budget, Tiefpunkt und Preissturz überwachen.")),
+        "/alarms", base_url=base, robots="noindex,nofollow")
     return _render(request, "alarms.html", {
         "alarms": alarms, "states": states,
-        "categories": service.CATEGORIES, "labels": service.CATEGORY_LABELS}, meta)
+        "categories": service.CATEGORIES, "labels": labels}, meta)
 
 
 @app.post("/alarms")
@@ -650,13 +685,20 @@ def alarm_page(request: Request, alarm_id: str):
     alarm = next((a for a in alarms if a["id"] == alarm_id), None)
     if not alarm:
         return HTMLResponse("Alarm nicht gefunden.", status_code=404)
-    meta = seo_meta.build(f"Alarm: {alarm.get('name')} – Reise-Agent",
-                          "Detailansicht eines Preisalarms mit Verlauf und ausgelösten Alarmen.",
-                          f"/alarms/{alarm_id}", base_url=_base(request),
-                          robots="noindex,nofollow")
+    lang = getattr(request.state, "lang", i18n_core.DEFAULT)
+    labels = {c: i18n_core.t(lang, f"pages.category.{c}", default=v)
+              for c, v in service.CATEGORY_LABELS.items()}
+    meta = seo_meta.build(
+        i18n_core.t(lang, "seo.alarm.title", default="Alarm: {name} – Reise-Agent",
+                    name=alarm.get("name")),
+        i18n_core.t(lang, "seo.alarm.description",
+                    default=("Detailansicht eines Preisalarms mit Verlauf und "
+                             "ausgelösten Alarmen.")),
+        f"/alarms/{alarm_id}", base_url=_base(request),
+        robots="noindex,nofollow")
     return _render(request, "alarm.html", {
         "alarm": alarm, "state": service.alarm_state(alarm),
-        "labels": service.CATEGORY_LABELS}, meta)
+        "labels": labels}, meta)
 
 
 @app.post("/alarms/{alarm_id}/run")

@@ -1,0 +1,18 @@
+{
+  "affiliate.disclosure_short": "Publicité · lien d'affiliation",
+  "affiliate.disclosure_test": "Publicité · identifiant de test (aucun programme d'affiliation réel)",
+  "affiliate.disclosure_long": "Ce lien est un lien d'affiliation. Si vous réservez via ce lien, nous recevons une commission du fournisseur. Le prix que vous payez n'en est pas modifié. Notre recommandation repose exclusivement sur le prix – jamais sur la commission.",
+  "affiliate.legal_notice": "Nous agissons comme intermédiaire pour des prestations de voyage et ne sommes pas un organisateur de voyages. Le contrat relatif à chaque prestation est conclu exclusivement avec le fournisseur concerné, auprès duquel le paiement est également effectué. Nous n'acceptons aucun paiement et ne transmettons aucune donnée de réservation ou de paiement à d'autres fournisseurs. Les totaux indiqués dans les comparaisons sont des valeurs comparatives et non une offre à prix total. Traduction fournie à titre informatif ; seule la version allemande fait foi juridiquement.",
+  "affiliate.bundle_notice": "Le regroupement est une comparaison de prix, non une offre de forfait. Chaque prestation est sélectionnée et payée séparément auprès du fournisseur concerné (§ 651b du Code civil allemand (BGB) : aucune réservation unique, aucun prix total).",
+  "affiliate.no_payment": "Cette interface n'effectue aucun paiement et ne conserve aucune donnée de paiement.",
+  "affiliate.reason.invalid_link": "lien http(s) non valide",
+  "affiliate.reason.no_program": "aucun programme d'affiliation pour ce fournisseur (aucune commission possible)",
+  "affiliate.reason.test_disabled": "partenaire de test désactivé en fonctionnement normal",
+  "affiliate.reason.no_id": "Le partenaire {network} est connu, mais aucun identifiant n'est configuré – pas de lien d'affiliation (aucun identifiant inventé)",
+  "affiliate.reason.no_template": "Le partenaire {network} n'a pas de modèle de lien (à copier depuis le tableau de bord) – pas de lien d'affiliation",
+  "affiliate.reason.already_tagged": "le lien est déjà tagué – pas de double tagage",
+  "affiliate.reason.not_verified": "le lien n'a pas pu être vérifié",
+  "affiliate.reason.verify_failed": "la vérification structurelle ou d'accessibilité a échoué",
+  "affiliate.reason.unknown": "raison inconnue",
+  "pages.detail.score_parts": "Score : {parts}"
+}

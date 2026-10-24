@@ -58,7 +58,11 @@ def _host_ok(host: str, allowed: list[str]) -> bool:
 
 
 def check(url: str, partner: dict | None = None, cfg: dict | None = None) -> dict:
-    """Erreichbarkeit prüfen (gecacht). Rückgabe: ok, status, final_url, error, cached."""
+    """Erreichbarkeit prüfen (gecacht).
+
+    Rückgabe: ok, status, final_url, error (deutscher Text), error_code
+    (maschinenlesbar), cached.
+    """
     cfg = cfg or {}
     settings = (cfg.get("settings") or {})
     ttl = int(settings.get("verify_cache_seconds", 3600))
@@ -67,18 +71,20 @@ def check(url: str, partner: dict | None = None, cfg: dict | None = None) -> dic
 
     host = (urlparse(url).hostname or "").lower()
     if not _host_ok(host, allowed):
-        return {"ok": False, "status": None, "error":
-                f"Host {host!r} ist nicht fuer die Pruefung freigegeben", "cached": False}
+        return {"ok": False, "status": None, "final_url": None, "cached": False,
+                "error": f"Host {host!r} ist nicht fuer die Pruefung freigegeben",
+                "error_code": "verify_failed"}
 
     cache = _load_cache()
     entry = cache.get(url)
     if entry and time.time() - float(entry.get("at", 0)) < ttl:
         out = dict(entry)
         out["cached"] = True
+        out.setdefault("error_code", "ok" if out.get("ok") else "verify_failed")
         return out
 
     result = {"ok": False, "status": None, "final_url": None, "error": None,
-              "at": time.time(), "cached": False}
+              "error_code": None, "at": time.time(), "cached": False}
     headers = {"User-Agent": UA, "Accept": "*/*"}
     try:
         resp = requests.head(url, allow_redirects=True, timeout=timeout,
@@ -93,14 +99,18 @@ def check(url: str, partner: dict | None = None, cfg: dict | None = None) -> dic
         result["status"] = resp.status_code
         result["final_url"] = resp.url
         result["ok"] = 200 <= resp.status_code < 400
+        result["error_code"] = "ok" if result["ok"] else "verify_failed"
         if not result["ok"]:
             result["error"] = f"HTTP {resp.status_code}"
     except requests.exceptions.Timeout:
         result["error"] = f"Timeout nach {timeout}s"
+        result["error_code"] = "verify_failed"
     except requests.exceptions.SSLError as exc:
         result["error"] = f"TLS-Fehler: {str(exc)[:120]}"
+        result["error_code"] = "verify_failed"
     except Exception as exc:
         result["error"] = str(exc)[:180]
+        result["error_code"] = "verify_failed"
 
     cache[url] = result
     # Cache begrenzen (Ringpuffer)
@@ -118,16 +128,19 @@ def verify_link(built: dict, cfg: dict | None = None) -> dict:
     if not built.get("affiliate"):
         out["verified"] = False
         out["verifiable"] = False
+        out["verify_error_code"] = "not_verified"
         return out
     if not built.get("structure_ok"):
         out["verified"] = False
         out["verifiable"] = True
         out["verify_error"] = "Strukturpruefung fehlgeschlagen"
+        out["verify_error_code"] = "verify_failed"
         return out
     if not (cfg.get("settings") or {}).get("verify_before_show", True):
         out["verified"] = False
         out["verifiable"] = True
         out["verify_error"] = "Erreichbarkeitspruefung ist deaktiviert"
+        out["verify_error_code"] = "not_verified"
         return out
     key = built.get("partner")
     partners = dict(cfg.get("partners") or {})
@@ -138,6 +151,8 @@ def verify_link(built: dict, cfg: dict | None = None) -> dict:
     out["verifiable"] = True
     out["verify_status"] = res.get("status")
     out["verify_error"] = res.get("error")
+    out["verify_error_code"] = res.get("error_code") or (
+        "ok" if out["verified"] else "verify_failed")
     out["verify_cached"] = res.get("cached")
     out["verify_final_url"] = res.get("final_url")
     return out

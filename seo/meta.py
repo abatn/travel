@@ -101,14 +101,16 @@ def _fit(text: str, limit: int) -> str:
 
 
 def for_route(base_url: str, category_slug: str, route: str, origin_name: str,
-              destination_name: str) -> dict:
+              destination_name: str, *, title: str | None = None,
+              description: str | None = None) -> dict:
     cat = category_slug
     label = ROUTE_LABELS.get(cat, cat)
     o = short_place(origin_name, route.split("-")[0])
     d = short_place(destination_name, route.split("-")[-1])
-    title = _fit(f"{label} {o} – {d}: Preise vergleichen", TITLE_MAX)
-    desc = (f"Aktuelle Preise für {label} {o} – {d} aus mehreren Quellen: günstigster Tarif, "
-            f"Endpreis, Stopps und Quellenlage. Jetzt vergleichen.")
+    title = _fit(title or f"{label} {o} – {d}: Preise vergleichen", TITLE_MAX)
+    desc = (description
+            or f"Aktuelle Preise für {label} {o} – {d} aus mehreren Quellen: günstigster Tarif, "
+               f"Endpreis, Stopps und Quellenlage. Jetzt vergleichen.")
     return build(title, desc, f"/{cat}/{route}", base_url=base_url, og_type="article")
 
 
