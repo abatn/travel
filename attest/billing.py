@@ -35,6 +35,30 @@ def ledger_path(path: str | Path | None = None) -> Path:
     return Path(override) if override else DEFAULT_LEDGER
 
 
+def supplier_tax_id() -> str:
+    """Steuernummer des Leistenden (z. B. tunesische MwSt-IdNr.).
+
+    Reihenfolge: Umgebungsvariable `ATTEST_TAX_ID`, sonst
+    `ui/legal.yaml -> betreiber.umsatzsteuer_id`. Platzhalter ("[...]", "keine")
+    und leere Werte ergeben bewusst "" – erfundene Nummern entstehen nie.
+    """
+    env = os.environ.get("ATTEST_TAX_ID", "").strip()
+    if env:
+        return env
+    try:
+        import yaml
+
+        data = yaml.safe_load((ROOT / "ui" / "legal.yaml").read_text(encoding="utf-8")) or {}
+        value = str(((data.get("betreiber") or {}).get("umsatzsteuer_id") or "")).strip()
+    except Exception:
+        return ""
+    if not value or (value.startswith("[") and value.endswith("]")):
+        return ""
+    if value.lower() in {"keine", "none", "no"}:
+        return ""
+    return value
+
+
 def _atomic_to_usd(value: Any) -> Decimal:
     try:
         raw = (Decimal(str(value)) / (Decimal(10) ** USDC_DECIMALS)).quantize(Decimal("0.000001"))
@@ -113,6 +137,7 @@ def record_invoice(attestation: dict[str, Any], settlement: dict[str, Any],
                 "attestation_id": attestation_id,
                 "issuer_did": (attestation.get("issuer") or {}).get("did") or "",
                 "vat_note": os.environ.get("ATTEST_VAT_NOTE", "").strip(),
+                "supplier_tax_id": supplier_tax_id(),
                 "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
             }
             with target.open("a", encoding="utf-8") as fh:
@@ -133,7 +158,7 @@ def export_csv(target: str | Path, path: str | Path | None = None) -> Path:
     fields = [
         "invoice_no", "invoice_date", "service", "description", "amount", "currency",
         "amount_usd", "network", "tx_hash", "payer", "pay_to", "attestation_id",
-        "issuer_did", "vat_note", "created_at",
+        "issuer_did", "supplier_tax_id", "vat_note", "created_at",
     ]
     with target.open("w", encoding="utf-8", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=fields, extrasaction="ignore")

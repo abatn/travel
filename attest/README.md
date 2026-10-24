@@ -191,6 +191,11 @@ payTo, Leistung, Netz, Attestierungs-ID) und kann als CSV exportiert werden:
 .venv-x402/bin/python -m attest.billing --csv attest/artifacts/invoices.csv
 ```
 
+Jeder Rechnungsdatensatz enthält `supplier_tax_id` – die Steuernummer des
+Leistenden (hier die tunesische MwSt-IdNr. aus `ui/legal.yaml -> betreiber.
+umsatzsteuer_id`, überschreibbar über `ATTEST_TAX_ID`). Ohne echte Nummer bleibt
+das Feld leer; erfundene Werte entstehen nie.
+
 **Pflichten, die vor dem ersten Euro zu klären sind:**
 
 * **USt-IdNr. / BZSt:** USt-IdNr. beim Bundeszentralamt für Steuern beantragen.
