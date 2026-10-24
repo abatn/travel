@@ -109,6 +109,39 @@ Prüfen: `systemctl list-timers travel-monthly-payment.timer` und
 `journalctl -u travel-monthly-payment.service`. Testlauf: `systemctl start travel-monthly-payment.service`
 (kostet 0,01 USDC). Ergebnis-Rechnungen stehen in `attest/state/invoices.jsonl`.
 
+## Zahlungs-Watch (E-Mail bei fremden Zahlungen)
+
+Dateien: `deploy/payment_watch.py`, `deploy/payment-watch.{service,timer}`.
+Prüft stündlich USDC-Transfers auf Base an die payTo-Adresse und mailt jede
+Zahlung einer **fremden** Wallet. Eigene Wallets (Testkäufer, payTo selbst)
+werden ignoriert, damit Eigenzahlungen nicht als Umsatz gelten.
+
+Voraussetzung in `/etc/reise-agent.env` (Rechte 600, Besitzer root):
+
+```sh
+SMTP_HOST=smtp.mail.yahoo.com
+SMTP_PORT=587
+SMTP_USER=batniniabdelkader@yahoo.com
+SMTP_PASSWORD=<Yahoo-App-Passwort>
+ALERT_TO=batniniabdelkader@yahoo.com
+```
+
+Installation (als root):
+
+```sh
+install -m 644 deploy/payment-watch.service deploy/payment-watch.timer /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now payment-watch.timer
+```
+
+Prüfen: `journalctl -u payment-watch.service -n 20`. Testlauf ohne Zahlung:
+`python3 deploy/payment_watch.py --dry-run` (zeigt nur, was gemeldet würde).
+
+Bereits gemeldete Transaktionen stehen in `attest/state/payment_watch.json`.
+Schlägt der Mailversand fehl, bleibt die Transaktion ungemeldet und wird beim
+nächsten Lauf erneut versucht. Quelle ist `BASE_RPC_URL`
+(Standard `https://base-rpc.publicnode.com`).
+
 ## Auto-Deploy über GitHub Actions
 
 Push auf `main` löst aus:
