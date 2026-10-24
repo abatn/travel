@@ -36,7 +36,38 @@ import pages as seo_pages  # noqa: E402
 import routes_cache  # noqa: E402
 import sitemap as seo_sitemap  # noqa: E402
 import legal_config  # noqa: E402
-import i18n as i18n_core  # noqa: E402
+try:
+    import i18n as i18n_core  # noqa: E402
+except ModuleNotFoundError:  # Deploy ohne i18n-Verzeichnis: Deutsch statt Absturz
+    class _I18nFallback:
+        SUPPORTED = ("de",)
+        DEFAULT = "de"
+        RTL: set = set()
+        COOKIE = "lang"
+
+        @staticmethod
+        def resolve(request):
+            return "de"
+
+        @staticmethod
+        def swatch_update_needed(request, lang):
+            return False
+
+        @staticmethod
+        def translator(lang):
+            def _t(key, default=None, **params):
+                return default if default is not None else key
+            return _t
+
+        @staticmethod
+        def direction(lang):
+            return "ltr"
+
+        @staticmethod
+        def load(lang):
+            return {}
+
+    i18n_core = _I18nFallback()
 
 app = FastAPI(title="Reise-Agent UI", version="1.2",
               docs_url=None, redoc_url=None, openapi_url=None)   # S6: keine API-Docs
