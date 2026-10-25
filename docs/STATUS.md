@@ -29,7 +29,15 @@ Zahlen und Belege werden nur eingetragen, wenn sie geprüft sind.
 1. **Alten GitHub-Token löschen** (er funktioniert noch).
 2. **Vier Verzeichnis-Einträge** warten auf Freischaltung: gold-402 (#410), xpaysh (#1993), x402.eco (#24), x402-index (#78).
 3. **Nutzungsbedingungen von 16 Quellen** prüfen, dann Status in `providers/registry.yaml` auf `approved`/`prohibited` setzen.
-4. **Erster fremder Zahler** fehlt. Umsatz: 0,000000 USDC (alle bisherigen Zahlungen sind eigene).
+4. ~~Erster fremder Zahler~~ **eingetroffen und geprüft**:
+   - 2026-10-24 22:19 UTC: `0xA1d1C0cf717402ff3651aA4873CcF96410B01978` → 0,01 USDC,
+     Tx `0x368b0ad320a4a2ef82e5cf962bbc5fac0f4990390c6a2cba6dfaefd855818397`,
+     Rechnung RE-2026-000004.
+   - 2026-10-25 09:43 UTC: `0x7722DfAE6bbed2Fd02Dc07455c2f5BF14bE25E4a` → 0,01 USDC,
+     Tx `0xddf1028aa6766cf768189b889a21b5c6798118ef7438fb4b28bcc08af2cf0310`,
+     Rechnung RE-2026-000005.
+   - **Fremder Umsatz: 0,020000 USDC** aus 2 Wallets; 4 eigene Testzahlungen (0,04 USDC)
+     bleiben ausgeschlossen. Bazaar-`lastUpdated` wurde durch die Zahlung aktualisiert.
 5. **Kostenloses Beispiel** (`GET /api/attest/sample`) ist noch nicht gebaut.
 6. **M5 (Prognosen)** ist vorbereitet, aber nicht begonnen; braucht eigene Historie und Mindestfallzahl.
 
