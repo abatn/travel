@@ -68,7 +68,7 @@ def ensure_server() -> None:
     BASE = "http://127.0.0.1:8099"
     py = ROOT / ".venv-x402" / "bin" / "python"
     env = dict(os.environ)
-    keys = ROOT / "flight-agent" / "coinbase.txt"
+    keys = ROOT / "coinbase.txt"
     if keys.exists():
         lines = keys.read_text().splitlines()
         if len(lines) >= 4:
