@@ -226,6 +226,8 @@ das Feld leer; erfundene Werte entstehen nie.
   Root, `{{BASE_URL}}` wird dynamisch ersetzt).
 * `GET /.well-known/agent-payments.json` – vollständige Discovery inkl.
   `resources`, `accepts`, `provider`, `contact` und `extensions.bazaar`.
+* `GET /.well-known/x402.json` – x402-Manifest (x402Version 2, Ressource,
+  `accepts`, `outputSchema`) für Saylor Agent Bazaar und andere Manifest-Indexer.
 * Der 402-Response (Header `payment-required`) enthält `resource`, `accepts` und
   dieselbe Bazaar-Erweiterung `extensions.bazaar` wie die Discovery-Datei.
 
@@ -256,13 +258,13 @@ das Feld leer; erfundene Werte entstehen nie.
 | Kanal | Einreichung |
 |---|---|
 | <https://github.com/xpaysh/awesome-x402> | PR in die Servicetabelle |
-| <https://github.com/Rug-Munch-Media-LLC/awesome-x402> | PR („Submit a PR") |
 | <https://github.com/rawgroundbeef/x402.eco> | PR mit JSON in `data/ecosystem/services-endpoints/` |
 | <https://github.com/Haustorium12/gold-402> | Einreichung, lebende 402 auf GET zwingend |
-| <https://agent-tools.cloud/submit?type=x402> | Formular inkl. Kontakt-E-Mail |
+| <https://agent-tools.cloud/submit?type=x402> | Formular/API `/api/v1/submit` inkl. Kontakt-E-Mail |
 | <https://github.com/x402-index/x402-discovery-index> | GitHub-Issue: URL, payTo, Beschreibung |
-| Saylor-Bazaar | `POST /submit` mit Manifest `/.well-known/x402.json` |
+| <https://bazaar.saylorinnovations.com/submit> | `POST` mit `{"manifestUrl": "https://…/.well-known/x402.json"}` |
 
+* Hinweis: `Rug-Munch-Media-LLC/awesome-x402` existiert nicht mehr (geprüft 25.10.2026).
 * `POST /api/register` – **simuliert** die Registrierung: schreibt
   `attest/state/registration_request.json` und liefert Payload, Ziele (CDP-Bazaar,
   Spiegel, manuelle Verzeichnisse) und die manuellen Schritte. Es wird kein

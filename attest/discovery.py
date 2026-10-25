@@ -108,3 +108,62 @@ def bazaar_extension() -> dict[str, Any]:
             "required": ["input"],
         },
     }
+
+OUTPUT_SCHEMA: dict[str, Any] = {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "required": ["version", "id", "issued_at", "expires_at", "issuer", "subject",
+                 "plausibility", "signature"],
+    "properties": {
+        "version": {"type": "string"},
+        "id": {"type": "string", "description": "Attestation-ID (att_…)"},
+        "issued_at": {"type": "string", "format": "date-time"},
+        "expires_at": {"type": "string", "format": "date-time"},
+        "issuer": {
+            "type": "object",
+            "properties": {
+                "did": {"type": "string"},
+                "key_id": {"type": "string"},
+                "public_key": {"type": "string"},
+                "alg": {"type": "string", "const": "Ed25519"},
+                "pay_to": {"type": "string"},
+            },
+        },
+        "subject": {
+            "type": "object",
+            "properties": {
+                "route": {"type": "string", "pattern": "^[A-Z]{3}-[A-Z]{3}$"},
+                "travel_date": {"type": "string", "format": "date"},
+                "price": {"type": "string"},
+                "currency": {"type": "string"},
+                "price_scope": {"type": "string"},
+                "passengers": {"type": "integer"},
+                "cabin": {"type": ["string", "null"]},
+                "source": {"type": "string"},
+                "source_url": {"type": ["string", "null"], "format": "uri"},
+                "observed_at": {"type": "string", "format": "date-time"},
+                "note": {"type": ["string", "null"]},
+            },
+        },
+        "plausibility": {
+            "type": "object",
+            "properties": {
+                "status": {"type": "string"},
+                "checks": {"type": "array", "items": {"type": "string"}},
+                "warnings": {"type": "array", "items": {"type": "string"}},
+            },
+        },
+        "payment": {"type": "object"},
+        "terms": {"type": "object"},
+        "signature": {
+            "type": "object",
+            "required": ["alg", "key_id", "value"],
+            "properties": {
+                "alg": {"type": "string", "const": "Ed25519"},
+                "key_id": {"type": "string"},
+                "value": {"type": "string"},
+            },
+        },
+    },
+}
+

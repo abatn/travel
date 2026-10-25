@@ -24,7 +24,8 @@ from fastapi.responses import JSONResponse
 from .billing import record_invoice
 from .capabilities import capabilities_document
 from .config import Settings, load_settings
-from .discovery import SAMPLE_INPUT, SAMPLE_OUTPUT, atomic_amount, bazaar_extension, contact_email
+from .discovery import (OUTPUT_SCHEMA, SAMPLE_INPUT, SAMPLE_OUTPUT, atomic_amount,
+                        bazaar_extension, contact_email)
 try:
     from ui.i18n_core import (SUPPORTED as I18N_SUPPORTED, t as i18n_t,
                               resolve as i18n_resolve)
@@ -260,6 +261,11 @@ def discovery_document(base: str, lang: str = "de") -> dict[str, Any]:
                 "url": f"{base}/api/register",
                 "payment_required": False,
             },
+            "manifest": {
+                "method": "GET",
+                "url": f"{base}/.well-known/x402.json",
+                "payment_required": False,
+            },
         },
         "resources": [resource],
         "payment": {
@@ -294,6 +300,25 @@ def discovery_document(base: str, lang: str = "de") -> dict[str, Any]:
         "serviceName_i18n": {c: i18n_t(c, "nav.pricing") for c in I18N_SUPPORTED},
         "lastUpdated": _iso(_now()),
     }
+
+
+@public_router.get("/.well-known/x402.json")
+async def x402_manifest(request: Request) -> JSONResponse:
+    """Saylor/Agent-Bazaar-Manifest: x402Version 2 + Ressourcen mit outputSchema."""
+    doc = discovery_document(_base_url(request))
+    res = doc["resources"][0]
+    manifest = {
+        "x402Version": 2,
+        "resources": [{
+            "url": res["resource"],
+            "description": res["description"],
+            "serviceName": "Reise-Agent Attest",
+            "accepts": res["accepts"],
+            "outputSchema": OUTPUT_SCHEMA,
+            "tags": ["travel", "price", "attestation", "x402"],
+        }],
+    }
+    return JSONResponse(manifest, headers={"Cache-Control": "public, max-age=300"})
 
 
 @public_router.get("/.well-known/agent-payments.json")
@@ -367,13 +392,20 @@ async def register_discovery(request: Request) -> JSONResponse:
                         "nach Katalogisierung im CDP-Bazaar.",
             },
             {
+                "name": "Saylor Agent Bazaar",
+                "url": "https://bazaar.saylorinnovations.com/submit",
+                "mode": "POST mit manifestUrl",
+                "note": "Manifest: /.well-known/x402.json. Der Katalog prüft die "
+                        "Ressource und übernimmt sie ohne Anmeldung.",
+            },
+            {
                 "name": "Manuelle Verzeichnisse",
                 "url": "https://github.com/xpaysh/awesome-x402",
                 "mode": "Pull Request / Einreichung",
-                "note": "PR bei xpaysh/awesome-x402, Rug-Munch/awesome-x402, x402.eco "
-                        "(data/ecosystem/services-endpoints/), gold-402, "
-                        "agent-tools.cloud (Formular) und x402-index (GitHub-Issue). "
-                        "gold-402 verlangt eine lebende 402 auf GET.",
+                "note": "PR bei xpaysh/awesome-x402, x402.eco "
+                        "(data/ecosystem/services-endpoints/), gold-402 und "
+                        "x402-index (GitHub-Issue); agent-tools.cloud über "
+                        "/api/v1/submit. gold-402 verlangt eine lebende 402 auf GET.",
             },
             {
                 "name": "Eigene Discovery",
@@ -388,8 +420,8 @@ async def register_discovery(request: Request) -> JSONResponse:
             "GET/HEAD /api/attest müssen 402 antworten – sonst schlägt der offizielle "
             "Check POST /v2/x402/validate (returns_402) fehl und Verzeichnisse lehnen ab.",
             "Index-Eintrag prüfen: /v2/x402/discovery/search?query=hanibal.",
-            "PRs/Issues an die manuellen Verzeichnisse senden (awesome-x402, x402.eco, "
-            "gold-402, agent-tools.cloud, x402-index).",
+            "Manifest bei Saylor Agent Bazaar einreichen: POST /submit mit "
+            "{\"manifestUrl\": \"<base>/.well-known/x402.json\"}.",
             "30-Tage-Regel: Der CDP-Index blendet Ressourcen ohne Aktivität nach 30 "
             "Tagen aus – mindestens einmal monatlich selbst zahlen.",
             "llms.txt und /.well-known/agent-payments.json nach Änderungen aktualisieren.",

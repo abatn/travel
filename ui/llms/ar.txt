@@ -50,6 +50,7 @@ payTo: `{{PAY_TO}}`.
 - `GET  {{BASE_URL}}/api/attest/key` – المفتاح العام Ed25519
 - `GET  {{BASE_URL}}/.well-known/agent-payments.json` – الاستكشاف
 - `GET  {{BASE_URL}}/.well-known/capabilities.json` – كتالوج القدرات (ما هو مدفوع وما هو مخطط)
+- `GET  {{BASE_URL}}/.well-known/x402.json` – بيان x402 (Saylor/Agent Bazaar)
 - `GET  {{BASE_URL}}/capabilities` – الكتالوج نفسه عبر رابط قصير
 - `GET  {{BASE_URL}}/llms.txt` – هذا الملف
 

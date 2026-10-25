@@ -50,6 +50,7 @@ payTo : `{{PAY_TO}}`.
 - `GET  {{BASE_URL}}/api/attest/key` – clé publique Ed25519
 - `GET  {{BASE_URL}}/.well-known/agent-payments.json` – découverte
 - `GET  {{BASE_URL}}/.well-known/capabilities.json` – catalogue des capacités (ce qui est payant, ce qui est prévu)
+- `GET  {{BASE_URL}}/.well-known/x402.json` – manifeste x402 (Saylor/Agent Bazaar)
 - `GET  {{BASE_URL}}/capabilities` – le même catalogue sous une URL courte
 - `GET  {{BASE_URL}}/llms.txt` – ce fichier
 

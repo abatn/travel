@@ -126,6 +126,20 @@ def main() -> int:
         check((bazaar.get("info", {}).get("input", {}).get("method") == "POST"),
               "Discovery: bazaar input POST")
 
+        # x402-Manifest für Saylor Agent Bazaar
+        man = httpx.get(f"{BASE}/.well-known/x402.json", timeout=10)
+        check(man.status_code == 200, "x402.json -> 200", str(man.status_code))
+        manifest = man.json()
+        check(manifest.get("x402Version") == 2, "x402.json: x402Version 2")
+        mres = (manifest.get("resources") or [{}])[0]
+        check(str(mres.get("url", "")).endswith("/api/attest"), "x402.json: resource URL")
+        check(bool(mres.get("accepts")), "x402.json: accepts[]")
+        check(bool((mres.get("outputSchema") or {}).get("required")),
+              "x402.json: outputSchema")
+        check("travel" in (mres.get("tags") or []), "x402.json: tags")
+        check("manifest" in (data.get("endpoints") or {}),
+              "Discovery: manifest-Endpunkt verlinkt")
+
         # Verzeichnis-Probing: CDP /v2/x402/validate, PayAI und gold-402 prüfen
         # per HEAD/GET auf 402. Ohne 402 für diese Methoden wird die Ressource
         # nicht katalogisiert (returns_402 failed -> resource abgelehnt).
