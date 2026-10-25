@@ -22,5 +22,10 @@
   "results.progress": "أجابت {answered} من {total} مصادر …",
   "status.corrupt": "غير صالح",
   "app.agent": "الوكيل",
-  "app.ready": "جاهز"
+  "app.ready": "جاهز",
+  "results.rejected_count": "تم رفض أسعار غير معقولة: {count}.",
+  "results.err_implausible": "أسعار غير معقولة — لا تُستخدم أسعار هذا المصدر.",
+  "results.err_rate_limit": "تجاوز حد الطلبات للمصدر — حاول لاحقاً.",
+  "results.err_timeout": "انتهت مهلة المصدر.",
+  "results.err_generic": "أبلغ المصدر عن خطأ (التفاصيل في سجل الخادم)."
 }

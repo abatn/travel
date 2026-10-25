@@ -79,7 +79,7 @@ def main() -> int:
         ws = websocket.create_connection(target["webSocketDebuggerUrl"], timeout=30)
         cdp(ws, 1, "Page.enable")
         cdp(ws, 2, "Page.addScriptToEvaluateOnNewDocument", {"source": INJECT})
-        cdp(ws, 3, "Page.navigate", {"url": f"{BASE}/jobs/{job}"})
+        cdp(ws, 3, "Page.navigate", {"url": f"{BASE}/jobs/{job}?lang=de"})
         time.sleep(1.2)          # Navigationskontext abwarten (sonst kein Ergebnis)
 
         # Höhe während der Laufzeit messen

@@ -22,5 +22,10 @@
   "results.progress": "{answered} of {total} sources have responded …",
   "status.corrupt": "invalid",
   "app.agent": "Agent",
-  "app.ready": "ready"
+  "app.ready": "ready",
+  "results.rejected_count": "Implausible prices rejected: {count}.",
+  "results.err_implausible": "Implausible prices – this source's fares are not used.",
+  "results.err_rate_limit": "Source rate limit – please try again later.",
+  "results.err_timeout": "Source timed out.",
+  "results.err_generic": "Source reported an error (details in the server log)."
 }

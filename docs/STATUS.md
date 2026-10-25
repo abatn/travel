@@ -1,6 +1,6 @@
 # Projektstatus
 
-Stand: 24.10.2026. Diese Datei ist die einzige Übersicht über „erledigt / offen“.
+Stand: 25.10.2026. Diese Datei ist die einzige Übersicht über „erledigt / offen“.
 Zahlen und Belege werden nur eingetragen, wenn sie geprüft sind.
 
 ## Vom Betreiber erledigt und bestätigt
@@ -23,6 +23,7 @@ Zahlen und Belege werden nur eingetragen, wenn sie geprüft sind.
 | Zahlungs-Watch (E-Mail bei fremden Zahlungen) | aktiv, stündlich, Testmail zugestellt |
 | Monatliche Selbstzahlung (30-Tage-Regel) | aktiv, im Repo dokumentiert |
 | Quellenrechte-Sperre (`providers/rights.py`) | aktiv, 4 Quellen gesperrt |
+| Dark/Light-Mode (gesamte UI) | fertig, 63/63 Theme-Tests; Dokumentation `ui/THEME_ENTSCHEIDUNG.md` |
 
 ## Offen
 

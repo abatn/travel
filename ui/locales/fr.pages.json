@@ -30,7 +30,6 @@
   "pages.common.start_search": "Lancer la recherche",
   "pages.common.to_provider": "Aller chez le prestataire ↗",
   "pages.common.book_provider": "Réserver chez le prestataire ↗",
-
   "pages.landing.facts_title": "Ce que montrent les données",
   "pages.landing.facts_summary": "<b>{count} offres</b> de {sources} source(s), fourchette de prix de <b>{min}</b> à {max} (médiane {median}).",
   "pages.landing.facts_nonstop": "<b>{nonstop} sur {count}</b> offres sont sans escale ({share} %).",
@@ -52,7 +51,6 @@
   "pages.landing.from_price": "à partir de {price}",
   "pages.landing.faq_title": "Questions fréquentes",
   "pages.landing.more_categories": "Autres catégories",
-
   "pages.overview.title": "Comparateur de prix de voyage",
   "pages.overview.lead": "Nous interrogeons plus de 20 sources en parallèle – vols, hôtels, ferries et croisières – et affichons le prix le plus bas avec le prix final, le statut fiscal et l'état des sources. Sans majoration, sans inscription.",
   "pages.overview.categories": "Catégories",
@@ -62,7 +60,6 @@
   "pages.overview.step3": "<b>Des lacunes assumées :</b> les sources bloquées et les prix invraisemblables (p. ex. 0,01 €) sont écartés et signalés – sans lissage.",
   "pages.overview.step4": "<b>Réorientation plutôt que vente :</b> la réservation se fait chez le prestataire ; nous ne faisons qu'intermédier.",
   "pages.overview.search_title": "Rechercher directement",
-
   "pages.alarm.title": "Alerte {name}",
   "pages.alarm.back_all": "← toutes les alertes",
   "pages.alarm.adults_count": "{count} personne(s)",
@@ -86,7 +83,6 @@
   "pages.alarm.no_alerts": "Aucune alerte déclenchée pour l'instant.",
   "pages.alarm.pending": "Livraisons en attente",
   "pages.alarm.attempts": "{count} tentative(s)",
-
   "pages.alarms.title": "Alertes de prix",
   "pages.alarms.lead": "Une alerte est une configuration du veilleur : le budget, le point bas et la chute de prix sont évalués par le veilleur existant (alerts/watcher.py). Les règles sont fermement ancrées dans le veilleur.",
   "pages.alarms.new": "Nouvelle alerte",
@@ -111,7 +107,6 @@
   "pages.alarms.last_alert": "dernière alerte",
   "pages.alarms.per_person_short": "personne",
   "pages.alarms.trip_short": "voyage",
-
   "pages.detail.title": "Détail de l'offre",
   "pages.detail.back": "← retour aux résultats",
   "pages.detail.price_per_person": "Prix (par personne)",
@@ -153,5 +148,7 @@
   "pages.detail.rejected": "Lors de cette exécution, {count} prix invraisemblables ont été écartés : {message}",
   "pages.detail.limit_separate": "Des billets séparés, des correspondances à vos risques et des suppléments bagages peuvent être inclus dans le prix final – seule l'indication de la source fait foi.",
   "pages.detail.legal_title": "Mention légale",
-  "pages.detail.legal_note": "Identification d'affiliation selon § 5a UWG / § 6 DDG. Nous sommes un intermédiaire, et non un tour-opérateur (§§ 651b, 651c, 651w BGB)."
+  "pages.detail.legal_note": "Identification d'affiliation selon § 5a UWG / § 6 DDG. Nous sommes un intermédiaire, et non un tour-opérateur (§§ 651b, 651c, 651w BGB).",
+  "pages.detail.provider_error": "La source signale une erreur (détails dans le journal serveur).",
+  "pages.detail.rejected_count": "Prix invraisemblables rejetés : {count}."
 }

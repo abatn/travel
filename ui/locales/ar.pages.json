@@ -30,7 +30,6 @@
   "pages.common.start_search": "بدء البحث",
   "pages.common.to_provider": "الانتقال إلى المزوّد ↗",
   "pages.common.book_provider": "الحجز لدى المزوّد ↗",
-
   "pages.landing.facts_title": "ما تُظهره البيانات",
   "pages.landing.facts_summary": "<b>{count} عرضًا</b> من {sources} مصدر، ونطاق الأسعار من <b>{min}</b> إلى {max} (الوسيط {median}).",
   "pages.landing.facts_nonstop": "<b>{nonstop} من {count}</b> عرضًا بدون توقف ({share} %).",
@@ -52,7 +51,6 @@
   "pages.landing.from_price": "ابتداءً من {price}",
   "pages.landing.faq_title": "الأسئلة الشائعة",
   "pages.landing.more_categories": "فئات أخرى",
-
   "pages.overview.title": "مقارنة أسعار السفر",
   "pages.overview.lead": "نستعلم عن أكثر من 20 مصدرًا في الوقت نفسه – الرحلات الجوية والفنادق والعبارات والرحلات البحرية – ونعرض أرخص سعر مع السعر النهائي وحالة الضريبة وحالة المصادر. دون أي هامش إضافي ودون تسجيل.",
   "pages.overview.categories": "الفئات",
@@ -62,7 +60,6 @@
   "pages.overview.step3": "<b>فجوات صادقة:</b> تُستبعد المصادر المحجوبة والأسعار غير المعقولة (مثل 0.01 €) ويُشار إليها – دون تنعيم.",
   "pages.overview.step4": "<b>إعادة توجيه بدلًا من البيع:</b> يتم الحجز لدى المزوّد، ونحن نتوسط فقط.",
   "pages.overview.search_title": "البحث مباشرةً",
-
   "pages.alarm.title": "تنبيه {name}",
   "pages.alarm.back_all": "← جميع التنبيهات",
   "pages.alarm.adults_count": "{count} شخص",
@@ -86,7 +83,6 @@
   "pages.alarm.no_alerts": "لم يُطلق أي تنبيه بعد.",
   "pages.alarm.pending": "عمليات التسليم المعلّقة",
   "pages.alarm.attempts": "{count} محاولة",
-
   "pages.alarms.title": "تنبيهات الأسعار",
   "pages.alarms.lead": "التنبيه هو إعداد للمراقب: تُقيّم الميزانية وأدنى مستوى وانخفاض السعر بواسطة المراقب الموجود (alerts/watcher.py). والقواعد مثبّتة بصرامة في المراقب.",
   "pages.alarms.new": "تنبيه جديد",
@@ -111,7 +107,6 @@
   "pages.alarms.last_alert": "آخر تنبيه",
   "pages.alarms.per_person_short": "شخص",
   "pages.alarms.trip_short": "رحلة",
-
   "pages.detail.title": "تفاصيل العرض",
   "pages.detail.back": "← العودة إلى النتائج",
   "pages.detail.price_per_person": "السعر (للشخص الواحد)",
@@ -153,5 +148,7 @@
   "pages.detail.rejected": "في هذا التشغيل تم استبعاد {count} من الأسعار غير المعقولة: {message}",
   "pages.detail.limit_separate": "قد تشمل التذاكر المنفصلة والربط الذاتي ورسوم الأمتعة السعر النهائي – وبيان المصدر وحده هو الملزم.",
   "pages.detail.legal_title": "إشعار قانوني",
-  "pages.detail.legal_note": "إفصاح عن التسويق بالعمولة وفقًا للمادة 5a من قانون المنافسة الألماني (UWG) / المادة 6 من قانون الخدمات الرقمية الألماني (DDG). نحن وسطاء ولسنا منظّمي رحلات (المواد 651b و651c و651w من القانون المدني الألماني، BGB)."
+  "pages.detail.legal_note": "إفصاح عن التسويق بالعمولة وفقًا للمادة 5a من قانون المنافسة الألماني (UWG) / المادة 6 من قانون الخدمات الرقمية الألماني (DDG). نحن وسطاء ولسنا منظّمي رحلات (المواد 651b و651c و651w من القانون المدني الألماني، BGB).",
+  "pages.detail.provider_error": "أبلغ المصدر عن خطأ (التفاصيل في سجل الخادم).",
+  "pages.detail.rejected_count": "تم رفض أسعار غير معقولة: {count}."
 }

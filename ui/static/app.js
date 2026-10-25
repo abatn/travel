@@ -152,6 +152,23 @@ function statusText(code) {
     return row;
   }
 
+  function sourceErrorText(err) {
+    var e = String(err || '').toLowerCase();
+    if (!e) return '';
+    if (e.indexOf('korrupt') >= 0 || e.indexOf('unplausibel') >= 0 ||
+        e.indexOf('plausib') >= 0 || e.indexOf('invalid price') >= 0) {
+      return T('results.err_implausible');
+    }
+    if (e.indexOf('rate') >= 0 || e.indexOf('429') >= 0 || e.indexOf('limit') >= 0) {
+      return T('results.err_rate_limit');
+    }
+    if (e.indexOf('timeout') >= 0 || e.indexOf('timed out') >= 0 ||
+        e.indexOf('zeit') >= 0) {
+      return T('results.err_timeout');
+    }
+    return T('results.err_generic');
+  }
+
   function renderProviders(cats) {
     const table = document.querySelector('#live-status table');
     if (!table) return {answered: 0, total: 0};
@@ -176,7 +193,7 @@ function statusText(code) {
         if (du) du.textContent = (p.elapsed_s === null || p.elapsed_s === undefined)
           ? '–' : T('pages.detail.seconds', {value: p.elapsed_s});
         const er = row.querySelector('td.er');
-        if (er) er.textContent = p.error ? String(p.error).slice(0, 90) : '';
+        if (er) er.textContent = p.error ? sourceErrorText(p.error) : '';
       });
     });
     return {answered: answered, total: total};
@@ -243,8 +260,8 @@ function statusText(code) {
     // weicher Schein fuer den Agenten-Knoten
     const defs = svgEl('defs');
     const grad = svgEl('radialGradient', { id: 'agentGrad', cx: '50%', cy: '50%', r: '50%' });
-    grad.appendChild(svgEl('stop', { offset: '0%', 'stop-color': '#4c8dff', 'stop-opacity': '0.55' }));
-    grad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': '#4c8dff', 'stop-opacity': '0.05' }));
+    grad.appendChild(svgEl('stop', { offset: '0%', style: 'stop-color:var(--accent);stop-opacity:0.55' }));
+    grad.appendChild(svgEl('stop', { offset: '100%', style: 'stop-color:var(--accent);stop-opacity:0.05' }));
     defs.appendChild(grad);
     svg.appendChild(defs);
 
@@ -415,6 +432,16 @@ function statusText(code) {
       renderTables(d.categories);
       updateBadges(d.categories);
       const done = (d.state === 'done' || d.state === 'error');
+      if (done) {
+        // Quellen, die der Lauf gar nicht verwendet hat, nicht als "wartet" stehen lassen.
+        const seen = new Set();
+        Object.keys(d.categories || {}).forEach(cat => {
+          (d.categories[cat].providers || []).forEach(p => seen.add(p.source));
+        });
+        document.querySelectorAll('#live-status tr[data-source]').forEach(tr => {
+          if (!seen.has(tr.dataset.source)) tr.remove();
+        });
+      }
       updateProgress(stat.answered, stat.total, done);
       if (d.state === 'done') renderBundling(d.comparison);
       if (done) {
@@ -453,8 +480,8 @@ function statusText(code) {
   // Verlauf für das Zentrum
   const defs = el('defs');
   const grad = el('radialGradient', { id: 'homeGrad', cx: '50%', cy: '50%', r: '50%' });
-  grad.appendChild(el('stop', { offset: '0%', 'stop-color': '#4c8dff', 'stop-opacity': '0.55' }));
-  grad.appendChild(el('stop', { offset: '100%', 'stop-color': '#4c8dff', 'stop-opacity': '0.06' }));
+  grad.appendChild(el('stop', { offset: '0%', style: 'stop-color:var(--accent);stop-opacity:0.55' }));
+  grad.appendChild(el('stop', { offset: '100%', style: 'stop-color:var(--accent);stop-opacity:0.06' }));
   defs.appendChild(grad);
   svg.appendChild(defs);
 

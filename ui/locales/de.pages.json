@@ -30,7 +30,6 @@
   "pages.common.start_search": "Suche starten",
   "pages.common.to_provider": "Zum Anbieter ↗",
   "pages.common.book_provider": "Zum Anbieter buchen ↗",
-
   "pages.landing.facts_title": "Was die Daten zeigen",
   "pages.landing.facts_summary": "<b>{count} Angebote</b> von {sources} Quelle(n), Preisspanne <b>{min}</b> bis {max} (Median {median}).",
   "pages.landing.facts_nonstop": "<b>{nonstop} von {count}</b> Angeboten sind nonstop ({share} %).",
@@ -52,7 +51,6 @@
   "pages.landing.from_price": "ab {price}",
   "pages.landing.faq_title": "Häufige Fragen",
   "pages.landing.more_categories": "Weitere Kategorien",
-
   "pages.overview.title": "Reise-Preisvergleich",
   "pages.overview.lead": "Wir fragen über 20 Quellen parallel ab – Flüge, Hotels, Fähren und Kreuzfahrten – und zeigen den günstigsten Preis mit Endpreis, Steuerstatus und der Lage der Quellen. Kein Aufschlag, keine Anmeldung.",
   "pages.overview.categories": "Kategorien",
@@ -62,7 +60,6 @@
   "pages.overview.step3": "<b>Ehrliche Lücken:</b> blockierte Quellen und unplausible Preise (z. B. 0,01 €) werden verworfen und ausgewiesen – nicht geglättet.",
   "pages.overview.step4": "<b>Weiterleitung statt Verkauf:</b> gebucht wird beim Anbieter; wir vermitteln nur.",
   "pages.overview.search_title": "Direkt suchen",
-
   "pages.alarm.title": "Alarm {name}",
   "pages.alarm.back_all": "← alle Alarme",
   "pages.alarm.adults_count": "{count} Person(en)",
@@ -86,7 +83,6 @@
   "pages.alarm.no_alerts": "Noch kein Alarm ausgelöst.",
   "pages.alarm.pending": "Offene Zustellungen",
   "pages.alarm.attempts": "{count} Versuch(e)",
-
   "pages.alarms.title": "Preisalarme",
   "pages.alarms.lead": "Ein Alarm ist eine Wächter-Konfiguration: Budget, Tiefpunkt und Preissturz werden vom vorhandenen Wächter ausgewertet (alerts/watcher.py). Die Regeln sind im Wächter fest verankert.",
   "pages.alarms.new": "Neuer Alarm",
@@ -111,7 +107,6 @@
   "pages.alarms.last_alert": "letzter Alarm",
   "pages.alarms.per_person_short": "Person",
   "pages.alarms.trip_short": "Reise",
-
   "pages.detail.title": "Angebot im Detail",
   "pages.detail.back": "← zurück zu den Ergebnissen",
   "pages.detail.price_per_person": "Preis (je Person)",
@@ -153,5 +148,7 @@
   "pages.detail.rejected": "In diesem Lauf wurden {count} unplausible Preise verworfen: {message}",
   "pages.detail.limit_separate": "Getrennte Tickets, Selbstverbindung und Gepäckzuschläge können im Endpreis enthalten sein – verbindlich ist nur die Angabe der Quelle.",
   "pages.detail.legal_title": "Rechtlicher Hinweis",
-  "pages.detail.legal_note": "Affiliate-Kennzeichnung nach § 5a UWG / § 6 DDG. Wir sind Vermittler, nicht Reiseveranstalter (§§ 651b, 651c, 651w BGB)."
+  "pages.detail.legal_note": "Affiliate-Kennzeichnung nach § 5a UWG / § 6 DDG. Wir sind Vermittler, nicht Reiseveranstalter (§§ 651b, 651c, 651w BGB).",
+  "pages.detail.provider_error": "Quelle meldet einen Fehler (Details im Server-Log).",
+  "pages.detail.rejected_count": "Unplausible Preise verworfen: {count}."
 }

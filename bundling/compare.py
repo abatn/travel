@@ -112,12 +112,13 @@ def data_quality(results: list[tuple[str, dict | None]]) -> dict:
             status = str(p.get("status") or "")
             if status in ("ok", ""):
                 continue
-            if status == "skipped":
-                unavailable.append(f"{category}/{p.get('source')} (übersprungen: "
-                                  f"{(p.get('error') or '')[:80]})")
-            else:
-                unavailable.append(f"{category}/{p.get('source')} ({status}: "
-                                  f"{(p.get('error') or '')[:120]})")
+            # Nur strukturierte Angaben: die UI übersetzt Status und Quelle.
+            # Der rohe Fehlertext bleibt im Runner-Log (und im API-Snapshot).
+            unavailable.append({
+                "category": category,
+                "source": p.get("source"),
+                "status": status,
+            })
     return {"corrupt_sources": corrupt,
             "unavailable_sources": unavailable,
             "notes": notes,

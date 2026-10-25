@@ -22,5 +22,10 @@
   "results.progress": "{answered} von {total} Quellen geantwortet …",
   "status.corrupt": "ungültig",
   "app.agent": "Agent",
-  "app.ready": "bereit"
+  "app.ready": "bereit",
+  "results.rejected_count": "Unplausible Preise verworfen: {count}.",
+  "results.err_implausible": "Unplausible Preise – Tarife dieser Quelle werden nicht verwendet.",
+  "results.err_rate_limit": "Rate-Limit der Quelle – bitte später erneut versuchen.",
+  "results.err_timeout": "Zeitüberschreitung bei der Quelle.",
+  "results.err_generic": "Quelle meldet einen Fehler (Details im Server-Log)."
 }

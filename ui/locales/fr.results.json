@@ -22,5 +22,10 @@
   "results.progress": "{answered} sur {total} sources ont répondu …",
   "status.corrupt": "invalide",
   "app.agent": "Agent",
-  "app.ready": "prêt"
+  "app.ready": "prêt",
+  "results.rejected_count": "Prix invraisemblables rejetés : {count}.",
+  "results.err_implausible": "Prix invraisemblables – les tarifs de cette source ne sont pas utilisés.",
+  "results.err_rate_limit": "Limite de requêtes de la source – réessayez plus tard.",
+  "results.err_timeout": "Délai dépassé pour la source.",
+  "results.err_generic": "La source signale une erreur (détails dans le journal serveur)."
 }

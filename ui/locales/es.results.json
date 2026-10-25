@@ -22,5 +22,10 @@
   "results.progress": "{answered} de {total} fuentes han respondido …",
   "status.corrupt": "no válido",
   "app.agent": "Agente",
-  "app.ready": "listo"
+  "app.ready": "listo",
+  "results.rejected_count": "Precios no plausibles descartados: {count}.",
+  "results.err_implausible": "Precios no plausibles: no se usan las tarifas de esta fuente.",
+  "results.err_rate_limit": "Límite de peticiones de la fuente: inténtalo más tarde.",
+  "results.err_timeout": "La fuente agotó el tiempo de espera.",
+  "results.err_generic": "La fuente informó de un error (detalles en el registro del servidor)."
 }

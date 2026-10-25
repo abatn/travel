@@ -49,7 +49,7 @@
             <td class="st {{ 'ok' if row.status == 'ok' else ('warn' if row.status in ['skipped','corrupt'] else ('err' if row.status == 'error' else '')) }}">{{ t('status.' ~ (row.status or 'waiting')) }}</td>
             <td class="it">{{ row.items if row.items is not none else '–' }}</td>
             <td class="du">{{ t('pages.detail.seconds', value=row.elapsed_s) if row.elapsed_s else '–' }}</td>
-            <td class="er muted small">{{ (row.error or '')[:90] }}</td>
+            <td class="er muted small">{{ t('results.err_generic') if row.error else '' }}</td>
           </tr>
           {% endfor %}
           {% if not live_rows %}
@@ -118,8 +118,7 @@
 
   {% if data.price_plausibility and data.price_plausibility.rejected %}
   <p class="alert warn">
-    {{ t('results.rejected', count=data.price_plausibility.rejected | length,
-         message=data.price_plausibility.message) }}
+    {{ t('results.rejected_count', count=data.price_plausibility.rejected | length) }}
   </p>
   {% endif %}
 
@@ -187,7 +186,7 @@
     <p class="alert warn">{{ t('results.corrupt_sources', sources=dq.corrupt_sources | join(', ')) }}</p>
   {% endif %}
   <ul class="notes">
-    {% for u in dq.unavailable_sources %}<li>{{ u }}</li>{% endfor %}
+    {% for u in dq.unavailable_sources %}<li>{{ u.category }}/{{ u.source }} – {{ t('status.' ~ (u.status or 'error')) }}</li>{% endfor %}
   </ul>
   {% endif %}
 {% else %}

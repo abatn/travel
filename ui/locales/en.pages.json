@@ -30,7 +30,6 @@
   "pages.common.start_search": "Start search",
   "pages.common.to_provider": "Go to provider ↗",
   "pages.common.book_provider": "Book with provider ↗",
-
   "pages.landing.facts_title": "What the data shows",
   "pages.landing.facts_summary": "<b>{count} offers</b> from {sources} source(s), price range <b>{min}</b> to {max} (median {median}).",
   "pages.landing.facts_nonstop": "<b>{nonstop} of {count}</b> offers are non-stop ({share} %).",
@@ -52,7 +51,6 @@
   "pages.landing.from_price": "from {price}",
   "pages.landing.faq_title": "Frequently asked questions",
   "pages.landing.more_categories": "More categories",
-
   "pages.overview.title": "Travel price comparison",
   "pages.overview.lead": "We query more than 20 sources in parallel – flights, hotels, ferries and cruises – and show the cheapest price with final price, tax status and source status. No markup, no sign-up.",
   "pages.overview.categories": "Categories",
@@ -62,7 +60,6 @@
   "pages.overview.step3": "<b>Honest gaps:</b> blocked sources and implausible prices (e.g. €0.01) are discarded and disclosed – not smoothed over.",
   "pages.overview.step4": "<b>Referral instead of sale:</b> bookings are made with the provider; we only refer.",
   "pages.overview.search_title": "Search directly",
-
   "pages.alarm.title": "Alert {name}",
   "pages.alarm.back_all": "← all alerts",
   "pages.alarm.adults_count": "{count} person(s)",
@@ -86,7 +83,6 @@
   "pages.alarm.no_alerts": "No alert triggered yet.",
   "pages.alarm.pending": "Pending deliveries",
   "pages.alarm.attempts": "{count} attempt(s)",
-
   "pages.alarms.title": "Price alerts",
   "pages.alarms.lead": "An alert is a watcher configuration: budget, low point and price drop are evaluated by the existing watcher (alerts/watcher.py). The rules are firmly anchored in the watcher.",
   "pages.alarms.new": "New alert",
@@ -111,7 +107,6 @@
   "pages.alarms.last_alert": "last alert",
   "pages.alarms.per_person_short": "person",
   "pages.alarms.trip_short": "trip",
-
   "pages.detail.title": "Offer details",
   "pages.detail.back": "← back to the results",
   "pages.detail.price_per_person": "Price (per person)",
@@ -153,5 +148,7 @@
   "pages.detail.rejected": "In this run, {count} implausible prices were discarded: {message}",
   "pages.detail.limit_separate": "Separate tickets, self-connections and baggage surcharges may be included in the final price – only the source's information is binding.",
   "pages.detail.legal_title": "Legal notice",
-  "pages.detail.legal_note": "Affiliate labelling pursuant to § 5a UWG / § 6 DDG. We are an intermediary, not a tour operator (§§ 651b, 651c, 651w BGB)."
+  "pages.detail.legal_note": "Affiliate labelling pursuant to § 5a UWG / § 6 DDG. We are an intermediary, not a tour operator (§§ 651b, 651c, 651w BGB).",
+  "pages.detail.provider_error": "Source reported an error (details in the server log).",
+  "pages.detail.rejected_count": "Implausible prices rejected: {count}."
 }
