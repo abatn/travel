@@ -265,6 +265,9 @@ das Feld leer; erfundene Werte entstehen nie.
 | <https://bazaar.saylorinnovations.com/submit> | `POST` mit `{"manifestUrl": "https://…/.well-known/x402.json"}` |
 
 * Hinweis: `Rug-Munch-Media-LLC/awesome-x402` existiert nicht mehr (geprüft 25.10.2026).
+* **Stand 25.10.2026:** CDP Bazaar aktiv (letzter Crawl 09:43 UTC), Saylor Agent Bazaar
+  aufgenommen, agent-tools.cloud gelistet (Slug `travel-hanibal-ai-com-sub2070`);
+  xpaysh, gold-402, x402.eco und x402-index sind eingereicht und offen.
 * `POST /api/register` – **simuliert** die Registrierung: schreibt
   `attest/state/registration_request.json` und liefert Payload, Ziele (CDP-Bazaar,
   Spiegel, manuelle Verzeichnisse) und die manuellen Schritte. Es wird kein

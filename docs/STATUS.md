@@ -18,6 +18,9 @@ Zahlen und Belege werden nur eingetragen, wenn sie geprüft sind.
 | M2 Attestierung (`POST /api/attest`) | live, 0,01 USDC auf Base, Ed25519-signiert |
 | x402-Flow (GET/HEAD/POST → 402) | live, offizieller CDP-Check 25/25 |
 | Discovery (`.well-known/agent-payments.json`, `llms.txt`) | live |
+| x402-Manifest (`/.well-known/x402.json`) | live, Saylor-Format, CDP-Preflight 25/25 |
+| Saylor Agent Bazaar | aufgenommen 25.10.2026 (`ok`, 1 Ressource) |
+| agent-tools.cloud | gelistet, Slug `travel-hanibal-ai-com-sub2070` |
 | M3 Capability-Katalog (`/capabilities`, `.well-known/capabilities.json`) | live |
 | Umsatzbericht (`deploy/revenue_report.py`) | fertig, 15 Tests |
 | Zahlungs-Watch (E-Mail bei fremden Zahlungen) | aktiv, stündlich, Testmail zugestellt |
@@ -28,7 +31,7 @@ Zahlen und Belege werden nur eingetragen, wenn sie geprüft sind.
 ## Offen
 
 1. **Alten GitHub-Token löschen** (er funktioniert noch).
-2. **Vier Verzeichnis-Einträge** warten auf Freischaltung: gold-402 (#410), xpaysh (#1993), x402.eco (#24), x402-index (#78).
+2. **Vier Verzeichnis-Einträge** warten auf Freischaltung: gold-402 (#410), xpaysh (#1993), x402.eco (#24), x402-index (#78). Saylor und agent-tools.cloud sind bereits aufgenommen; Rug-Munch existiert nicht mehr (25.10.2026 geprüft).
 3. **Nutzungsbedingungen von 16 Quellen** prüfen, dann Status in `providers/registry.yaml` auf `approved`/`prohibited` setzen.
 4. ~~Erster fremder Zahler~~ **eingetroffen und geprüft**:
    - 2026-10-24 22:19 UTC: `0xA1d1C0cf717402ff3651aA4873CcF96410B01978` → 0,01 USDC,
