@@ -11,7 +11,8 @@ mehreren Quellen, prüft sie auf Plausibilität und leitet zum Anbieter weiter.
 Die Route **`/api/attest-v2`** ist bei [PayAPI Market](https://payapi.market) gelistet –
 suche dort nach **„Travel-Agent Price Attestation"**. PayAPI Market hat die Listung am
 **2026-10-28** verifiziert. Agenten finden die Route über den PayAPI-MCP-Server
-`https://payapi.market/mcp`.
+`https://payapi.market/mcp`. Zusätzlich ist sie im **Coinbase x402 Bazaar** indexiert
+(402-Antwort enthält `extensions.bazaar`).
 
 ## Architektur
 

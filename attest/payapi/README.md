@@ -6,6 +6,8 @@
 >
 > Die 402-Antwort enthält `extensions.bazaar` mit Input-/Output-Beispiel und
 > JSON-Schema, damit die Route im Coinbase x402 Bazaar indexiert werden kann.
+> **Status 2026-10-28:** Route im CDP-Bazaar indexiert (Suche
+> `travel.hanibal-ai.com`), CDP-Validierung `valid: true`.
 
 Zweite, unabhängige Instanz der Preis-Attestierung – ausschließlich für die
 Listung auf **PayAPI Market**. Die bestehende Instanz `/api/attest` bleibt
