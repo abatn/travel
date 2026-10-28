@@ -2,7 +2,7 @@
 """Travelpayouts/Aviasales-Tracking: Skript im <head>, Marker, Datenschutz.
 
 Prüft ohne Browser (httpx):
-  * Emerald-Script (emrldtp.cc/NTg5MzUy.js?t=589352) steht im <head> aller Seiten
+  * Emerald-Script (emrldtp.cc/NTkyNjI3.js?t=592627) steht im <head> aller Seiten
   * Auf allen fünf Sprachen (de/en/fr/es/ar) vorhanden
   * Datenschutz nennt Travelpayouts/emrldtp.cc und die Cookies
   * affiliate/config.yaml trägt den Marker 793886
@@ -21,7 +21,7 @@ import yaml
 BASE = (sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8095").rstrip("/")
 ROOT = Path(__file__).resolve().parents[2]
 LANGS = ("de", "en", "fr", "es", "ar")
-SCRIPT = "emrldtp.cc/NTg5MzUy.js?t=589352"
+SCRIPT = "emrldtp.cc/NTkyNjI3.js?t=592627"
 MARKER = "793886"
 PAGES = ("/", "/preisvergleich", "/datenschutz", "/impressum")
 results: list[tuple[bool, str]] = []

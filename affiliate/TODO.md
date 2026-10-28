@@ -15,7 +15,7 @@ Lösung: Partner-Widgets/White-Label + Partner-APIs. Dafür fehlen nur die Kennu
 
 | # | Kategorie | Firma | Anmeldung | Feldname | Kosten | Status |
 |---|---|---|---|---|---|---|
-| A | Flüge | **Travelpayouts / Aviasales** | travelpayouts.com → Programm „Aviasales" verbinden | **Marker** (`793886`; Projekt-/trs-ID `589352`) | 0 € (Provision) | ☑ Marker gesetzt, Script integriert; Link-Template offen |
+| A | Flüge | **Travelpayouts / Aviasales** | travelpayouts.com → Programm „Aviasales" verbinden | **Marker** (`793886`; Projekt-/trs-ID `592627`) | 0 € (Provision) | ☑ Marker gesetzt, Script integriert; Link-Template offen |
 | B | Hotels | **Booking.com** (über Awin oder CJ) | awin.com / cj.com → Booking-Programm | **Publisher-ID** + **Advertiser-ID** (`mid=6776`) | 0 € (Provision) | ☐ offen |
 | C | Fähren | **Ferryhopper** | partners.ferryhopper.com → Affiliate/API-Partner | **Affiliate-ID / API-Key** | 0 € (Provision) | ☐ offen |
 | D | Fähren (Alt.) | **Direct Ferries Connect** | directferriesconnect.com → „Become a Partner" | **Partner-/Agenten-Zugang** | 0 € (Provision) | ☐ offen |
@@ -25,9 +25,11 @@ Lösung: Partner-Widgets/White-Label + Partner-APIs. Dafür fehlen nur die Kennu
 **Pflicht für Flüge/Hotels/Fähren:** A, B, C. · **Optional:** D (Alternative zu C), E (nur Kreuzfahrten), F (eigene Airline-Daten).
 
 **Travelpayouts (A) – Stand:** Marker `793886` steht in `affiliate/config.yaml` (`partners.travelpayouts.id`);
-die Projekt-/`trs`-ID des Emerald-Projekts ist `589352`. Quelle für den Marker: `entrypoint_config`
-des Emerald-Servers (Stand 28.10.2026), das Emerald-Script
-`https://emrldtp.cc/NTg5MzUy.js?t=589352` liegt im `<head>` von `base.html` und `legal.html`.
+die Projekt-/`trs`-ID des neuen Emerald-Projekts ist `592627` (Domain `travel.hanibal-ai.com`).
+Quelle für den Marker: `entrypoint_config` des Emerald-Servers (Stand 28.10.2026), das
+Emerald-Script `https://emrldtp.cc/NTkyNjI3.js?t=592627` liegt im `<head>` von `base.html` und
+`legal.html`. Im neuen Projekt sind `integration`/`link_switcher`/`tooltip` derzeit noch
+deaktiviert – deshalb schreibt das Script aktuell keine Links automatisch um.
 Das Backend-`link_template` ist weiterhin leer – Links, die der Server selbst baut, werden dadurch
 noch **nicht** mit `marker` getaggt.
 
