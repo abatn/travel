@@ -65,8 +65,24 @@ def facilitator_supports(settings: Settings) -> tuple[bool, str]:
     return True, "ok"
 
 
-def build_payment_middleware(settings: Settings):
-    """Erzeugt die FastAPI-Middleware für POST /api/attest."""
+def build_payment_middleware(
+    settings: Settings,
+    *,
+    path: str = ATTEST_PATH,
+    service_name: str = "Reise-Agent Attest",
+    description: str = (
+        "Signierte Preis-Attestierung: Route, Datum, Preis, Quelle, "
+        "Zeitstempel und Plausibilitätsprüfung (Ed25519)."
+    ),
+    tags: list[str] | None = None,
+    include_bazaar: bool = True,
+    extra: dict[str, Any] | None = None,
+):
+    """Erzeugt die FastAPI-Middleware für einen x402-Pfad.
+
+    ``path``/``service_name``/``extra`` erlauben eine zweite, unabhängige
+    Instanz (z. B. PayAPI) ohne die bestehende Route zu verändern.
+    """
     facilitator = HTTPFacilitatorClient(facilitator_config(settings))
     server = x402ResourceServer(facilitator)
     server.register(settings.network, ExactEvmScheme())
@@ -80,32 +96,33 @@ def build_payment_middleware(settings: Settings):
     }
     if settings.asset:
         accepts["asset"] = settings.asset
+    if extra:
+        accepts["extra"] = dict(extra)
 
     def route_config() -> dict[str, Any]:
         # Frisches Objekt pro Methode: Die Middleware kompiliert jede Route einzeln.
-        return {
+        config: dict[str, Any] = {
             "accepts": [dict(accepts)],
-            "description": (
-                "Signierte Preis-Attestierung: Route, Datum, Preis, Quelle, "
-                "Zeitstempel und Plausibilitätsprüfung (Ed25519)."
-            ),
+            "description": description,
             "mimeType": "application/json",
-            "serviceName": "Reise-Agent Attest",
-            "tags": ["travel", "price", "attestation", "x402"],
-            "extensions": {"bazaar": bazaar_extension()},
+            "serviceName": service_name,
+            "tags": tags or ["travel", "price", "attestation", "x402"],
         }
+        if include_bazaar:
+            config["extensions"] = {"bazaar": bazaar_extension()}
+        return config
 
     # GET/HEAD gehören bewusst dazu: Verzeichnisse und Facilitator-Indexer
     # (CDP /v2/x402/validate, PayAI, gold-402) prüfen per HEAD/GET auf 402.
     # Ohne 402-Antwort wird die Ressource nicht katalogisiert (returns_402).
     routes: dict[str, Any] = {
-        f"{method} {ATTEST_PATH}": route_config()
+        f"{method} {path}": route_config()
         for method in ("POST", "GET", "HEAD")
     }
     return payment_middleware(
         routes,
         server,
-        paywall_config={"app_name": "Reise-Agent Preis-Attestierung"},
+        paywall_config={"app_name": service_name},
         sync_facilitator_on_start=True,
     )
 

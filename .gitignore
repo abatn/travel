@@ -40,6 +40,8 @@ affiliate/state/
 resolver/state/
 attest/artifacts/
 attest/keys/
+attest/payapi/keys/
+attest/payapi/state/
 coinbase.txt
 mainnet.txt
 *.key

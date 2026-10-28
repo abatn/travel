@@ -27,6 +27,7 @@ Zahlen und Belege werden nur eingetragen, wenn sie geprüft sind.
 | Monatliche Selbstzahlung (30-Tage-Regel) | aktiv, im Repo dokumentiert |
 | Quellenrechte-Sperre (`providers/rights.py`) | aktiv, 4 Quellen gesperrt |
 | Dark/Light-Mode (gesamte UI) | fertig, 63/63 Theme-Tests; Dokumentation `ui/THEME_ENTSCHEIDUNG.md` |
+| M2b PayAPI-Instanz (`/api/attest-v2`) | fertig, eigener Schlüssel/Ledger/Config, 36/36 Tests; `attest/payapi/README.md` |
 
 ## Offen
 

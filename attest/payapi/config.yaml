@@ -1,0 +1,33 @@
+# Zweite M2-Instanz, ausschließlich für PayAPI Market.
+# Unabhängig von attest/config.yaml: eigener Schlüssel, eigener Ledger,
+# eigene URL. Die Zahlungs-Wallet ist dieselbe verifizierte Base-Wallet.
+enabled: true
+instance: "payapi-market"
+public_base_url: "https://travel.hanibal-ai.com"
+ledger: "attest/payapi/state/invoices.jsonl"
+
+issuer:
+  did: "did:web:travel.hanibal-ai.com:payapi"
+  key_file: "attest/payapi/keys/issuer.ed25519"
+  ttl_seconds: 300
+
+payment:
+  # PayAPI: Preis muss exakt der Live-Challenge entsprechen.
+  price: "$0.01"
+  network: "eip155:8453"          # Base Mainnet
+  asset: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"   # kanonisches USDC
+  pay_to: "0x1cE5379a485a0bd726fce57BbfDfc316b0D35Cc4"
+  max_timeout_seconds: 120
+  # PayAPI verlangt exakt "USD Coin" (nicht "USDC").
+  extra:
+    name: "USD Coin"
+    version: "2"
+
+  facilitator:
+    url: "https://api.cdp.coinbase.com/platform/v2/x402"
+    timeout: 30
+    auth:
+      mode: "cdp_jwt"
+      key_id_env: "CDP_API_KEY_ID"
+      key_secret_env: "CDP_API_KEY_SECRET"
+      alg: "auto"

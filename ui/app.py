@@ -126,6 +126,17 @@ try:
 except Exception as _attest_exc:  # noqa: BLE001
     print(f"[attest] deaktiviert: {_attest_exc}")
 
+# --- M2b: unabhängige PayAPI-Instanz -------------------------------------
+# Eigene Config, eigener Schlüssel, eigener Ledger, eigener Pfad. Fehler hier
+# dürfen die bestehende Instanz nicht beeinflussen.
+PAYAPI_ENABLED = False
+try:
+    from attest.payapi import install as _install_payapi  # noqa: E402
+
+    PAYAPI_ENABLED = _install_payapi(app)
+except Exception as _payapi_exc:  # noqa: BLE001
+    print(f"[payapi] deaktiviert: {_payapi_exc}")
+
 
 def _base(request: Request) -> str:
     """Absolute Basis-URL (für kanonische Links, Sitemap, JSON-LD).

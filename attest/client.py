@@ -79,7 +79,8 @@ def _generate_key(path: Path) -> str:
 
 
 async def run(args) -> int:
-    url = f"{args.base.rstrip('/')}/api/attest"
+    path = getattr(args, "path", None) or "/api/attest"
+    url = f"{args.base.rstrip('/')}{path}"
 
     if args.generate_key:
         _generate_key(Path(args.key_file or "attest/keys/buyer.key"))
@@ -114,7 +115,10 @@ async def run(args) -> int:
     transport = x402AsyncTransport(client)
 
     async with httpx.AsyncClient(transport=transport, timeout=90) as http:
-        response = await http.post(url, json=SAMPLE)
+        if args.method == "GET":
+            response = await http.get(url, params=SAMPLE)
+        else:
+            response = await http.post(url, json=SAMPLE)
 
     print(f"HTTP {response.status_code}")
     if response.status_code != 200:
@@ -142,7 +146,7 @@ async def run(args) -> int:
     # Signatur gegen den Verifikations-Endpunkt prüfen
     async with httpx.AsyncClient(timeout=30) as http:
         verify = await http.post(
-            f"{args.base.rstrip('/')}/api/attest/verify",
+            f"{args.base.rstrip('/')}{path}/verify",
             json={"document": document},
         )
     print(f"Signaturprüfung: HTTP {verify.status_code} {verify.text[:300]}")
@@ -160,6 +164,9 @@ async def run(args) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description="x402-Testclient für /api/attest")
     parser.add_argument("--base", default=os.environ.get("ATTEST_BASE", DEFAULT_BASE))
+    parser.add_argument("--path", default="/api/attest",
+                        help="Pfad der Attestierungs-Instanz (Default /api/attest)")
+    parser.add_argument("--method", choices=["POST", "GET"], default="POST")
     parser.add_argument("--network", default=os.environ.get("ATTEST_NETWORK", "eip155:84532"))
     parser.add_argument("--probe", action="store_true", help="nur 402-Antwort zeigen")
     parser.add_argument("--generate-key", action="store_true", help="neue Wallet erzeugen")

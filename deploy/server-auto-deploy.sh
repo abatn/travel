@@ -40,6 +40,8 @@ rsync -rlptz --delete \
   --exclude '.venv/' \
   --exclude '.venv-*/' \
   --exclude 'attest/keys/' \
+    --exclude 'attest/payapi/keys/' \
+    --exclude 'attest/payapi/state/' \
   --exclude 'attest/state/' \
   --exclude 'attest/artifacts/' \
   --exclude 'ui/state/' \

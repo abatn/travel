@@ -222,6 +222,10 @@ das Feld leer; erfundene Werte entstehen nie.
 
 ## 10. Discovery & Registrierung
 
+> Zweite, unabhängige Instanz für PayAPI Market: siehe [`payapi/README.md`](payapi/README.md)
+> (`/api/attest-v2`, eigener Schlüssel, eigener Ledger, `/.well-known/x402`).
+
+
 * `GET /llms.txt` – Kurzbeschreibung, Preis, Ablauf, Grenzen (aus `llms.txt` im
   Root, `{{BASE_URL}}` wird dynamisch ersetzt).
 * `GET /.well-known/agent-payments.json` – vollständige Discovery inkl.
