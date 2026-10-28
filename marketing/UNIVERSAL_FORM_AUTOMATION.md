@@ -1,5 +1,9 @@
 # Universelle Formular-Automation: Recherche & Entscheidung
 
+> **Weiterentwicklung 2026-10-28:** Der Entwurf einer nicht-RPA-basierten
+> Architektur (Form Genome, Skill Lattice, Self-Play) steht in
+> [`INNOVATIVE_FORM_ARCHITEKTUR.md`](INNOVATIVE_FORM_ARCHITEKTUR.md).
+
 Stand: 2026-10-28 · Auftrag: Wie kann ein KI-Agent **beliebige** Webformulare
 autonom, zuverlässig und ohne menschliches Eingreifen ausfüllen?
 Kein Bau ohne Freigabe – dies ist Recherche, Bewertung und Vorschlag.
