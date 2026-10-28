@@ -227,9 +227,9 @@ def main() -> int:
                   "eigener Ledger: PayAPI-Leistung")
 
         key_file = tmp / "issuer.ed25519"
+        main_key = (ROOT / "attest" / "keys" / "issuer.ed25519").resolve()
         check(key_file.exists(), "eigener Ed25519-Schlüssel existiert")
-        check(not (ROOT / "attest" / "keys" / "issuer.ed25519").samefile(key_file),
-              "Schlüssel ist nicht der Hauptschlüssel")
+        check(key_file.resolve() != main_key, "Schlüssel ist nicht der Hauptschlüssel")
 
         passed = sum(1 for ok, _ in checks if ok)
         print(f"\nErgebnis: {passed}/{len(checks)} Prüfungen bestanden")
