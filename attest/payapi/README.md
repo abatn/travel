@@ -52,6 +52,7 @@ Die Zahlungs-Wallet (`payTo`) ist bewusst dieselbe verifizierte Base-Wallet:
 | POST | `/api/attest-v2/verify` | Signatur prüfen |
 | GET | `/api/attest-v2/openapi.json` | minimale OpenAPI-Beschreibung |
 | GET | `/.well-known/x402` | x402-Manifest |
+| GET | `/openapi.json` | kanonisches OpenAPI 3.1 für x402scan/Agenten |
 
 ## Beispiel
 

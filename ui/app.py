@@ -343,6 +343,15 @@ def overview_page(request: Request):
                                            (title, f"/{seo_pages.OVERVIEW_SLUG}")])])
 
 
+@app.get("/openapi.json", include_in_schema=False)
+async def openapi_discovery(request: Request):
+    """Kanonisches OpenAPI 3.1 für x402scan & Agenten (Origin-Root)."""
+    from attest.payapi.instance import openapi_document
+
+    return JSONResponse(openapi_document(_base(request)),
+                        headers={"Cache-Control": "public, max-age=300"})
+
+
 for _slug in seo_pages.CATEGORIES:
     def _make(slug=_slug):
         def view(request: Request):

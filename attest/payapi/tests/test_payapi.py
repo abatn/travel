@@ -161,6 +161,24 @@ def main() -> int:
         check((a.get("extra") or {}).get("name") == "USD Coin", "Discovery: extra.name=USD Coin")
         check(bool(r.get("outputSchema")), "Discovery: outputSchema")
 
+        # --- kanonisches OpenAPI fuer x402scan (Origin-Root) ---
+        oa = httpx.get(f"{BASE}/openapi.json", timeout=20)
+        check(oa.status_code == 200, "GET /openapi.json -> 200", str(oa.status_code))
+        doc = oa.json()
+        check(doc.get("openapi") == "3.1.0", "OpenAPI 3.1.0")
+        check(bool((doc.get("info") or {}).get("x-guidance")), "OpenAPI: info.x-guidance")
+        check(bool(((doc.get("info") or {}).get("contact") or {}).get("email")),
+              "OpenAPI: info.contact.email")
+        post = ((doc.get("paths") or {}).get("/api/attest-v2") or {}).get("post") or {}
+        pay = (post.get("x-payment-info") or {}).get("price") or {}
+        check(pay.get("mode") == "fixed" and pay.get("amount") == "0.010000",
+              "OpenAPI: x-payment-info fixed 0.010000", f"{pay.get('mode')}/{pay.get('amount')}")
+        check("402" in (post.get("responses") or {}), "OpenAPI: responses.402")
+        check(bool((post.get("requestBody") or {}).get("content")),
+              "OpenAPI: requestBody-Schema")
+        check(bool(((post.get("responses") or {}).get("200") or {}).get("content")),
+              "OpenAPI: 200-Schema")
+
         # --- unbezahlt ---
         last_required: dict = {}
         for method in ("GET", "HEAD", "POST"):

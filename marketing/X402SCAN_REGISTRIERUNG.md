@@ -22,7 +22,7 @@ Discovery. Deshalb müssen dort die korrekten Werte stehen.
 | Beschreibung | Ed25519-signierte Preis-Attestierung für Flüge, Hotels, Fähren und Kreuzfahrten mit Plausibilitätsprüfung; Beobachtung liefert der Käufer. |
 | Tags | `travel`, `price`, `attestation`, `payapi` |
 | Kontakt | `batniniabdelkader@yahoo.com` |
-| Discovery | `https://travel.hanibal-ai.com/.well-known/x402` |
+| Discovery | `https://travel.hanibal-ai.com/openapi.json` (kanonisch; zusätzlich `/.well-known/x402`) |
 
 ## Beispielanfrage (bezahlt)
 

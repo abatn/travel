@@ -7,13 +7,14 @@ import logging
 import os
 import uuid
 from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from attest.billing import record_invoice
-from attest.discovery import OUTPUT_SCHEMA, atomic_amount
+from attest.discovery import OUTPUT_SCHEMA, atomic_amount, contact_email
 from attest.models import Observation
 from attest.plausibility import check_observation
 from attest.signing import IssuerKey, load_or_create_key, verify_document
@@ -242,6 +243,108 @@ async def payapi_verify(request: Request) -> JSONResponse:
     })
 
 
+def openapi_document(base: str) -> dict[str, Any]:
+    """Kanonisches Discovery-Dokument unter ``GET /openapi.json``.
+
+    x402scan und andere Kataloge lesen OpenAPI 3.1 vom Origin-Root. Die Werte
+    stammen aus der PayAPI-Config (Preis, Netz, Wallet) und dem Observation-Modell;
+    es werden keine Kennungen oder Preise erfunden.
+    """
+    s = config().settings
+    raw_price = str(s.price or "").strip().lstrip("$€").strip()
+    try:
+        price_usd = f"{Decimal(raw_price):.6f}"
+    except (InvalidOperation, ValueError):
+        price_usd = "0.000000"
+    info: dict[str, Any] = {
+        "title": SERVICE,
+        "version": "1.0.0",
+        "description": DESCRIPTION,
+        "x-guidance": (
+            "Use POST /api/attest-v2 with a JSON body containing route, travel_date, "
+            "price, price_scope and source. Unpaid calls return HTTP 402 with x402 v2 "
+            "payment requirements (Base, USDC). A paid call returns an Ed25519-signed "
+            "price attestation; prices are observations, not booking or price guarantees."
+        ),
+    }
+    email = contact_email()
+    if email:
+        info["contact"] = {"email": email}
+    observation_schema = Observation.model_json_schema()
+    attestation_schema = {
+        "type": "object",
+        "properties": {
+            "version": {"type": "string"},
+            "id": {"type": "string"},
+            "issued_at": {"type": "string", "format": "date-time"},
+            "expires_at": {"type": "string", "format": "date-time"},
+            "issuer": {"type": "object"},
+            "subject": {"type": "object"},
+            "plausibility": {"type": "object"},
+            "signature": {"type": "object"},
+        },
+        "required": ["version", "id", "issued_at", "issuer", "subject",
+                     "plausibility", "signature"],
+    }
+    paid = {
+        "post": {
+            "operationId": "attest_v2",
+            "summary": "Signed price attestation (x402 v2, Base/USDC)",
+            "tags": ["travel", "price", "attestation", "x402"],
+            "x-payment-info": {
+                "price": {"mode": "fixed", "currency": "USD", "amount": price_usd},
+                "protocols": [{"x402": {}}],
+            },
+            "requestBody": {
+                "required": True,
+                "content": {"application/json": {"schema": observation_schema}},
+            },
+            "responses": {
+                "200": {
+                    "description": "Signed Ed25519 attestation",
+                    "content": {"application/json": {"schema": attestation_schema}},
+                },
+                "402": {"description": "Payment Required (x402 v2 challenge)"},
+            },
+        }
+    }
+    return {
+        "openapi": "3.1.0",
+        "info": info,
+        "servers": [{"url": base}],
+        "paths": {
+            PAYAPI_PATH: paid,
+            "/health": {
+                "get": {"operationId": "health", "security": [],
+                        "summary": "Health check",
+                        "responses": {"200": {"description": "OK"}}},
+            },
+            f"{PAYAPI_PATH}/key": {
+                "get": {"operationId": "attest_key", "security": [],
+                        "summary": "Public Ed25519 key",
+                        "responses": {"200": {"description": "Public key"}}},
+            },
+            f"{PAYAPI_PATH}/validate": {
+                "post": {"operationId": "attest_validate", "security": [],
+                         "summary": "Free pre-validation",
+                         "requestBody": {"required": True, "content": {
+                             "application/json": {"schema": observation_schema}}},
+                         "responses": {"200": {"description": "Validation result"}}},
+            },
+            f"{PAYAPI_PATH}/verify": {
+                "post": {"operationId": "attest_verify", "security": [],
+                         "summary": "Verify a signed attestation",
+                         "responses": {"200": {"description": "Verification result"}}},
+            },
+            "/.well-known/x402": {
+                "get": {"operationId": "x402_manifest", "security": [],
+                        "summary": "x402 discovery manifest",
+                        "responses": {"200": {"description": "Manifest"}}},
+            },
+        },
+    }
+
+
 def _manifest(request: Request) -> dict[str, Any]:
     s = config().settings
     return {
@@ -272,39 +375,7 @@ async def payapi_manifest(request: Request) -> JSONResponse:
 
 @public_router.get("/api/attest-v2/openapi.json")
 async def payapi_openapi(request: Request) -> JSONResponse:
-    base = _base_url(request)
-    return JSONResponse({
-        "openapi": "3.1.0",
-        "info": {"title": SERVICE, "version": "1.0.0",
-                 "description": DESCRIPTION},
-        "servers": [{"url": base}],
-        "paths": {
-            PAYAPI_PATH: {
-                "get": {
-                    "summary": "Signed reference attestation (paid)",
-                    "parameters": [
-                        {"name": "route", "in": "query", "schema": {"type": "string"}},
-                        {"name": "travel_date", "in": "query", "schema": {"type": "string", "format": "date"}},
-                        {"name": "price", "in": "query", "schema": {"type": "string"}},
-                        {"name": "source", "in": "query", "schema": {"type": "string"}},
-                    ],
-                    "responses": {"200": {"description": "Signed attestation"},
-                                  "402": {"description": "Payment required"}},
-                },
-                "post": {
-                    "summary": "Signed attestation of a submitted observation (paid)",
-                    "requestBody": {"required": False,
-                                    "content": {"application/json": {"schema": {"type": "object"}}}},
-                    "responses": {"200": {"description": "Signed attestation"},
-                                  "402": {"description": "Payment required"}},
-                },
-            },
-            f"{PAYAPI_PATH}/key": {"get": {"responses": {"200": {"description": "Public key"}}}},
-            f"{PAYAPI_PATH}/validate": {"post": {"responses": {"200": {"description": "Validation"}}}},
-            f"{PAYAPI_PATH}/verify": {"post": {"responses": {"200": {"description": "Verification"}}}},
-            "/.well-known/x402": {"get": {"responses": {"200": {"description": "x402 manifest"}}}},
-        },
-    })
+    return JSONResponse(openapi_document(_base_url(request)))
 
 
 # ------------------------------------------------------------------ paid routes
