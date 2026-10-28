@@ -20,6 +20,9 @@ $PY attest/tests/test_legal.py
 echo "== Discovery (llms.txt, agent-payments.json, register) =="
 $PY attest/tests/test_discovery.py
 
+echo "== PayAPI-Instanz (unabhängig, Mock-Facilitator) =="
+$PY attest/payapi/tests/test_payapi.py
+
 echo "== Resolver =="
 $PY resolver/tests/test_resolver.py
 
