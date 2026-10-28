@@ -87,14 +87,6 @@ def build_payment_middleware(
     facilitator = HTTPFacilitatorClient(facilitator_config(settings))
     server = x402ResourceServer(facilitator)
     server.register(settings.network, ExactEvmScheme())
-    # Bazaar-Discovery: Extension muss am Resource-Server registriert sein,
-    # sonst verarbeitet der Facilitator die Deklaration beim Settlement nicht.
-    try:
-        from x402.extensions.bazaar import bazaar_resource_server_extension
-
-        server.register_extension(bazaar_resource_server_extension)
-    except Exception:  # noqa: BLE001 - ältere x402-Version ohne Bazaar
-        logger.warning("Bazaar-Extension nicht verfügbar; Discovery bleibt aus")
 
     accepts: dict[str, Any] = {
         "scheme": "exact",
@@ -108,7 +100,7 @@ def build_payment_middleware(
     if extra:
         accepts["extra"] = dict(extra)
 
-    def route_config(method: str) -> dict[str, Any]:
+    def route_config() -> dict[str, Any]:
         # Frisches Objekt pro Methode: Die Middleware kompiliert jede Route einzeln.
         config: dict[str, Any] = {
             "accepts": [dict(accepts)],
@@ -117,9 +109,7 @@ def build_payment_middleware(
             "serviceName": service_name,
             "tags": tags or ["travel", "price", "attestation", "x402"],
         }
-        # Nur POST traegt die Bazaar-Deklaration (JSON-Body); GET/HEAD sind
-        # Probes und wuerden sonst eine falsche Methode im Katalog deklarieren.
-        if include_bazaar and method == "POST":
+        if include_bazaar:
             config["extensions"] = {"bazaar": bazaar_extension()}
         return config
 
@@ -127,7 +117,7 @@ def build_payment_middleware(
     # (CDP /v2/x402/validate, PayAI, gold-402) prüfen per HEAD/GET auf 402.
     # Ohne 402-Antwort wird die Ressource nicht katalogisiert (returns_402).
     routes: dict[str, Any] = {
-        f"{method} {path}": route_config(method)
+        f"{method} {path}": route_config()
         for method in ("POST", "GET", "HEAD")
     }
     return payment_middleware(
