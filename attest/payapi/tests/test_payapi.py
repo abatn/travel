@@ -174,6 +174,18 @@ def main() -> int:
             check("signature" not in resp.text and '"id"' not in resp.text,
                   f"unbezahlt {method}: keine Produktdaten")
 
+        # Browser-Request darf keine 500 auslösen (Paywall-HTML)
+        browser = httpx.get(
+            f"{BASE}/api/attest-v2",
+            headers={"Accept": "text/html,application/xhtml+xml",
+                     "User-Agent": "Mozilla/5.0 (PayAPI-Check)"},
+            timeout=20,
+        )
+        check(browser.status_code == 402, "Browser-GET -> 402 statt 500",
+              str(browser.status_code))
+        check("text/html" in browser.headers.get("content-type", ""),
+              "Browser-GET: Paywall-HTML", browser.headers.get("content-type", ""))
+
         # --- bezahlt (echter x402-Client, Mock-Facilitator) ---
         from eth_account import Account
 

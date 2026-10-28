@@ -16,6 +16,7 @@ import httpx
 from x402 import x402ResourceServer
 from x402.http import HTTPFacilitatorClient
 from x402.http.middleware.fastapi import payment_middleware
+from x402.http.types import PaywallConfig
 from x402.mechanisms.evm.exact.server import ExactEvmScheme
 
 from .auth import build_auth_headers
@@ -122,7 +123,7 @@ def build_payment_middleware(
     return payment_middleware(
         routes,
         server,
-        paywall_config={"app_name": service_name},
+        paywall_config=PaywallConfig(app_name=service_name, testnet=settings.testnet),
         sync_facilitator_on_start=True,
     )
 

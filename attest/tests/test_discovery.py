@@ -160,6 +160,18 @@ def main() -> int:
                   f"Probe: {method} enthält bazaar-Extension")
             check(bool(decoded.get("accepts")), f"Probe: {method} enthält accepts")
 
+        # Browser-Request (Paywall-HTML) darf keine 500 auslösen
+        browser = httpx.get(
+            f"{BASE}/api/attest",
+            headers={"Accept": "text/html,application/xhtml+xml",
+                     "User-Agent": "Mozilla/5.0 (directory-check)"},
+            timeout=10,
+        )
+        check(browser.status_code == 402, "Browser-GET /api/attest -> 402",
+              str(browser.status_code))
+        check("text/html" in browser.headers.get("content-type", ""),
+              "Browser-GET: Paywall-HTML", browser.headers.get("content-type", ""))
+
         # unbezahlter POST bleibt 402 (unverändert)
         post_probe = httpx.post(f"{BASE}/api/attest", json={}, timeout=10)
         check(post_probe.status_code == 402, "Probe: POST /api/attest -> 402",
