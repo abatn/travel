@@ -1,5 +1,12 @@
 # PayAPI-Instanz (M2b)
 
+> **PayAPI Market:** gelistet unter <https://payapi.market> (Suche nach
+> **„Travel-Agent Price Attestation"**), verifiziert am **2026-10-28**.
+> Agenten finden die Route über den MCP-Server `https://payapi.market/mcp`.
+>
+> Die 402-Antwort enthält `extensions.bazaar` mit Input-/Output-Beispiel und
+> JSON-Schema, damit die Route im Coinbase x402 Bazaar indexiert werden kann.
+
 Zweite, unabhängige Instanz der Preis-Attestierung – ausschließlich für die
 Listung auf **PayAPI Market**. Die bestehende Instanz `/api/attest` bleibt
 unverändert.

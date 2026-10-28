@@ -162,17 +162,33 @@ def main() -> int:
         check(bool(r.get("outputSchema")), "Discovery: outputSchema")
 
         # --- unbezahlt ---
+        last_required: dict = {}
         for method in ("GET", "HEAD", "POST"):
             resp = httpx.request(method, f"{BASE}/api/attest-v2", json={} if method == "POST" else None,
                                  timeout=20)
             check(resp.status_code == 402, f"unbezahlt {method} -> 402", str(resp.status_code))
             required = _decode(resp)
+            last_required = required
             acc = (required.get("accepts") or [{}])[0]
             check(acc.get("amount") == "10000", f"unbezahlt {method}: amount 10000", acc.get("amount"))
             check((acc.get("extra") or {}).get("name") == "USD Coin",
                   f"unbezahlt {method}: extra.name", (acc.get("extra") or {}).get("name"))
             check("signature" not in resp.text and '"id"' not in resp.text,
                   f"unbezahlt {method}: keine Produktdaten")
+
+        # --- Bazaar-Erweiterung (CDP x402 Bazaar) ---
+        bazaar = (last_required.get("extensions") or {}).get("bazaar") or {}
+        info = bazaar.get("info") or {}
+        inp = info.get("input") or {}
+        out = info.get("output") or {}
+        check(bool(bazaar), "402: extensions.bazaar vorhanden")
+        check(inp.get("type") == "http" and inp.get("method") == "POST",
+              "Bazaar: input type=http/method=POST", f"{inp.get('type')}/{inp.get('method')}")
+        check((inp.get("body") or {}).get("route") == "BER-FCO",
+              "Bazaar: input.body.route Beispiel", (inp.get("body") or {}).get("route"))
+        check(isinstance(out.get("example"), dict) and bool(out.get("example")),
+              "Bazaar: output.example vorhanden")
+        check(bool(bazaar.get("schema")), "Bazaar: schema vorhanden")
 
         # Browser-Request darf keine 500 auslösen (Paywall-HTML)
         browser = httpx.get(

@@ -6,6 +6,13 @@ mit **x402-bezahlten, signierten Preis-Attestierungen** für autonome Agenten.
 Keine Buchung, keine Zahlung für Reisen: Die Anwendung vergleicht Preise aus
 mehreren Quellen, prüft sie auf Plausibilität und leitet zum Anbieter weiter.
 
+## PayAPI Market
+
+Die Route **`/api/attest-v2`** ist bei [PayAPI Market](https://payapi.market) gelistet –
+suche dort nach **„Travel-Agent Price Attestation"**. PayAPI Market hat die Listung am
+**2026-10-28** verifiziert. Agenten finden die Route über den PayAPI-MCP-Server
+`https://payapi.market/mcp`.
+
 ## Architektur
 
 ```

@@ -421,7 +421,7 @@ def install(app) -> bool:
             service_name=SERVICE,
             description=DESCRIPTION,
             tags=["travel", "price", "attestation", "payapi"],
-            include_bazaar=False,
+            include_bazaar=True,
             extra={"name": cfg.extra_name, "version": "2"},
         )
     except Exception as exc:  # noqa: BLE001
