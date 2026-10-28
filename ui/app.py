@@ -167,6 +167,16 @@ def _render(request: Request, template: str, context: dict, meta: dict,
     return templates.TemplateResponse(request, template, ctx, status_code=status_code)
 
 
+def _render_error(request: Request, status_code: int, message: str):
+    """Fehlerseite mit vollem Layout (<head>, Navigation) statt HTML-Fragment."""
+    meta = seo_meta.build(f"{status_code} – Reise-Agent", message,
+                          request.url.path, base_url=_base(request),
+                          robots="noindex,follow")
+    return _render(request, "error.html",
+                   {"code": status_code, "message": message}, meta,
+                   status_code=status_code)
+
+
 def _fmt(value, currency: str | None = None) -> str:
     if value is None:
         return "nicht verfügbar"
@@ -345,8 +355,9 @@ def _route_view(request: Request, slug: str, route: str):
     page = seo_pages.CATEGORIES[slug]
     data = routes_cache.load(page["key"], route.upper())
     if not data:
-        return HTMLResponse("Für diese Strecke liegen noch keine Preise vor – "
-                            "starte eine Suche auf der Kategorieseite.", status_code=404)
+        lang = getattr(request.state, "lang", i18n_core.DEFAULT)
+        return _render_error(request, 404,
+                             i18n_core.t(lang, "error.no_prices"))
     base = _base(request)
     lang = getattr(request.state, "lang", i18n_core.DEFAULT)
     origin_label = data.get("origin_name") or data.get("origin")
@@ -615,11 +626,13 @@ def detail_page(request: Request, job_id: str, category: str, index: int):
     data = service.job_result(job_id, category)
     if not data:
         lang = getattr(request.state, "lang", i18n_core.DEFAULT)
-        return HTMLResponse(i18n_core.t(lang, "results.no_result_category"),
-                            status_code=404)
+        return _render_error(request, 404,
+                             i18n_core.t(lang, "results.no_result_category"))
     ranked = data.get("ranked") or []
     if index < 0 or index >= len(ranked):
-        return HTMLResponse("Angebot nicht gefunden.", status_code=404)
+        lang = getattr(request.state, "lang", i18n_core.DEFAULT)
+        return _render_error(request, 404,
+                             i18n_core.t(lang, "error.offer_not_found"))
     item = ranked[index]
     providers = {p.get("source"): p for p in data.get("providers", [])}
     plaus = data.get("price_plausibility") or {}
@@ -697,7 +710,9 @@ def alarm_page(request: Request, alarm_id: str):
     alarms = service.list_alarms()
     alarm = next((a for a in alarms if a["id"] == alarm_id), None)
     if not alarm:
-        return HTMLResponse("Alarm nicht gefunden.", status_code=404)
+        lang = getattr(request.state, "lang", i18n_core.DEFAULT)
+        return _render_error(request, 404,
+                             i18n_core.t(lang, "error.alarm_not_found"))
     lang = getattr(request.state, "lang", i18n_core.DEFAULT)
     labels = {c: i18n_core.t(lang, f"pages.category.{c}", default=v)
               for c, v in service.CATEGORY_LABELS.items()}
@@ -719,7 +734,9 @@ async def alarm_run(request: Request, alarm_id: str):
     alarms = service.list_alarms()
     alarm = next((a for a in alarms if a["id"] == alarm_id), None)
     if not alarm:
-        return HTMLResponse("Alarm nicht gefunden.", status_code=404)
+        lang = getattr(request.state, "lang", i18n_core.DEFAULT)
+        return _render_error(request, 404,
+                             i18n_core.t(lang, "error.alarm_not_found"))
     result = service.run_watcher(alarm)
     return RedirectResponse(url=f"/alarms/{alarm_id}", status_code=303)
 
