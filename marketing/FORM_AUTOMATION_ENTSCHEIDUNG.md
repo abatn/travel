@@ -1,5 +1,9 @@
 # Formular-Automation: Recherche & Entscheidung
 
+> **Nachtrag 2026-10-28:** Diese Doku ist PayAPI-spezifisch. Die allgemeine,
+> benchmarkgestützte Analyse für beliebige Formulare steht in
+> [`UNIVERSAL_FORM_AUTOMATION.md`](UNIVERSAL_FORM_AUTOMATION.md).
+
 Stand: 2026-10-28 · Auftrag: Wie kann ein KI-Agent das PayAPI-Market-Formular
 (oder ähnliche Formulare) vollautomatisch ausfüllen? Kein Bau ohne Freigabe.
 
