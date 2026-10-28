@@ -39,7 +39,7 @@ partners:
   travelpayouts:
     network: Travelpayouts
     categories: [flights, hotels, ferries]
-    id: "793886"                # Marker 793886 (entrypoint_config, Stand 28.10.2026); Projekt-/trs-ID ist 592627
+    id: "793886"                # Marker 793886 (entrypoint_config, Stand 28.10.2026); Projekt-/trs-ID ist 589352
     parameter: marker
     # Template aus dem Travelpayouts-Link-Generator kopieren (Dashboard -> Tools -> Link)
     link_template: ""
