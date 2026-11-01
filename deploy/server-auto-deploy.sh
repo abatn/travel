@@ -63,7 +63,7 @@ sudo systemctl restart reise-agent
 
 # uvicorn braucht je nach CDP-Erreichbarkeit 5-60 s. Bis zu 80 s warten.
 for _ in $(seq 1 40); do
-  if curl -fsS http://127.0.0.1:8077/health; then
+  if curl -fsS http://127.0.0.1:8077/ready; then
     echo
     echo "OK $(date -Is)"
     exit 0
@@ -71,5 +71,5 @@ for _ in $(seq 1 40); do
   sleep 2
 done
 
-echo "FEHLER: /health nach 80 s nicht erreichbar" >&2
+echo "FEHLER: /ready nach 80 s nicht erreichbar" >&2
 exit 1

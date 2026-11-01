@@ -80,7 +80,8 @@ Pflichtfelder: `betreiber.name`, `strasse`, `plz_ort`, `land`, `email`,
 ## Health-Checks
 
 ```bash
-curl -s https://travel.hanibal-ai.com/health
+curl -s https://travel.hanibal-ai.com/health   # Liveness
+curl -s https://travel.hanibal-ai.com/ready    # Readiness (Registry, State, Zahlungswege)
 curl -s https://travel.hanibal-ai.com/llms.txt | head
 curl -s https://travel.hanibal-ai.com/.well-known/agent-payments.json
 curl -s -o /dev/null -w '%{http_code}\n' https://travel.hanibal-ai.com/
@@ -155,7 +156,7 @@ Der Deploy-Job:
 * rsync nach `/home/batnini/mimo-agents` (Runtime-State, Keys und Venvs sind
   ausgeschlossen),
 * installiert `requirements-runtime.txt` im venv,
-* startet `reise-agent` neu und prüft `/health` lokal **und** öffentlich.
+* startet `reise-agent` neu und prüft `/ready` lokal **und** öffentlich (Liveness bleibt `/health`).
 
 ### GitHub-Secrets
 

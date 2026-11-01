@@ -35,5 +35,11 @@ $PY seo/tests/test_seo.py
 echo "== Quellenrechte (Registry-Invarianten) =="
 $PY providers/tests/test_rights.py
 
+echo "== Deploy-Ausschluesse =="
+$PY deploy/tests/test_deploy_excludes.py
+
+echo "== Readiness =="
+$PY ui/tests/test_ready.py
+
 echo
 echo "CI OK"

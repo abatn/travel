@@ -23,7 +23,7 @@ German travel price comparison (flights, hotels, ferries, cruises) plus x402-pai
 ## Architecture
 
 - Request flow: `ui/app.py` (routes) → `ui/service.py` (the only adapter) → `providers/runner.py`, `bundling/compare.py`, `alerts/watcher.py` (subprocess `--once`).
-- Searches run in a background thread (can take minutes). Result pages poll `/api/jobs/<id>`. `/health` is the readiness probe; deploy waits on it.
+- Searches run in a background thread (can take minutes). Result pages poll `/api/jobs/<id>`. `/health` is liveness; `/ready` is the readiness probe (registry, state, payment paths) and deploy waits on it.
 - `providers/registry.yaml` is the single source of truth for 22 sources (20 enabled). A new source is a YAML entry (`transport`, `params`, `extract`, `price_scope`), never Python.
 - Keep `ui/` a thin layer. Ranking and scoring belong in `providers/score.py` and the registry.
 - `resolver/` is offline (airports, ports, aliases); no network on the search path. `seo/` derives JSON-LD and sitemap from the visible offers.

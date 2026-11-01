@@ -38,7 +38,7 @@ def facilitator_config(settings: Settings) -> dict[str, Any]:
     return config
 
 
-def facilitator_supports(settings: Settings) -> tuple[bool, str]:
+def facilitator_supports(settings: Settings, timeout: float | None = None) -> tuple[bool, str]:
     """Prüft vor dem Bau der Middleware, ob der Facilitator unser Netz kann.
 
     Verhindert, dass ein falsch konfigurierter Facilitator den Prozess beim
@@ -51,7 +51,8 @@ def facilitator_supports(settings: Settings) -> tuple[bool, str]:
         factory = config.get("create_headers")
         if factory is not None:
             headers = (factory().get("supported") or {})
-        response = httpx.get(url, headers=headers, timeout=settings.facilitator.timeout)
+        response = httpx.get(url, headers=headers,
+                             timeout=timeout or settings.facilitator.timeout)
         response.raise_for_status()
         kinds = (response.json() or {}).get("kinds") or []
     except Exception as exc:  # noqa: BLE001

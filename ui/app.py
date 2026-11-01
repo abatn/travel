@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import html as html_lib
 import os
+import time
 import uuid
 from datetime import date, datetime, timedelta, timezone
 
@@ -105,7 +106,7 @@ async def seo_headers(request: Request, call_next):
         response.headers["Cache-Control"] = "private, no-store"
     elif response.headers.get("content-type", "").startswith("text/html"):
         response.headers.setdefault("Cache-Control", "public, max-age=60, must-revalidate")
-    if path.startswith("/api/") or path == "/health":
+    if path.startswith("/api/") or path in ("/health", "/ready"):
         # S13: zweite Ebene gegen Indexierung technischer Endpunkte
         response.headers.setdefault("X-Robots-Tag", "noindex, nofollow")
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
@@ -808,3 +809,76 @@ async def _validation_error_handler(request: Request, exc: RequestValidationErro
 @app.get("/health")
 async def health():
     return JSONResponse({"ok": True, "service": "reise-agent-ui"})
+
+
+_READY_CACHE: dict[str, tuple[float, bool, str]] = {}
+_READY_TTL = 30.0
+
+
+def _facilitator_ready(kind: str) -> tuple[bool, str]:
+    """Facilitator-Status mit kurzem Cache; nur bei aktivierter Instanz relevant."""
+    cached = _READY_CACHE.get(kind)
+    now = time.monotonic()
+    if cached and now - cached[0] < _READY_TTL:
+        return cached[1], cached[2]
+    try:
+        from attest.x402_gate import facilitator_supports
+        if kind == "attest":
+            from attest.config import load_settings
+            ok, detail = facilitator_supports(load_settings(), timeout=5)
+        else:
+            from attest.payapi.config import load as load_payapi
+            ok, detail = facilitator_supports(load_payapi().settings, timeout=5)
+    except Exception as exc:  # noqa: BLE001
+        ok, detail = False, str(exc)[:300]
+    _READY_CACHE[kind] = (now, ok, detail)
+    return ok, detail
+
+
+def _component_ready(kind: str, installed: bool) -> tuple[dict, bool]:
+    if installed:
+        ok, detail = _facilitator_ready(kind)
+        return {"status": "ok" if ok else "error", "detail": detail if not ok else None}, ok
+    try:
+        if kind == "attest":
+            from attest.config import load_settings
+            configured = bool(load_settings().enabled)
+        else:
+            from attest.payapi.config import load as load_payapi
+            configured = bool(load_payapi().enabled)
+    except Exception as exc:  # noqa: BLE001
+        return {"status": "error", "detail": str(exc)[:300]}, False
+    if not configured:
+        return {"status": "disabled"}, True
+    return {"status": "error", "detail": "aktiviert, aber nicht installiert"}, False
+
+
+@app.get("/ready")
+async def ready():
+    """Readiness: Registry, State und aktive Zahlungswege (mit 30-s-Cache)."""
+    checks: dict[str, object] = {}
+    ok = True
+    try:
+        service.load_registry(service.REGISTRY)
+        checks["registry"] = {"status": "ok"}
+    except Exception as exc:  # noqa: BLE001
+        checks["registry"] = {"status": "error", "detail": str(exc)[:300]}
+        ok = False
+    state_dirs = [os.path.join(ROOT, "ui", "state"),
+                  os.path.join(ROOT, "providers")]
+    bad = [p for p in state_dirs if not (os.path.isdir(p) and os.access(p, os.W_OK))]
+    if bad:
+        checks["state"] = {"status": "error", "detail": "nicht schreibbar: " + ", ".join(bad)}
+        ok = False
+    else:
+        checks["state"] = {"status": "ok"}
+    attest, attest_ok = _component_ready("attest", ATTEST_ENABLED)
+    payapi, payapi_ok = _component_ready("payapi", PAYAPI_ENABLED)
+    checks["attest"] = attest
+    checks["payapi"] = payapi
+    ok = ok and attest_ok and payapi_ok
+    return JSONResponse(
+        {"ok": ok, "service": "reise-agent-ui", "checks": checks},
+        status_code=200 if ok else 503,
+    )
+
