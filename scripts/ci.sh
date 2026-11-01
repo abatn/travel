@@ -32,5 +32,8 @@ $PY affiliate/tests/test_affiliate.py
 echo "== SEO =="
 $PY seo/tests/test_seo.py
 
+echo "== Quellenrechte (Registry-Invarianten) =="
+$PY providers/tests/test_rights.py
+
 echo
 echo "CI OK"
