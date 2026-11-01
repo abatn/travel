@@ -78,7 +78,7 @@ jobs:
             --exclude 'affiliate/state/' \
             --exclude 'resolver/state/' \
             --exclude 'logs/' \
-            ui providers seo resolver affiliate alerts bundling attest docs llms.txt requirements-runtime.txt scripts deploy \
+            ui providers seo resolver affiliate alerts bundling attest i18n docs llms.txt requirements-runtime.txt scripts deploy \
             "$USER@$HOST:/home/batnini/mimo-agents/"
 
           rsync -rlptz --delete \

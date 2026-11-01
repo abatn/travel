@@ -16,7 +16,7 @@ rsync -a --delete \
   --exclude 'attest/state/invoices.jsonl' \
   --exclude 'attest/state/*.lock' \
   --exclude 'attest/keys/buyer.key' \
-  ui providers seo resolver affiliate alerts bundling attest docs llms.txt rome-2star requirements-runtime.txt \
+  ui providers seo resolver affiliate alerts bundling attest i18n docs llms.txt rome-2star requirements-runtime.txt \
   "$HOST:$DEST/"
 
 ssh "$HOST" 'chown -R batnini:batnini /home/batnini/mimo-agents; systemctl restart reise-agent; sleep 3; systemctl is-active reise-agent; curl -fsS http://127.0.0.1:8077/health; echo'

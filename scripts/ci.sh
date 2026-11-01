@@ -6,7 +6,7 @@ set -euo pipefail
 PY="${PYTHON:-python3}"
 
 echo "== Compile =="
-$PY -m compileall -q ui providers seo resolver affiliate alerts bundling attest
+$PY -m compileall -q ui providers seo resolver affiliate alerts bundling attest i18n
 
 echo "== Unit (Signatur, Konfigurationswechsel, Billing) =="
 $PY -m unittest attest.tests.test_attest_unit attest.tests.test_billing -v
