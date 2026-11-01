@@ -1,6 +1,6 @@
 # Projektstatus
 
-Stand: 25.10.2026. Diese Datei ist die einzige Übersicht über „erledigt / offen“.
+Stand: 01.11.2026. Diese Datei ist die einzige Übersicht über „erledigt / offen“.
 Zahlen und Belege werden nur eingetragen, wenn sie geprüft sind.
 
 ## Vom Betreiber erledigt und bestätigt
@@ -33,7 +33,9 @@ Zahlen und Belege werden nur eingetragen, wenn sie geprüft sind.
 
 1. **Alten GitHub-Token löschen** (er funktioniert noch).
 2. **Vier Verzeichnis-Einträge** warten auf Freischaltung: gold-402 (#410), xpaysh (#1993), x402.eco (#24), x402-index (#78). Saylor und agent-tools.cloud sind bereits aufgenommen; Rug-Munch existiert nicht mehr (25.10.2026 geprüft).
-3. **Nutzungsbedingungen von 16 Quellen** prüfen, dann Status in `providers/registry.yaml` auf `approved`/`prohibited` setzen.
+3. **Nutzungsbedingungen prüfen** (Stand 01.11.2026: 17 Quellen `unverified`, 4 `prohibited`, 1 `own`). Die 15 abgefragten `unverified`-Quellen werden im Laufzeit-Default **angezeigt**, bevor die AGB geklärt sind. Dann Status in `providers/registry.yaml` auf `approved`/`prohibited` setzen. Quellen-Details: `docs/QUELLENRECHTE.md`.
+3a. **`fli_flights`** (Google-Flights-Engine, Lizenz nicht dokumentiert) ist `unverified`, aber aktiv und sichtbar. Rechtsprüfung offen.
+3b. **Bündelung im Web-UI** berechnet nur `separate_roundtrip`. `split_roundtrip` und `package` sind nicht verdrahtet (`ui/service.py`). Entscheidung offen: verdrahten oder Doku bei der Einschränkung belassen.
 4. ~~Erster fremder Zahler~~ **eingetroffen und geprüft**:
    - 2026-10-24 22:19 UTC: `0xA1d1C0cf717402ff3651aA4873CcF96410B01978` → 0,01 USDC,
      Tx `0x368b0ad320a4a2ef82e5cf962bbc5fac0f4990390c6a2cba6dfaefd855818397`,

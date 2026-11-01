@@ -26,7 +26,7 @@ docs/                      Recherche- und Architekturdokumentation
   Platzhaltern (`{origin}`, `{destination}`, `{city}`, `{depart_date}`, `{adults}`, …), Typ-Korrekturen (`coerce`)
   und Extraktionspfade (`extract`) für Preis, Währung, Stopps, Endpreis, Koordinaten, Sterne, Link.
   **Neue API = ein YAML-Block.** Es ist kein Python-Code anzufassen.
-* **Aktuell 22 Quellen** (Registry, davon 20 aktiv) in **vier Kategorien**: Flüge `trvl_flights`, `fli_flights`,
+* **Aktuell 22 Quellen** (Registry, davon 20 aktiv; 4 davon `prohibited` und damit nicht abgefragt, also **16 abgefragt**: 6 Flüge, 6 Hotels, 2 Fähren, 2 Kreuzfahrten; 2 deaktiviert) in **vier Kategorien**: Flüge `trvl_flights`, `fli_flights`,
   `skiplagged_flights`, `maqami-travel`, `octotrip-flights`, `alice-flights`, `flights-gf`, `googleflights-local`,
   `easygroupflights`; Hotels `stays_hotels`, `rome_hotel_taxes`, `maqami-travel-hotels`, `callstay`,
   `pilotplans-hotels`, `bookresorts`; **Fähren** `ferryhopper_mcp`, `trvl_ferries`, `finnlines_ferry`;
@@ -42,7 +42,7 @@ docs/                      Recherche- und Architekturdokumentation
   (`ThreadPoolExecutor`, `max_workers` aus `defaults`) und liefert je Quelle Status, Dauer und Fehlerbild.
 * **Robustheit (Benchmark-Erweiterung).** Ein blockierter Anbieter degradiert die Abfrage, statt sie zu beenden:
   Status `error` mit wörtlichem Fehlerbild, die übrigen Quellen liefern weiter. Vier zusätzliche Mechanismen
-  (Muster aus der Benchmark-Recherche, siehe `benchmark/vergleich.md`):
+  (Muster aus der Benchmark-Recherche, siehe `benchmark/vergleich.md`; `benchmark/` ist lokal und nicht im Repo):
   * **Circuit Breaker** – eine Quelle, die kürzlich 429/Timeout hatte, wird für ein exponentiell wachsendes Fenster
     übersprungen (`providers/state/breakers.json`).
   * **Retry mit Backoff + Jitter** – nur bei transienten Fehlern (429/5xx/Timeout); ein 401/403 gilt als Quellendefekt
@@ -102,11 +102,13 @@ Kreuzfahrten `hal-cruises` (Kabinenpreis inkl. Steuern, `taxesAndFeesCombined_EU
 
 `bundling/compare.py` rechnet aus denselben Runner-Ergebnissen drei Varianten:
 
-| Variante | Rechnung |
-|---|---|
-| `separate_roundtrip` | günstigster Rundflug × Personen + günstigstes Hotel × Nächte |
-| `split_roundtrip` | günstigster Einweg (Hin) + günstigster Einweg (Rück), je × Personen + Hotel |
-| `package` | Pauschalpreis aus einer Paketquelle (optional) |
+| Variante | Rechnung | Im Web-UI berechnet? |
+|---|---|---|
+| `separate_roundtrip` | günstigster Rundflug × Personen + günstigstes Hotel × Nächte | ja |
+| `split_roundtrip` | günstigster Einweg (Hin) + günstigster Einweg (Rück), je × Personen + Hotel | nein (`ui/service.py` übergibt `oneways=None`) |
+| `package` | Pauschalpreis aus einer Paketquelle (optional) | nein (`ui/service.py` übergibt `package=None`) |
+
+Die Weboberfläche berechnet also derzeit nur `separate_roundtrip` (plus Schiffs-Kombinationen). `split_roundtrip` und `package` sind Bibliotheksfunktionen ohne Verdrahtung im UI.
 
 Die Empfehlung ist die **billigste** Variante, zusammen mit Differenz zu jeder Alternative, den Risiken der
 gewählten Variante (getrennte Tickets = kein Anschlussanspruch, Gepäck neu einchecken) und den Belegzitaten aus
@@ -162,7 +164,7 @@ Browser ──HTTP──> ui/app.py (FastAPI) ──> ui/service.py ──> prov
 
 * **Warum FastAPI + Jinja2:** Beides ist im System-Python vorhanden, es braucht keinen Build-Schritt
   und keine neue Abhängigkeit – passend zu einem System, dessen Logik reines Python ist.
-* **Job-Modell:** Eine Suche über 22 Quellen dauert 1–2 Minuten; eine synchrone HTTP-Antwort wäre
+* **Job-Modell:** Eine Suche über die 16 abgefragten Quellen dauert 1–2 Minuten; eine synchrone HTTP-Antwort wäre
   unbrauchbar. Der Suchlauf läuft deshalb im Hintergrundthread, die Ergebnisseite pollt
   `/api/jobs/<id>` und zeigt währenddessen **live** je Quelle, ob sie antwortet, übersprungen oder
   blockiert ist. Dafür hat `providers/runner.py` einen optionalen Parameter `progress` bekommen
@@ -269,6 +271,8 @@ Provider-Runner wie die Suche. Vier Mechanismen kamen aus dem Benchmark-Vergleic
 * **Scheduler-Jitter** (`schedule.jitter_pct`, Standard ±10 %): feste Pausen erzeugen sonst gleiche Lastspitzen.
 
 ## Prüfrahmen (Harness) – Stand nach der Benchmark-Recherche
+
+> `harness/` liegt nur lokal (`.gitignore`: `/*`) und ist nicht Teil des Repos. Die folgenden Pfade gelten für die lokale Arbeitskopie.
 
 * `harness/tools/end_state.py` berechnet je Runde die **objektiven Fakten** (günstigster Tarif, Endpreis, Stopps,
   gewähltes Hotel, Haversine-Distanz, Steuerstatus, Provider-Status) nach `end_state.json`. Der Evaluator vergleicht

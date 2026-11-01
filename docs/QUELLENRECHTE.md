@@ -1,6 +1,6 @@
 # Quellenrechte: Was wir verwenden und was wir verkaufen dürfen
 
-Stand: 24.10.2026. Grundlage: `providers/registry.yaml` (22 Quellen) und die
+Stand: 01.11.2026 (Laufzeit-Default im Code geprüft). Grundlage: `providers/registry.yaml` (22 Quellen) und die
 Lizenzangaben in `docs/SOURCES_FETCH.md`, `docs/SOURCES_FERRIES.md`,
 `docs/SOURCES_CRUISES.md`.
 
@@ -35,7 +35,7 @@ Wichtig ist nur, dass wir die Beobachtung nicht als eigene Erhebung ausgeben.
 | `trvl_flights`, `trvl_ferries` (trvl) | Flüge, Fähren | PolyForm Noncommercial 1.0.0 | **nein** (nicht kommerziell) |
 | `flights-gf` | Flüge | keine Lizenzdatei, Google-Flights-Scraper | **nein** |
 | `googleflights-local` | Flüge | MIT-Wrapper, aber „personal/local use only“, umgeht Consent-Screen | **nein** |
-| `fli_flights` | Flüge | Google-Flights-Engine, Lizenz nicht dokumentiert | **prüfen** |
+| `fli_flights` | Flüge | Google-Flights-Engine, Lizenz nicht dokumentiert; Status `unverified`, aber **derzeit aktiv und sichtbar** | **prüfen** (offener Rechtspunkt) |
 | `skiplagged_flights` | Flüge | Metasuche, AGB nicht geprüft | **prüfen** |
 | `stays_hotels` | Hotels | MIT-Wrapper, Datenbasis Google Hotels | **prüfen** |
 | `rome_hotel_taxes` | Hotels | projektinternes Skript (unser Code) | **ja** (eigene Logik, Werte kommen aus der Anfrage) |
@@ -54,9 +54,11 @@ Wichtig ist nur, dass wir die Beobachtung nicht als eigene Erhebung ausgeben.
 | `hal-price-api` | Kreuzfahrten | deaktiviert | nicht im Einsatz |
 | `ignav`, `stayingapi`, `mcp-flight-search` | – | API-Key nötig | nicht im Einsatz |
 
-**Ergebnis:** Für die Anzeige sind derzeit nur `rome_hotel_taxes` (eigener Code)
-und potenziell die „prüfen“-Quellen nach Klärung zulässig. Die Google-Flights-
-und trvl-Quellen dürfen **nicht** angezeigt oder verkauft werden.
+**Ergebnis:** Eindeutig freigegeben ist nur `rome_hotel_taxes` (eigener Code). Die
+„prüfen“-Quellen sind `unverified`: Ihre Rechte sind **nicht geklärt**, und sie
+werden im aktuellen Laufzeit-Default trotzdem angezeigt. Das ist keine Freigabe,
+sondern eine offene Rechtsfrage. Die Google-Flights- und trvl-Quellen (`prohibited`)
+dürfen **nicht** angezeigt oder verkauft werden und werden blockiert.
 
 ## Umsatz-Trennung (Wash-Volume)
 
@@ -79,9 +81,13 @@ Diese Zahlungen sind **kein** Umsatz:
   ```
 - **Standard:** `prohibited` wird nicht angezeigt (Flüge 9→6, Fähren 3→2).
   `unverified` bleibt sichtbar, bis die AGB geklärt sind.
-- Strenger (nur `own`/`approved`): `RIGHTS_INCLUDE_UNVERIFIED=0`.
-- Filter aus (nur lokale Forschung): `RIGHTS_ENFORCE=0`.
-- Test: `python3 -m providers.tests.test_rights`.
+- **Aktueller Laufzeit-Default (Code-Default, auf dem Server keine RIGHTS_*-Variablen gesetzt):**
+  `RIGHTS_ENFORCE=1`, `RIGHTS_INCLUDE_UNVERIFIED=1`. Folge: 16 Quellen werden abgefragt
+  und angezeigt, davon 15 mit Status `unverified`. Das ist eine offene Rechtsfrage,
+  keine Freigabe.
+- Strenger (nur `own`/`approved`, also Ergebnis 1 Quelle): `RIGHTS_INCLUDE_UNVERIFIED=0`.
+- Filter aus, auch `prohibited` (nur lokale Forschung): `RIGHTS_ENFORCE=0`.
+- Test: `python3 providers/tests/test_rights.py` (läuft in `scripts/ci.sh`).
 
 ## Offene Punkte
 

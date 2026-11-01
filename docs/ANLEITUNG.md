@@ -11,7 +11,7 @@ Es gibt Dutzende Sites und Dienste, die dafür Preise anzeigen, aber sie widersp
 unterschiedliche Währungen, einmal pro Person und einmal pro Reise, lassen Steuern und Gepäck mal drin und mal
 nicht, und sind ständig blockiert (Rate-Limits, Bot-Schutz, Serverausfälle).
 
-Das System besteht aus **drei Erweiterungen** und einem **Prüfrahmen**, der die ganze Arbeit immer wiederholt:
+Das System besteht aus **drei Erweiterungen** und einem **Prüfrahmen**, der die ganze Arbeit immer wiederholt. Der Prüfrahmen (`harness/`) und die Benchmark-Dokumente (`benchmark/`) liegen nur lokal und sind nicht im Repo versioniert:
 
 | Erweiterung | Die eine Frage, die sie beantwortet |
 |---|---|
@@ -61,7 +61,7 @@ Der entscheidende Punkt: **Eine neue Quelle hinzuzufügen ist ein Textblock in d
 kein Testlauf, kein Neustart. Wer eine neue Quelle kennt, trägt sie ein, und ab da nimmt sie automatisch an allen
 Abfragen teil.
 
-Aktuell sind **16 Quellen eingetragen, 15 davon aktiv** – neun für Flüge, sechs für Hotels. Die Recherche dahinter
+Aktuell sind **22 Quellen registriert, 20 davon aktiv**. Vier aktive Quellen sind per Rechte-Status `prohibited` und werden nicht abgefragt. Abgefragt werden daher **16 Quellen**: 6 Flüge, 6 Hotels, 2 Fähren, 2 Kreuzfahrten. Zwei weitere Einträge sind deaktiviert. Die Recherche dahinter
 prüfte **33 Kandidaten** mit echten Aufrufen: 20 funktionierten, 6 lieferten Fehler, 7 waren blockiert
 (wörtliche Beispiele: „HTTP 401 – MCP tool calls require an Ignav account“, „Set SERP_API_KEY to your SerpApi key“,
 „'apikey' header is required“).
@@ -158,6 +158,8 @@ Für denselben Auftrag (2 Personen, 2 Nächte) rechnet das System drei Varianten
 | **Rundflug + Hotel getrennt** | günstigster Rundflug (Endpreis mit Gepäck) × 2 Personen + günstigstes Hotel × 2 Nächte | **588,62 €** |
 | **Gabelflug + Hotel getrennt** | günstigster Einweg (Hin) + günstigster Einweg (Rück), je × 2 Personen, + Hotel | **558,76 €** |
 | **Pauschalreise** | Pauschalpreis aus einer Pauschalquelle | in diesem Lauf nicht verfügbar |
+
+> **Umfang im Web-UI:** Die drei Varianten sind in `bundling/compare.py` implementiert. Das Web-UI übergibt aktuell keine Einweg- oder Paketquellen (`ui/service.py`: `oneways=None`, `package=None`). Dort wird deshalb nur `separate_roundtrip` (plus Schiffs-Kombinationen) berechnet. Die Gabelflug- und Paketvarianten unten gelten für die Bibliothek und den Lauf, nicht für die Weboberfläche.
 
 **Empfehlung des Laufs: Gabelflug, 558,76 € – 29,86 € günstiger** als Rundflug + Hotel. Die Bestandteile waren
 konkret: Hinflug Ryanair, Rückflug LOT Polish, Hotel „Hotel Roma Tor Vergata“ zu 61,00 € je Nacht.
