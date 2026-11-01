@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -95,3 +96,38 @@ def verify_document(document: dict[str, Any], public_key_b64: str) -> bool:
         return True
     except Exception:
         return False
+
+
+def verify_attestation(document: dict[str, Any], public_key_b64: str, *,
+                       expected_issuer: str | None = None,
+                       expected_key_id: str | None = None,
+                       now: datetime | None = None) -> tuple[bool, str]:
+    """Prüft Signatur, Ablauf, Issuer und Key-ID.
+
+    Der eigene Issuer-Key ist Pflicht; ein vom Aufrufer gelieferter Fremdschlüssel
+    wird bewusst nicht akzeptiert.
+    """
+    if not isinstance(document, dict):
+        return False, "document fehlt"
+    signature = document.get("signature") or {}
+    if not verify_document(document, public_key_b64):
+        return False, "Signatur ungültig"
+    if expected_key_id and signature.get("key_id") != expected_key_id:
+        return False, "key_id passt nicht zum Issuer"
+    issuer = str((document.get("issuer") or {}).get("did") or "")
+    if expected_issuer and issuer != expected_issuer:
+        return False, "issuer.did passt nicht zum erwarteten Aussteller"
+    expires_at = document.get("expires_at")
+    if not expires_at:
+        return False, "expires_at fehlt"
+    try:
+        expires = datetime.fromisoformat(str(expires_at).replace("Z", "+00:00"))
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
+    except Exception:
+        return False, "expires_at ist kein gültiger Zeitstempel"
+    current = now or datetime.now(timezone.utc)
+    if current > expires:
+        return False, "Attestierung ist abgelaufen"
+    return True, "ok"
+

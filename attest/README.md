@@ -12,7 +12,7 @@ Plausibilitätsprüfung. Kein Konto, kein API-Key, keine Buchung.
 POST /api/attest            → 402 + PAYMENT-REQUIRED (x402 v2)
                             → mit PAYMENT-SIGNATURE: 200 + signiertes Dokument
 POST /api/attest/validate   → kostenlose Vorprüfung
-POST /api/attest/verify     → Signatur prüfen
+POST /api/attest/verify     → Signatur, Ablauf, Issuer und Key-ID prüfen (eigener Key)
 GET  /api/attest/key        → öffentlicher Ed25519-Schlüssel
 GET  /.well-known/agent-payments.json → Discovery (Preis, Netz, payTo, Facilitator)
 ```

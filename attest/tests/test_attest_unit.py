@@ -8,7 +8,7 @@ import os
 import sys
 import tempfile
 import unittest
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from cryptography.hazmat.primitives import serialization
@@ -17,7 +17,9 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from attest.config import load_settings
 from attest.models import Observation
 from attest.plausibility import check_observation
-from attest.signing import canonical_bytes, load_or_create_key, verify_document
+from attest.signing import (
+    canonical_bytes, load_or_create_key, verify_attestation, verify_document,
+)
 from attest.x402_gate import facilitator_config
 
 
@@ -37,6 +39,44 @@ class SignatureTests(unittest.TestCase):
             second = load_or_create_key(path)
             self.assertEqual(first.key_id, second.key_id)
             self.assertEqual(oct(path.stat().st_mode)[-3:], "600")
+
+
+    def test_verify_attestation_trust(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            key = load_or_create_key(Path(tmp) / "issuer.key")
+            now = datetime.now(timezone.utc)
+            base = {
+                "version": "1",
+                "issuer": {"did": "did:web:test", "key_id": key.key_id},
+                "issued_at": now.isoformat(),
+                "expires_at": (now + timedelta(minutes=5)).isoformat(),
+                "subject": {"route": "BER-FCO", "price": "129.99"},
+            }
+            doc = key.sign(base)
+            ok, reason = verify_attestation(
+                doc, key.public_key_b64,
+                expected_issuer="did:web:test", expected_key_id=key.key_id)
+            self.assertTrue(ok, reason)
+
+            self.assertFalse(verify_attestation(
+                {**doc, "issuer": {**doc["issuer"], "did": "did:web:evil"}},
+                key.public_key_b64, expected_issuer="did:web:test",
+                expected_key_id=key.key_id)[0])
+            self.assertFalse(verify_attestation(
+                {**doc, "issuer": {**doc["issuer"], "key_id": "other"}},
+                key.public_key_b64, expected_issuer="did:web:test",
+                expected_key_id=key.key_id)[0])
+            expired = key.sign({
+                **base,
+                "expires_at": (now - timedelta(minutes=1)).isoformat(),
+            })
+            self.assertFalse(verify_attestation(
+                expired, key.public_key_b64, expected_issuer="did:web:test",
+                expected_key_id=key.key_id)[0])
+            missing = key.sign({k: v for k, v in base.items() if k != "expires_at"})
+            self.assertFalse(verify_attestation(
+                missing, key.public_key_b64, expected_issuer="did:web:test",
+                expected_key_id=key.key_id)[0])
 
 
 class PlausibilityTests(unittest.TestCase):

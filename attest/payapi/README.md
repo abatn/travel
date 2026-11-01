@@ -49,7 +49,7 @@ Die Zahlungs-Wallet (`payTo`) ist bewusst dieselbe verifizierte Base-Wallet:
 | GET/HEAD/POST | `/api/attest-v2` | bezahlt; GET/HEAD mit Query oder POST mit JSON-Beobachtung. Fehlende/ungültige Parameter → 422 ohne Signatur und ohne Zahlung |
 | GET | `/api/attest-v2/key` | öffentlicher Ed25519-Schlüssel |
 | POST | `/api/attest-v2/validate` | kostenlose Vorprüfung |
-| POST | `/api/attest-v2/verify` | Signatur prüfen |
+| POST | `/api/attest-v2/verify` | Signatur, Ablauf, Issuer und Key-ID prüfen (eigener Key) |
 | GET | `/api/attest-v2/openapi.json` | minimale OpenAPI-Beschreibung |
 | GET | `/.well-known/x402` | x402-Manifest |
 | GET | `/openapi.json` | kanonisches OpenAPI 3.1 für x402scan/Agenten |

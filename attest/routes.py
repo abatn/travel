@@ -45,7 +45,7 @@ except ModuleNotFoundError:  # Fallback: keine Übersetzungen, kein Absturz
             return "de"
 from .models import Observation
 from .plausibility import check_observation
-from .signing import IssuerKey, load_or_create_key, verify_document
+from .signing import IssuerKey, load_or_create_key, verify_attestation
 from .x402_gate import ATTEST_PATH, build_payment_middleware, describe, facilitator_supports
 
 logger = logging.getLogger("attest")
@@ -459,13 +459,17 @@ async def attest_verify(request: Request) -> JSONResponse:
     except Exception:  # noqa: BLE001
         return JSONResponse({"valid": False, "error": "JSON erwartet"}, status_code=400)
     document = body.get("document") if isinstance(body, dict) else None
-    public_key = (body.get("public_key") if isinstance(body, dict) else None) \
-        or _public_key_doc()["public_key"]
     if not isinstance(document, dict):
         return JSONResponse({"valid": False, "error": "document fehlt"}, status_code=400)
-    valid = verify_document(document, public_key)
+    key = issuer()
+    valid, reason = verify_attestation(
+        document, key.public_key_b64,
+        expected_issuer=settings().issuer_did,
+        expected_key_id=key.key_id,
+    )
     return JSONResponse({
         "valid": valid,
+        "reason": reason,
         "key_id": (document.get("signature") or {}).get("key_id"),
         "issuer": (document.get("issuer") or {}).get("did"),
     })

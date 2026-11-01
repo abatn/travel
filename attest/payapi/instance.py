@@ -17,7 +17,7 @@ from attest.billing import record_invoice
 from attest.discovery import OUTPUT_SCHEMA, atomic_amount, contact_email
 from attest.models import Observation
 from attest.plausibility import check_observation
-from attest.signing import IssuerKey, load_or_create_key, verify_document
+from attest.signing import IssuerKey, load_or_create_key, verify_attestation
 from attest.x402_gate import build_payment_middleware, facilitator_supports
 
 from .config import PayAPIConfig, load
@@ -208,12 +208,17 @@ async def payapi_verify(request: Request) -> JSONResponse:
     except Exception:  # noqa: BLE001
         return JSONResponse({"valid": False, "error": "JSON erwartet"}, status_code=400)
     document = body.get("document") if isinstance(body, dict) else None
-    public_key = (body.get("public_key") if isinstance(body, dict) else None) \
-        or _public_key_doc()["public_key"]
     if not isinstance(document, dict):
         return JSONResponse({"valid": False, "error": "document fehlt"}, status_code=400)
+    key = issuer()
+    valid, reason = verify_attestation(
+        document, key.public_key_b64,
+        expected_issuer=config().settings.issuer_did,
+        expected_key_id=key.key_id,
+    )
     return JSONResponse({
-        "valid": verify_document(document, public_key),
+        "valid": valid,
+        "reason": reason,
         "key_id": (document.get("signature") or {}).get("key_id"),
         "issuer": (document.get("issuer") or {}).get("did"),
     })
