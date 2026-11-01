@@ -28,6 +28,7 @@ Caddy (TLS, Reverse Proxy) ──► 127.0.0.1:8077
                                   ├─ bundling/    Bündelung
                                   ├─ alerts/      Preiswächter
                                   ├─ seo/         Kategorien/Routen/JSON-LD
+                                  ├─ i18n/        Übersetzungen (Fallback)
                                   └─ attest/      x402-Preis-Attestierungen
 ```
 
