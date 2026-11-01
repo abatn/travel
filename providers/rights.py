@@ -1,19 +1,20 @@
 """Quellenrechte: Filter für Anzeige und Verkauf.
 
-Regel (siehe docs/QUELLENRECHTE.md): Fremde Preise dürfen nur angezeigt werden,
-wenn der Datenanbieter die kommerzielle Anzeige erlaubt. Fehlt ein Beleg, gilt
-Default-Deny. Die Lizenz eines MCP-Wrappers (z. B. MIT) ist **kein** Nachweis
-für Datenrechte.
+Regel (siehe docs/QUELLENRECHTE.md): ``prohibited``-Quellen werden nie angezeigt.
+``unverified`` (Rechte ungeklärt) ist im Standard sichtbar; das ist eine offene
+Rechtsfrage und keine Freigabe. Die Lizenz eines MCP-Wrappers (z. B. MIT) ist
+**kein** Nachweis für Datenrechte.
 
 Statuswerte je Quelle in ``registry.yaml`` unter ``rights.status``:
   own         - eigener Code, keine fremden Daten
   approved    - schriftliche/commercial Erlaubnis dokumentiert
-  unverified  - keine Erlaubnis gefunden (Default)
+  unverified  - keine Erlaubnis gefunden; fehlende Angabe zählt hierzu
   prohibited  - Anzeige/Verkauf ausdrücklich nicht erlaubt
 
 Steuerung über Umgebungsvariablen:
-  RIGHTS_ENFORCE=0           Filter komplett aus (nur lokale Forschung)
-  RIGHTS_INCLUDE_UNVERIFIED=0  auch unverified ausschließen (maximal strikt)
+  RIGHTS_INCLUDE_UNVERIFIED=0  unverified ebenfalls ausschließen (strikter Modus,
+                               Default ist 1 = sichtbar)
+  RIGHTS_ENFORCE=0           Filter komplett aus, auch prohibited (nur lokale Forschung)
 """
 from __future__ import annotations
 
