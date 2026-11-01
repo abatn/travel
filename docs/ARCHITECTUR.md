@@ -1,6 +1,6 @@
 # Architektur-Erweiterung: drei Fähigkeiten
 
-Stand 21.10.2026 · alle Preise ausschließlich aus den gebundenen MCP-/CLI-Werkzeugen.
+Stand 01.11.2026 · alle Preise ausschließlich aus den gebundenen MCP-/CLI-Werkzeugen.
 
 ```
 providers/                 Fähigkeit 1 – dynamische API-Abdeckung

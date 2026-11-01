@@ -57,8 +57,11 @@ Wichtig ist nur, dass wir die Beobachtung nicht als eigene Erhebung ausgeben.
 **Ergebnis:** Eindeutig freigegeben ist nur `rome_hotel_taxes` (eigener Code). Die
 „prüfen“-Quellen sind `unverified`: Ihre Rechte sind **nicht geklärt**, und sie
 werden im aktuellen Laufzeit-Default trotzdem angezeigt. Das ist keine Freigabe,
-sondern eine offene Rechtsfrage. Die Google-Flights- und trvl-Quellen (`prohibited`)
-dürfen **nicht** angezeigt oder verkauft werden und werden blockiert.
+sondern eine offene Rechtsfrage. Die vier Quellen mit Status `prohibited`
+(`trvl_flights`, `trvl_ferries`, `flights-gf`, `googleflights-local`) dürfen **nicht**
+angezeigt oder verkauft werden und werden blockiert. `fli_flights` ist ebenfalls eine
+Google-Flights-Engine, hat aber den Status `unverified` und ist derzeit aktiv (offener
+Rechtspunkt, keine Freigabe).
 
 ## Umsatz-Trennung (Wash-Volume)
 

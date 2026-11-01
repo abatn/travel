@@ -1,6 +1,6 @@
 # Das Reise-Agent-System – vollständige Erklärung
 
-Stand 21.10.2026 · Alle Zahlen in diesem Text stammen aus echten Läufen des Systems.
+Stand 01.11.2026 · Alle Zahlen in diesem Text stammen aus echten Läufen des Systems.
 
 ---
 
