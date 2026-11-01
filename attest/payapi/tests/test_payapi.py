@@ -174,6 +174,7 @@ def main() -> int:
         check(pay.get("mode") == "fixed" and pay.get("amount") == "0.010000",
               "OpenAPI: x-payment-info fixed 0.010000", f"{pay.get('mode')}/{pay.get('amount')}")
         check("402" in (post.get("responses") or {}), "OpenAPI: responses.402")
+        check("422" in (post.get("responses") or {}), "OpenAPI: responses.422")
         check(bool((post.get("requestBody") or {}).get("content")),
               "OpenAPI: requestBody-Schema")
         check(bool(((post.get("responses") or {}).get("200") or {}).get("content")),
@@ -231,7 +232,8 @@ def main() -> int:
             get_resp = await paid.request(
                 "GET", f"{BASE}/api/attest-v2",
                 params={"route": "HAM-FCO", "travel_date": "2026-11-05",
-                        "price": "199.99", "source": "payapi-test"})
+                        "price": "199.99", "currency": "EUR",
+                        "price_scope": "per_person", "source": "payapi-test"})
             check(get_resp.status_code == 200, "bezahlt GET -> 200", str(get_resp.status_code))
             doc = get_resp.json()
             check(doc.get("subject", {}).get("route") == "HAM-FCO", "GET: Route übernommen")
@@ -254,12 +256,17 @@ def main() -> int:
             check(post_doc.get("subject", {}).get("source") == "payapi-test", "POST: Quelle übernommen")
             check(bool(post_doc.get("signature", {}).get("value")), "POST: Signatur vorhanden")
 
-            # POST leer -> Referenz (Canary-Robustheit)
-            ref_resp = await paid.request("POST", f"{BASE}/api/attest-v2", json={})
-            check(ref_resp.status_code == 200, "bezahlt POST leer -> 200", str(ref_resp.status_code))
-            ref = ref_resp.json()
-            check(ref.get("subject", {}).get("source") == "payapi-reference",
-                  "leerer POST: Referenz-Attestierung")
+            # Leerer POST -> 422, keine Signatur, keine Rechnung
+            empty_resp = await paid.request("POST", f"{BASE}/api/attest-v2", json={})
+            check(empty_resp.status_code == 422, "bezahlt POST leer -> 422", str(empty_resp.status_code))
+            check("signature" not in empty_resp.text and "payapi-reference" not in empty_resp.text,
+                  "leerer POST: keine Signatur/Referenz")
+
+            # GET ohne Query -> 422, keine Signatur
+            empty_get = await paid.request("GET", f"{BASE}/api/attest-v2")
+            check(empty_get.status_code == 422, "bezahlt GET ohne Query -> 422",
+                  str(empty_get.status_code))
+            check("signature" not in empty_get.text, "leerer GET: keine Signatur")
 
         asyncio.run(flow())
 
@@ -268,9 +275,11 @@ def main() -> int:
         check(ledger.exists(), "eigener Ledger existiert")
         if ledger.exists():
             rows = [json.loads(x) for x in ledger.read_text(encoding="utf-8").splitlines() if x]
-            check(len(rows) >= 3, "eigener Ledger: Rechnungen geschrieben", str(len(rows)))
+            check(len(rows) == 2, "eigener Ledger: nur echte Beobachtungen", str(len(rows)))
             check(all(r.get("service", "").endswith("(PayAPI)") for r in rows),
                   "eigener Ledger: PayAPI-Leistung")
+            check(all("payapi-reference" not in json.dumps(r) for r in rows),
+                  "eigener Ledger: keine Referenz-Rechnung")
 
         key_file = tmp / "issuer.ed25519"
         main_key = (ROOT / "attest" / "keys" / "issuer.ed25519").resolve()

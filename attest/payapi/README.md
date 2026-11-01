@@ -46,7 +46,7 @@ Die Zahlungs-Wallet (`payTo`) ist bewusst dieselbe verifizierte Base-Wallet:
 
 | Methode | Pfad | Zweck |
 |---|---|---|
-| GET/HEAD/POST | `/api/attest-v2` | bezahlt; GET ohne Parameter liefert ein signiertes Referenzbeispiel, POST signiert die Beobachtung |
+| GET/HEAD/POST | `/api/attest-v2` | bezahlt; GET/HEAD mit Query oder POST mit JSON-Beobachtung. Fehlende/ungültige Parameter → 422 ohne Signatur und ohne Zahlung |
 | GET | `/api/attest-v2/key` | öffentlicher Ed25519-Schlüssel |
 | POST | `/api/attest-v2/validate` | kostenlose Vorprüfung |
 | POST | `/api/attest-v2/verify` | Signatur prüfen |
@@ -62,6 +62,13 @@ curl -i https://travel.hanibal-ai.com/api/attest-v2
 
 # Discovery
 curl -s https://travel.hanibal-ai.com/.well-known/x402 | jq .
+
+# Beispiel-Beobachtung (echte Werte; leerer/ungültiger Body -> 422)
+curl -s -X POST https://travel.hanibal-ai.com/api/attest-v2 \
+  -H 'Content-Type: application/json' \
+  -d '{"route":"BER-FCO","travel_date":"2026-11-05","price":"129.99",
+       "currency":"EUR","price_scope":"per_person","source":"beispiel",
+       "source_url":"https://example.com/angebot","passengers":1}'
 
 # bezahlt (eigener Test-Schlüssel, Base Mainnet)
 .venv-x402/bin/python -m attest.client \

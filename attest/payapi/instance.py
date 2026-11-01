@@ -6,7 +6,7 @@ import json
 import logging
 import os
 import uuid
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
@@ -63,24 +63,6 @@ def _public_key_doc() -> dict[str, Any]:
         "key_id": key.key_id,
         "alg": "Ed25519",
         "public_key": key.public_key_b64,
-    }
-
-
-def _reference_observation(note: str | None = None) -> dict[str, Any]:
-    """Signierbares Referenzbeispiel für den PayAPI-Canary (GET ohne Body)."""
-    return {
-        "route": "BER-FCO",
-        "travel_date": (date.today() + timedelta(days=7)).isoformat(),
-        "price": "129.99",
-        "currency": "EUR",
-        "price_scope": "per_person",
-        "source": "payapi-reference",
-        "source_url": "https://payapi.market",
-        "passengers": 1,
-        "note": note or (
-            "Signiertes Referenzbeispiel für den PayAPI-Canary. Für eine "
-            "Attestierung eigener Daten POST mit route/travel_date/price/source."
-        ),
     }
 
 
@@ -177,26 +159,20 @@ def _observation_from_query(request: Request) -> Observation:
     }
     provided = {k: v for k, v in fields.items() if v not in (None, "")}
     if not provided:
-        return Observation.model_validate(_reference_observation())
-    data = _reference_observation()
-    data.update(provided)
+        raise ValueError("Parameter fehlen: route, travel_date, price und source sind erforderlich.")
     try:
-        return Observation.model_validate(data)
-    except Exception:  # noqa: BLE001
-        return Observation.model_validate(_reference_observation(
-            "Ungültige Query-Parameter; signiertes Referenzbeispiel zurückgegeben."
-        ))
+        return Observation.model_validate(provided)
+    except Exception as exc:  # noqa: BLE001
+        raise ValueError(f"Ungültige Query-Parameter: {exc}") from exc
 
 
 def _observation_from_body(body: Any) -> Observation:
     if not isinstance(body, dict) or not body:
-        return Observation.model_validate(_reference_observation())
+        raise ValueError("JSON-Body fehlt: route, travel_date, price und source sind erforderlich.")
     try:
         return Observation.model_validate(body)
-    except Exception:  # noqa: BLE001
-        return Observation.model_validate(_reference_observation(
-            "Ungültiger Request-Body; signiertes Referenzbeispiel zurückgegeben."
-        ))
+    except Exception as exc:  # noqa: BLE001
+        raise ValueError(f"Ungültiger Request-Body: {exc}") from exc
 
 
 # ------------------------------------------------------------------ free routes
@@ -305,6 +281,7 @@ def openapi_document(base: str) -> dict[str, Any]:
                     "content": {"application/json": {"schema": attestation_schema}},
                 },
                 "402": {"description": "Payment Required (x402 v2 challenge)"},
+                "422": {"description": "Ungültige oder fehlende Beobachtung (keine Signatur, keine Zahlung)"},
             },
         }
     }
@@ -386,7 +363,7 @@ async def payapi_get(request: Request) -> JSONResponse:
     except ValueError as exc:
         return JSONResponse(
             {"error": str(exc),
-             "hint": "GET ohne Query-Parameter liefert ein signiertes Referenzbeispiel."},
+             "hint": "Erforderlich: route, travel_date, price und source (GET-Query)."},
             status_code=422,
         )
     return JSONResponse(document, headers=_attestation_headers(document))
@@ -403,7 +380,7 @@ async def payapi_post(request: Request) -> JSONResponse:
     except ValueError as exc:
         return JSONResponse(
             {"error": str(exc),
-             "hint": "Leerer Body oder GET ohne Parameter liefert ein signiertes Referenzbeispiel."},
+             "hint": "Erforderlich: JSON-Body mit route, travel_date, price und source."},
             status_code=422,
         )
     return JSONResponse(document, headers=_attestation_headers(document))
