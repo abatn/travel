@@ -16,6 +16,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from datetime import date, timedelta
 
 import yaml
 from pathlib import Path
@@ -33,7 +34,7 @@ APP_PORT = 8078
 BASE = f"http://127.0.0.1:{APP_PORT}"
 PAYLOAD = {
     "route": "BER-FCO",
-    "travel_date": "2026-11-05",
+    "travel_date": (date.today() + timedelta(days=7)).isoformat(),
     "price": "129.99",
     "currency": "EUR",
     "price_scope": "per_person",
@@ -158,14 +159,36 @@ def main() -> int:
         settlement = json.loads(
             base64.b64decode(settlement_header + "=" * (-len(settlement_header) % 4)))
         check(settlement.get("success") is True, "Settlement erfolgreich")
+
+        # 3b) Bezahlter GET: signiertes Referenzbeispiel + Rechnung
+        async def pay_get():
+            async with httpx.AsyncClient(transport=transport, timeout=60) as http:
+                return await http.get(f"{BASE}/api/attest")
+
+        paid_get = asyncio.run(pay_get())
+        check(paid_get.status_code == 200, "Bezahlter GET: HTTP 200",
+              str(paid_get.status_code))
+        get_doc = paid_get.json()
+        check(get_doc.get("subject", {}).get("source") == "attest-reference",
+              "Bezahlter GET: Referenz markiert")
+        check(bool(get_doc.get("signature", {}).get("value")),
+              "Bezahlter GET: Signatur vorhanden")
+        get_verify = httpx.post(f"{BASE}/api/attest/verify",
+                                json={"document": get_doc}, timeout=10).json()
+        check(get_verify.get("valid") is True, "Bezahlter GET: Signatur verifiziert")
+
         import json as _json
         rows = [_json.loads(line) for line in ledger.read_text(encoding="utf-8").splitlines() if line.strip()]
-        check(len(rows) == 1, "Rechnung geschrieben", str(len(rows)))
+        check(len(rows) == 2, "Rechnungen geschrieben (POST + GET)", str(len(rows)))
         if rows:
             check(rows[0].get("amount") == "0.002", "Rechnung: Betrag 0,002",
                   str(rows[0].get("amount")))
             check(rows[0].get("tx_hash") == settlement.get("transaction"),
                   "Rechnung: Tx-Hash übernommen")
+            check(rows[1].get("source") == "attest-reference",
+                  "GET-Rechnung: Referenz markiert", str(rows[1].get("source")))
+            check(len({r.get("invoice_no") for r in rows}) == 2,
+                  "Rechnungen: eindeutige Nummern")
         check(bool(settlement.get("transaction")), "Settlement-Transaktion vorhanden")
 
         # 4) Signatur fremd prüfen

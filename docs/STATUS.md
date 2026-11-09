@@ -1,6 +1,6 @@
 # Projektstatus
 
-Stand: 01.11.2026. Diese Datei ist die einzige Übersicht über „erledigt / offen“.
+Stand: 09.11.2026. Diese Datei ist die einzige Übersicht über „erledigt / offen“.
 Zahlen und Belege werden nur eingetragen, wenn sie geprüft sind.
 
 ## Vom Betreiber erledigt und bestätigt
@@ -27,7 +27,9 @@ Zahlen und Belege werden nur eingetragen, wenn sie geprüft sind.
 | Monatliche Selbstzahlung (30-Tage-Regel) | aktiv, im Repo dokumentiert |
 | Quellenrechte-Sperre (`providers/rights.py`) | aktiv, 4 Quellen gesperrt |
 | Dark/Light-Mode (gesamte UI) | fertig, 63/63 Theme-Tests; Dokumentation `ui/THEME_ENTSCHEIDUNG.md` |
-| M2b PayAPI-Instanz (`/api/attest-v2`) | fertig, eigener Schlüssel/Ledger/Config, 36/36 Tests; `attest/payapi/README.md` |
+| M2b PayAPI-Instanz (`/api/attest-v2`) | fertig, eigener Schlüssel/Ledger/Config; gemeinsame `payTo`-Wallet bewusst (keine Wallet-Trennung); Tests siehe `docs/PRODUCTION_READY.md` |
+| Globale Rechnungsnummern | `RE-2026-V1-…` / `RE-2026-V2-…`, Canary als `RE-2026-V2-000001`; Migration `scripts/migrate_invoice_numbers.py` |
+| DID v1 + v2 + Verify-Trennung | v1 `did:web:travel.hanibal-ai.com` (Root `/.well-known/did.json` mit v1-Key), v2 `…:payapi` (`/payapi/did.json`); `/verify` liefert `signature_valid`, `expired`, `fresh`; Live-Beweis in `docs/PRODUCTION_READY.md` |
 
 ## Offen
 
@@ -39,13 +41,13 @@ Zahlen und Belege werden nur eingetragen, wenn sie geprüft sind.
 4. ~~Erster fremder Zahler~~ **eingetroffen und geprüft**:
    - 2026-10-24 22:19 UTC: `0xA1d1C0cf717402ff3651aA4873CcF96410B01978` → 0,01 USDC,
      Tx `0x368b0ad320a4a2ef82e5cf962bbc5fac0f4990390c6a2cba6dfaefd855818397`,
-     Rechnung RE-2026-000004.
+     Rechnung RE-2026-V1-000004.
    - 2026-10-25 09:43 UTC: `0x7722DfAE6bbed2Fd02Dc07455c2f5BF14bE25E4a` → 0,01 USDC,
      Tx `0xddf1028aa6766cf768189b889a21b5c6798118ef7438fb4b28bcc08af2cf0310`,
-     Rechnung RE-2026-000005.
+     Rechnung RE-2026-V1-000005.
    - **Fremder Umsatz: 0,020000 USDC** aus 2 Wallets; 4 eigene Testzahlungen (0,04 USDC)
      bleiben ausgeschlossen. Bazaar-`lastUpdated` wurde durch die Zahlung aktualisiert.
-5. **Kostenloses Beispiel** (`GET /api/attest/sample`) ist noch nicht gebaut.
+5. ~~**Kostenloses Beispiel** (`GET /api/attest/sample`)~~ **gebaut** (09.11.2026, signiertes Referenzbeispiel).
 6. **M5 (Prognosen)** ist vorbereitet, aber nicht begonnen; braucht eigene Historie und Mindestfallzahl.
 
 ## Entscheidungsregel

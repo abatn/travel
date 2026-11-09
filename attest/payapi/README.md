@@ -46,10 +46,13 @@ Die Zahlungs-Wallet (`payTo`) ist bewusst dieselbe verifizierte Base-Wallet:
 
 | Methode | Pfad | Zweck |
 |---|---|---|
-| GET/HEAD/POST | `/api/attest-v2` | bezahlt; GET/HEAD mit Query oder POST mit JSON-Beobachtung. Fehlende/ungültige Parameter → 422 ohne Signatur und ohne Zahlung |
+| GET/HEAD/POST | `/api/attest-v2` | bezahlt; GET/HEAD mit Query liefert die Beobachtung, ohne Query ein signiertes Referenzbeispiel (`source=payapi-reference`); POST mit JSON-Beobachtung. Fehlende/ungültige Parameter → 200 + signiertes Referenzbeispiel, keine stille 422 nach Zahlung |
 | GET | `/api/attest-v2/key` | öffentlicher Ed25519-Schlüssel |
+| GET | `/api/attest-v2/sample` | kostenloses, signiertes Referenzbeispiel |
+| GET | `/payapi/did.json` | DID-Dokument für `did:web:travel.hanibal-ai.com:payapi` |
+| GET | `/.well-known/did.json` | Root-DID-Dokument des Hosts (v1-Key) |
 | POST | `/api/attest-v2/validate` | kostenlose Vorprüfung |
-| POST | `/api/attest-v2/verify` | Signatur, Ablauf, Issuer und Key-ID prüfen (eigener Key) |
+| POST | `/api/attest-v2/verify` | Signatur, Issuer, Key-ID und Frische getrennt prüfen (`signature_valid`, `expired`) |
 | GET | `/api/attest-v2/openapi.json` | minimale OpenAPI-Beschreibung |
 | GET | `/.well-known/x402` | x402-Manifest |
 | GET | `/openapi.json` | kanonisches OpenAPI 3.1 für x402scan/Agenten |

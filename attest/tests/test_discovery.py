@@ -125,6 +125,33 @@ def main() -> int:
         check(bool(bazaar.get("schema")), "Discovery: bazaar.schema")
         check((bazaar.get("info", {}).get("input", {}).get("method") == "POST"),
               "Discovery: bazaar input POST")
+        check("sample" in (data.get("endpoints") or {}),
+              "Discovery: sample-Endpunkt verlinkt")
+
+        # kostenloses, signiertes Referenzbeispiel (Parität zu v2)
+        sample = httpx.get(f"{BASE}/api/attest/sample", timeout=10)
+        check(sample.status_code == 200, "GET /api/attest/sample -> 200",
+              str(sample.status_code))
+        sample_doc = sample.json()
+        check(bool((sample_doc.get("signature") or {}).get("value")),
+              "Sample: Signatur vorhanden")
+        check(sample_doc.get("subject", {}).get("source") == "attest-reference",
+              "Sample: als Referenz markiert")
+        check("did" in (data.get("endpoints") or {}),
+              "Discovery: did-Endpunkt verlinkt")
+
+        # v1-DID-Dokument (did:web:<host>)
+        did_resp = httpx.get(f"{BASE}/.well-known/did.json", timeout=10)
+        check(did_resp.status_code == 200, "GET /.well-known/did.json -> 200",
+              str(did_resp.status_code))
+        did_doc = did_resp.json()
+        check(did_doc.get("id") == data.get("issuer", {}).get("did"),
+              "DID: id = issuer.did", did_doc.get("id"))
+        methods = did_doc.get("verificationMethod") or []
+        check(bool(methods)
+              and (methods[0].get("publicKeyJwk") or {}).get("x")
+              == data.get("issuer", {}).get("public_key"),
+              "DID: v1-Public-Key enthalten")
 
         # x402-Manifest für Saylor Agent Bazaar
         man = httpx.get(f"{BASE}/.well-known/x402.json", timeout=10)

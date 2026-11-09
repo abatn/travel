@@ -13,7 +13,7 @@ import re
 import uuid
 import base64
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -45,7 +45,8 @@ except ModuleNotFoundError:  # Fallback: keine Übersetzungen, kein Absturz
             return "de"
 from .models import Observation
 from .plausibility import check_observation
-from .signing import IssuerKey, load_or_create_key, verify_attestation
+from .signing import (IssuerKey, load_or_create_key, verify_attestation,
+                      verify_attestation_details)
 from .x402_gate import ATTEST_PATH, build_payment_middleware, describe, facilitator_supports
 
 logger = logging.getLogger("attest")
@@ -106,6 +107,32 @@ def _public_key_doc() -> dict[str, Any]:
     key = issuer()
     return {"did": settings().issuer_did, "key_id": key.key_id,
             "alg": "Ed25519", "public_key": key.public_key_b64}
+
+
+def _did_document() -> dict[str, Any]:
+    """DID-Dokument für die v1-Issuer-DID (did:web:<host>)."""
+    did = settings().issuer_did
+    key = issuer()
+    method = f"{did}#{key.key_id}"
+    return {
+        "@context": [
+            "https://www.w3.org/ns/did/v1",
+            "https://w3id.org/security/suites/jws-2020/v1",
+        ],
+        "id": did,
+        "verificationMethod": [{
+            "id": method,
+            "type": "JsonWebKey2020",
+            "controller": did,
+            "publicKeyJwk": {
+                "kty": "OKP",
+                "crv": "Ed25519",
+                "x": key.public_key_b64,
+            },
+        }],
+        "authentication": [method],
+        "assertionMethod": [method],
+    }
 
 
 def _payer_from_state(request: Request) -> dict[str, Any]:
@@ -254,6 +281,16 @@ def discovery_document(base: str, lang: str = "de") -> dict[str, Any]:
             "key": {
                 "method": "GET",
                 "url": f"{base}/api/attest/key",
+                "payment_required": False,
+            },
+            "sample": {
+                "method": "GET",
+                "url": f"{base}/api/attest/sample",
+                "payment_required": False,
+            },
+            "did": {
+                "method": "GET",
+                "url": f"{base}/.well-known/did.json",
                 "payment_required": False,
             },
             "register": {
@@ -434,6 +471,26 @@ async def attest_key() -> JSONResponse:
     return JSONResponse(_public_key_doc())
 
 
+@public_router.get("/.well-known/did.json")
+async def attest_did() -> JSONResponse:
+    return JSONResponse(
+        _did_document(),
+        headers={"Cache-Control": "public, max-age=300"},
+    )
+
+
+@public_router.get("/api/attest/sample")
+async def attest_sample(request: Request) -> JSONResponse:
+    """Kostenloses, signiertes Referenzbeispiel in der Form der bezahlten Route."""
+    obs = Observation.model_validate(_reference_observation(
+        _base_url(request),
+        "Kostenloses Referenzbeispiel (kein Kauf, keine Zahlung).",
+    ))
+    plausibility = check_observation(obs, ttl_seconds=settings().ttl_seconds)
+    document = issuer().sign(_build_document(obs, plausibility, {}))
+    return JSONResponse(document, headers=_attestation_headers(document))
+
+
 @public_router.post("/api/attest/validate")
 async def attest_validate(request: Request) -> JSONResponse:
     try:
@@ -462,37 +519,90 @@ async def attest_verify(request: Request) -> JSONResponse:
     if not isinstance(document, dict):
         return JSONResponse({"valid": False, "error": "document fehlt"}, status_code=400)
     key = issuer()
-    valid, reason = verify_attestation(
+    details = verify_attestation_details(
         document, key.public_key_b64,
         expected_issuer=settings().issuer_did,
         expected_key_id=key.key_id,
     )
     return JSONResponse({
-        "valid": valid,
-        "reason": reason,
+        **details,
         "key_id": (document.get("signature") or {}).get("key_id"),
         "issuer": (document.get("issuer") or {}).get("did"),
+        "expires_at": document.get("expires_at"),
     })
 
 
 # --------------------------------------------------------------------------- paid
-@paid_router.get(ATTEST_PATH)
-async def attest_info() -> JSONResponse:
-    """Hinweis für Verzeichnis-Prüfungen (GET/HEAD).
+def _attestation_headers(document: dict[str, Any]) -> dict[str, str]:
+    return {
+        "X-Attestation-Id": document["id"],
+        "X-Attestation-Key-Id": document["issuer"]["key_id"],
+        "Link": '</.well-known/agent-payments.json>; rel="payment-discovery"',
+    }
 
-    Unbezahlte GET/HEAD-Anfragen werden schon von der x402-Middleware mit 402
-    abgefangen – erst mit gültiger Zahlung erreicht diese Route der Agent und
-    bekommt eine kurze Bedienhilfe (Attestierung selbst läuft über POST).
+
+def _reference_observation(base: str, note: str | None = None) -> dict[str, Any]:
+    """Signierbares Referenzbeispiel für bezahlte GET/HEAD-Probes."""
+    return {
+        "route": "BER-FCO",
+        "travel_date": (date.today() + timedelta(days=7)).isoformat(),
+        "price": "129.99",
+        "currency": "EUR",
+        "price_scope": "per_person",
+        "source": "attest-reference",
+        "source_url": f"{base}/.well-known/agent-payments.json",
+        "passengers": 1,
+        "note": note or (
+            "Signiertes Referenzbeispiel für einen bezahlten GET/HEAD-Aufruf. "
+            "Für eigene Beobachtungen POST mit route/travel_date/price/source."
+        ),
+    }
+
+
+def _observation_from_query(request: Request) -> Observation:
+    q = request.query_params
+    fields = {
+        "route": q.get("route"),
+        "travel_date": q.get("travel_date"),
+        "price": q.get("price"),
+        "currency": q.get("currency"),
+        "price_scope": q.get("price_scope"),
+        "source": q.get("source"),
+        "source_url": q.get("source_url"),
+        "passengers": q.get("passengers"),
+    }
+    base = _base_url(request)
+    provided = {k: v for k, v in fields.items() if v not in (None, "")}
+    if not provided:
+        return Observation.model_validate(_reference_observation(base))
+    data = _reference_observation(base)
+    data.update(provided)
+    try:
+        return Observation.model_validate(data)
+    except Exception:  # noqa: BLE001
+        return Observation.model_validate(_reference_observation(
+            base, "Ungültige Query-Parameter; signiertes Referenzbeispiel zurückgegeben."
+        ))
+
+
+@paid_router.api_route(ATTEST_PATH, methods=["GET", "HEAD"])
+async def attest_info(request: Request) -> JSONResponse:
+    """Bezahlte GET/HEAD-Route: liefert ein signiertes Referenzbeispiel.
+
+    Vorher kam hier nur ein un-signierter Hinweistext. Das widersprach der
+    Bazaar-GET-Deklaration (queryParams + Attestierungs-Output) und führte
+    dazu, dass eine bezahlte GET-Anfrage zwar settlementierte, aber keine
+    Rechnung erhielt. Jetzt gilt dieselbe Semantik wie bei v2: Query wird
+    übernommen, fehlende/ungültige Query liefert ein signiertes Referenz-
+    beispiel mit ``source = attest-reference``.
     """
-    return JSONResponse({
-        "detail": "Diese Route ist per Zahlung erreichbar; die Attestierung "
-                  "selbst erfolgt über POST.",
-        "post": ATTEST_PATH,
-        "validate": f"{ATTEST_PATH}/validate",
-        "verify": f"{ATTEST_PATH}/verify",
-        "discovery": "/.well-known/agent-payments.json",
-        "documentation": "/llms.txt",
-    })
+    obs = _observation_from_query(request)
+    plausibility = check_observation(obs, ttl_seconds=settings().ttl_seconds)
+    document = issuer().sign(
+        _build_document(obs, plausibility, _payer_from_state(request))
+    )
+    request.state.attestation = document
+    return JSONResponse(document, headers=_attestation_headers(document))
 
 
 @paid_router.post(ATTEST_PATH)
@@ -522,14 +632,7 @@ async def attest(request: Request) -> JSONResponse:
     payment = _payer_from_state(request)
     document = issuer().sign(_build_document(obs, plausibility, payment))
     request.state.attestation = document
-    return JSONResponse(
-        document,
-        headers={
-            "X-Attestation-Id": document["id"],
-            "X-Attestation-Key-Id": document["issuer"]["key_id"],
-            "Link": '</.well-known/agent-payments.json>; rel="payment-discovery"',
-        },
-    )
+    return JSONResponse(document, headers=_attestation_headers(document))
 
 
 async def _billing_middleware(request: Request, call_next):
@@ -551,7 +654,7 @@ async def _billing_middleware(request: Request, call_next):
         except Exception:  # noqa: BLE001
             settlement = {}
     try:
-        record_invoice(document, settlement)
+        record_invoice(document, settlement, series="V1")
     except Exception:  # noqa: BLE001
         logger.exception("Rechnung konnte nicht geschrieben werden")
     return response
@@ -583,11 +686,12 @@ def install(app) -> bool:
         middleware = build_payment_middleware(s)
     except Exception as exc:  # noqa: BLE001
         logger.error("x402-Middleware nicht verfügbar: %s", exc)
+        detail = f"{type(exc).__name__}: {exc}"
 
         @app.api_route(ATTEST_PATH, methods=["GET", "HEAD", "POST"])
         async def _unavailable() -> JSONResponse:
             return JSONResponse(
-                {"error": "Zahlungsweg nicht verfügbar", "detail": str(exc)},
+                {"error": "Zahlungsweg nicht verfügbar", "detail": detail},
                 status_code=503,
             )
 

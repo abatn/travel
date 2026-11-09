@@ -142,7 +142,7 @@ except Exception as _payapi_exc:  # noqa: BLE001
 def _base(request: Request) -> str:
     """Absolute Basis-URL (für kanonische Links, Sitemap, JSON-LD).
 
-    S1: Vorrang hat SITE_URL (z. B. https://reise.example) - hinter Proxy/CDN ist
+    S1: Vorrang hat SITE_URL (z. B. https://travel.hanibal-ai.com) - hinter Proxy/CDN ist
     request.base_url sonst intern (http, falscher Host). Fallback nur für Dev.
     """
     configured = os.environ.get("SITE_URL", "").strip().rstrip("/")

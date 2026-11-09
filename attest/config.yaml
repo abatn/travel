@@ -11,7 +11,7 @@ enabled: true
 
 issuer:
   # DID des Ausstellers. Für lokal: did:web:localhost%3A8077
-  did: "did:web:reise.example"
+  did: "did:web:travel.hanibal-ai.com"
   key_file: "attest/keys/issuer.ed25519"   # wird beim ersten Start erzeugt
   ttl_seconds: 300                          # Gültigkeit einer Attestierung
 

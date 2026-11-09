@@ -18,7 +18,8 @@ from attest.config import load_settings
 from attest.models import Observation
 from attest.plausibility import check_observation
 from attest.signing import (
-    canonical_bytes, load_or_create_key, verify_attestation, verify_document,
+    canonical_bytes, load_or_create_key, verify_attestation,
+    verify_attestation_details, verify_document,
 )
 from attest.x402_gate import facilitator_config
 
@@ -73,10 +74,24 @@ class SignatureTests(unittest.TestCase):
             self.assertFalse(verify_attestation(
                 expired, key.public_key_b64, expected_issuer="did:web:test",
                 expected_key_id=key.key_id)[0])
+            details = verify_attestation_details(
+                expired, key.public_key_b64, expected_issuer="did:web:test",
+                expected_key_id=key.key_id)
+            self.assertTrue(details["signature_valid"])
+            self.assertTrue(details["valid"])
+            self.assertTrue(details["expired"])
+            self.assertFalse(details["fresh"])
+            self.assertEqual(details["reason"], "Attestierung ist abgelaufen")
+
             missing = key.sign({k: v for k, v in base.items() if k != "expires_at"})
             self.assertFalse(verify_attestation(
                 missing, key.public_key_b64, expected_issuer="did:web:test",
                 expected_key_id=key.key_id)[0])
+            missing_details = verify_attestation_details(
+                missing, key.public_key_b64, expected_issuer="did:web:test",
+                expected_key_id=key.key_id)
+            self.assertTrue(missing_details["signature_valid"])
+            self.assertFalse(missing_details["expires_valid"])
 
 
 class PlausibilityTests(unittest.TestCase):

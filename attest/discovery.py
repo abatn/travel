@@ -20,13 +20,76 @@ SAMPLE_INPUT: dict[str, Any] = {
     "passengers": 1,
 }
 
+from datetime import date, timedelta
+
+# Beispiel-Reisedatum dynamisch beim Start: ein fest eingetragenes Datum wird
+# innerhalb weniger Tage unglaubwuerdig (Plausibilitaet: nicht in der
+# Vergangenheit, maximal 400 Tage voraus) und laesst dann jeden Health-Check
+# der Indexer scheitern. +30 Tage bleibt bis zum naechsten Deploy/Neustart gueltig.
+_SAMPLE_TRAVEL_DATE = (date.today() + timedelta(days=30)).isoformat()
+
+SAMPLE_INPUT: dict[str, Any] = {
+    "route": "BER-FCO",
+    "travel_date": _SAMPLE_TRAVEL_DATE,
+    "price": "129.99",
+    "currency": "EUR",
+    "price_scope": "per_person",
+    "source": "googleflights-local",
+    "source_url": "https://www.google.com/travel/flights",
+    "passengers": 1,
+}
+
+QUERY_SAMPLE_INPUT: dict[str, Any] = {
+    "route": "BER-FCO",
+    "travel_date": _SAMPLE_TRAVEL_DATE,
+    "price": "129.99",
+    "currency": "EUR",
+    "price_scope": "per_person",
+    "source": "googleflights-local",
+    "source_url": "https://www.google.com/travel/flights",
+    "passengers": 1,
+}
+
+# Vollstaendiges Beispiel in der Form des echten Dokuments (keine
+# Platzhalter-Ellipsis): Agenten und Indexer sollen die Antwort vor dem Kauf
+# pruefen koennen. Kennungen sind bewusst neutral (die echten Werte stehen im
+# jeweiligen /key- bzw. /verify-Endpunkt).
 SAMPLE_OUTPUT: dict[str, Any] = {
     "version": "1",
-    "id": "att_…",
-    "issued_at": "2026-10-23T18:05:23Z",
-    "subject": {"route": "BER-FCO", "price": "129.99", "currency": "EUR"},
-    "plausibility": {"status": "ok"},
-    "signature": {"alg": "Ed25519", "key_id": "…", "value": "…"},
+    "service": "Reise-Agent Attest",
+    "instance": "example",
+    "id": "att_0123456789abcdef0123456789abcdef",
+    "issued_at": "2026-01-01T12:00:00Z",
+    "expires_at": "2026-01-01T12:05:00Z",
+    "issuer": {
+        "did": "did:web:example.org",
+        "key_id": "key-id-example",
+        "public_key": "base64url-public-key",
+        "alg": "Ed25519",
+        "pay_to": "0x1111111111111111111111111111111111111111",
+    },
+    "subject": {
+        "route": "BER-FCO",
+        "travel_date": _SAMPLE_TRAVEL_DATE,
+        "price": "129.99",
+        "currency": "EUR",
+        "price_scope": "per_person",
+        "passengers": 1,
+        "cabin": None,
+        "source": "googleflights-local",
+        "source_url": "https://www.google.com/travel/flights",
+        "observed_at": "2026-01-01T12:00:00Z",
+        "note": None,
+    },
+    "plausibility": {"status": "ok", "checks": [], "ttl_seconds": 300},
+    "payment": {"payer": "0x2222222222222222222222222222222222222222",
+                "network": "eip155:8453", "scheme": "exact",
+                "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                "amount": "10000", "x402_version": 2},
+    "terms": {"meaning": "Beobachtung, keine Buchungsgarantie und keine Preisgarantie.",
+              "verification": "/api/attest/verify"},
+    "signature": {"alg": "Ed25519", "key_id": "key-id-example",
+                  "value": "base64url-signature"},
 }
 
 
@@ -48,54 +111,86 @@ def contact_email() -> str:
         return ""
 
 
-def bazaar_extension() -> dict[str, Any]:
-    """Bazaar-Discovery-Erweiterung (x402 v2), wie sie Indexer lesen."""
+def bazaar_extension(method: str = "POST") -> dict[str, Any]:
+    """Bazaar-Discovery-Erweiterung (x402 v2) — methodenspezifisch.
+
+    Query-Methoden (GET/HEAD/DELETE) deklarieren ``queryParams``, Body-Methoden
+    (POST/PUT/PATCH) einen JSON-``body``. Die deklarierte Methode muss zur
+    tatsaechlich geprobten Route passen, sonst scheitert die Facilitator-
+    Vorpruefung ``bazaar.info.input.method.matches_request`` (CDP /validate).
+    """
+    m = (method or "POST").upper()
+    fields: dict[str, Any] = {
+        "route": {"type": "string", "pattern": "^[A-Za-z]{3}-[A-Za-z]{3}$"},
+        "travel_date": {"type": "string", "format": "date"},
+        "price": {"type": "string"},
+        "currency": {"type": "string"},
+        "price_scope": {
+            "type": "string",
+            "enum": ["per_person", "per_night", "total", "per_stay"],
+        },
+        "source": {"type": "string"},
+        "source_url": {"type": "string", "format": "uri"},
+        "observed_at": {"type": "string", "format": "date-time"},
+        "passengers": {"type": "integer", "minimum": 1, "maximum": 9},
+        "cabin": {"type": "string"},
+        "note": {"type": "string"},
+    }
+    required = ["route", "travel_date", "price", "price_scope", "source"]
+
+    if m in ("GET", "HEAD", "DELETE"):
+        info_input: dict[str, Any] = {
+            "type": "http",
+            "method": m,
+            "queryParams": QUERY_SAMPLE_INPUT,
+        }
+        input_schema: dict[str, Any] = {
+            "type": "object",
+            "properties": {
+                "type": {"type": "string", "const": "http"},
+                "method": {"type": "string", "enum": ["GET", "HEAD", "DELETE"]},
+                "queryParams": {
+                    "type": "object",
+                    "properties": fields,
+                    "required": required,
+                    "additionalProperties": False,
+                },
+            },
+            "required": ["type", "method", "queryParams"],
+        }
+    else:
+        info_input = {
+            "type": "http",
+            "method": m,
+            "bodyType": "json",
+            "body": SAMPLE_INPUT,
+        }
+        input_schema = {
+            "type": "object",
+            "properties": {
+                "type": {"type": "string", "const": "http"},
+                "method": {"type": "string", "enum": ["POST", "PUT", "PATCH"]},
+                "bodyType": {"type": "string", "enum": ["json"]},
+                "body": {
+                    "type": "object",
+                    "properties": fields,
+                    "required": required,
+                    "additionalProperties": False,
+                },
+            },
+            "required": ["type", "method", "bodyType", "body"],
+        }
+
     return {
         "info": {
-            "input": {
-                "type": "http",
-                "method": "POST",
-                "bodyType": "json",
-                "body": SAMPLE_INPUT,
-            },
-            "output": {
-                "type": "json",
-                "example": SAMPLE_OUTPUT,
-            },
+            "input": info_input,
+            "output": {"type": "json", "example": SAMPLE_OUTPUT},
         },
         "schema": {
             "$schema": "https://json-schema.org/draft/2020-12/schema",
             "type": "object",
             "properties": {
-                "input": {
-                    "type": "object",
-                    "properties": {
-                        "type": {"type": "string", "const": "http"},
-                        "method": {"type": "string", "enum": ["POST", "PUT", "PATCH"]},
-                        "bodyType": {"type": "string", "enum": ["json"]},
-                        "body": {
-                            "type": "object",
-                            "properties": {
-                                "route": {"type": "string", "pattern": "^[A-Za-z]{3}-[A-Za-z]{3}$"},
-                                "travel_date": {"type": "string", "format": "date"},
-                                "price": {"type": "string"},
-                                "currency": {"type": "string"},
-                                "price_scope": {
-                                    "type": "string",
-                                    "enum": ["per_person", "per_night", "total", "per_stay"],
-                                },
-                                "source": {"type": "string"},
-                                "source_url": {"type": "string", "format": "uri"},
-                                "observed_at": {"type": "string", "format": "date-time"},
-                                "passengers": {"type": "integer", "minimum": 1, "maximum": 9},
-                                "cabin": {"type": "string"},
-                                "note": {"type": "string"},
-                            },
-                            "required": ["route", "travel_date", "price", "price_scope", "source"],
-                        },
-                    },
-                    "required": ["type", "method", "bodyType", "body"],
-                },
+                "input": input_schema,
                 "output": {
                     "type": "object",
                     "properties": {

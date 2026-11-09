@@ -83,20 +83,28 @@ def _read_all(path: Path) -> list[dict[str, Any]]:
     return rows
 
 
-def _next_number(rows: list[dict[str, Any]], year: int) -> str:
-    prefix = f"RE-{year}-"
+def _series(series: str | None) -> str:
+    value = str(series or "V1").strip().upper()
+    return value or "V1"
+
+
+def _next_number(rows: list[dict[str, Any]], year: int,
+                 series: str = "V1") -> str:
+    series = _series(series)
+    prefix = f"RE-{year}-{series}-"
     used = [
-        int(r["invoice_no"].split("-")[-1])
+        int(str(r["invoice_no"])[len(prefix):])
         for r in rows
         if str(r.get("invoice_no", "")).startswith(prefix)
-        and str(r["invoice_no"]).split("-")[-1].isdigit()
+        and str(r["invoice_no"])[len(prefix):].isdigit()
     ]
     return f"{prefix}{max(used, default=0) + 1:06d}"
 
 
 def record_invoice(attestation: dict[str, Any], settlement: dict[str, Any],
                    *, path: str | Path | None = None,
-                   service: str = SERVICE) -> dict[str, Any]:
+                   service: str = SERVICE,
+                   series: str = "V1") -> dict[str, Any]:
     """Schreibt eine Rechnung, idempotent pro Attestierungs-ID. Gibt den Datensatz zurück."""
     target = ledger_path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -119,8 +127,10 @@ def record_invoice(attestation: dict[str, Any], settlement: dict[str, Any],
                         return row
 
             year = datetime.fromisoformat(issued.replace("Z", "+00:00")).year
+            series_code = _series(series)
             record = {
-                "invoice_no": _next_number(rows, year),
+                "invoice_no": _next_number(rows, year, series_code),
+                "invoice_series": series_code,
                 "invoice_date": issued,
                 "service": service,
                 "description": (
@@ -135,6 +145,8 @@ def record_invoice(attestation: dict[str, Any], settlement: dict[str, Any],
                 "payer": payment.get("payer") or settlement.get("payer") or "",
                 "pay_to": (attestation.get("issuer") or {}).get("pay_to") or "",
                 "attestation_id": attestation_id,
+                "source": subject.get("source") or "",
+                "note": subject.get("note") or "",
                 "issuer_did": (attestation.get("issuer") or {}).get("did") or "",
                 "vat_note": os.environ.get("ATTEST_VAT_NOTE", "").strip(),
                 "supplier_tax_id": supplier_tax_id(),
@@ -156,9 +168,10 @@ def export_csv(target: str | Path, path: str | Path | None = None) -> Path:
     target = Path(target)
     target.parent.mkdir(parents=True, exist_ok=True)
     fields = [
-        "invoice_no", "invoice_date", "service", "description", "amount", "currency",
-        "amount_usd", "network", "tx_hash", "payer", "pay_to", "attestation_id",
-        "issuer_did", "supplier_tax_id", "vat_note", "created_at",
+        "invoice_no", "invoice_series", "invoice_date", "service", "description",
+        "amount", "currency", "amount_usd", "network", "tx_hash", "payer", "pay_to",
+        "attestation_id", "source", "note", "issuer_did", "supplier_tax_id",
+        "vat_note", "created_at",
     ]
     with target.open("w", encoding="utf-8", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=fields, extrasaction="ignore")

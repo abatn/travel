@@ -18,6 +18,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from datetime import date, timedelta
 from pathlib import Path
 
 import httpx
@@ -27,6 +28,7 @@ ROOT = Path(__file__).resolve().parents[3]
 MOCK_PORT = 8097
 APP_PORT = 8098
 BASE = f"http://127.0.0.1:{APP_PORT}"
+TRAVEL_DATE = (date.today() + timedelta(days=7)).isoformat()
 PAY_TO = "0x1cE5379a485a0bd726fce57BbfDfc316b0D35Cc4"
 ASSET = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
 
@@ -179,6 +181,20 @@ def main() -> int:
               "OpenAPI: requestBody-Schema")
         check(bool(((post.get("responses") or {}).get("200") or {}).get("content")),
               "OpenAPI: 200-Schema")
+        check("/payapi/did.json" in (doc.get("paths") or {}),
+              "OpenAPI: /payapi/did.json dokumentiert")
+
+        # --- DID-Dokumente ---
+        did_resp = httpx.get(f"{BASE}/payapi/did.json", timeout=10)
+        check(did_resp.status_code == 200, "GET /payapi/did.json -> 200",
+              str(did_resp.status_code))
+        did_doc = did_resp.json()
+        check(did_doc.get("id") == "did:web:test:payapi",
+              "DID: id = did:web:test:payapi", did_doc.get("id"))
+        methods = did_doc.get("verificationMethod") or []
+        check(bool(methods) and (methods[0].get("publicKeyJwk") or {}).get("crv") == "Ed25519",
+              "DID: Ed25519-VerificationMethod")
+
 
         # --- unbezahlt ---
         last_required: dict = {}
@@ -231,7 +247,7 @@ def main() -> int:
             # GET mit Query -> echte Beobachtung
             get_resp = await paid.request(
                 "GET", f"{BASE}/api/attest-v2",
-                params={"route": "HAM-FCO", "travel_date": "2026-11-05",
+                params={"route": "HAM-FCO", "travel_date": TRAVEL_DATE,
                         "price": "199.99", "currency": "EUR",
                         "price_scope": "per_person", "source": "payapi-test"})
             check(get_resp.status_code == 200, "bezahlt GET -> 200", str(get_resp.status_code))
@@ -241,13 +257,17 @@ def main() -> int:
             check(doc.get("instance") == "payapi-test", "GET: eigene Instanz")
 
             ver = httpx.post(f"{BASE}/api/attest-v2/verify", json={"document": doc}, timeout=10)
-            check(ver.status_code == 200 and ver.json().get("valid") is True,
-                  "GET: Signatur verifiziert", str(ver.json())[:80])
+            ver_doc = ver.json()
+            check(ver.status_code == 200 and ver_doc.get("valid") is True,
+                  "GET: Signatur verifiziert", str(ver_doc)[:80])
+            check(ver_doc.get("signature_valid") is True and ver_doc.get("expired") is False,
+                  "GET: verify trennt Signatur/Frische",
+                  f"signature_valid={ver_doc.get('signature_valid')}, expired={ver_doc.get('expired')}")
 
             # POST mit Body
             post_resp = await paid.request(
                 "POST", f"{BASE}/api/attest-v2",
-                json={"route": "BER-FCO", "travel_date": "2026-11-05",
+                json={"route": "BER-FCO", "travel_date": TRAVEL_DATE,
                       "price": "129.99", "currency": "EUR",
                       "price_scope": "per_person", "source": "payapi-test",
                       "source_url": "https://payapi.market", "passengers": 1})
@@ -256,17 +276,25 @@ def main() -> int:
             check(post_doc.get("subject", {}).get("source") == "payapi-test", "POST: Quelle übernommen")
             check(bool(post_doc.get("signature", {}).get("value")), "POST: Signatur vorhanden")
 
-            # Leerer POST -> 422, keine Signatur, keine Rechnung
+            # Leerer POST -> 200 + signiertes Referenzbeispiel (Canary-Robustheit)
             empty_resp = await paid.request("POST", f"{BASE}/api/attest-v2", json={})
-            check(empty_resp.status_code == 422, "bezahlt POST leer -> 422", str(empty_resp.status_code))
-            check("signature" not in empty_resp.text and "payapi-reference" not in empty_resp.text,
-                  "leerer POST: keine Signatur/Referenz")
+            check(empty_resp.status_code == 200, "bezahlt POST leer -> 200",
+                  str(empty_resp.status_code))
+            empty_doc = empty_resp.json()
+            check(empty_doc.get("subject", {}).get("source") == "payapi-reference",
+                  "leerer POST: signiertes Referenzbeispiel")
+            check(bool(empty_doc.get("signature", {}).get("value")),
+                  "leerer POST: Signatur vorhanden")
 
-            # GET ohne Query -> 422, keine Signatur
+            # GET ohne Query -> 200 + signiertes Referenzbeispiel
             empty_get = await paid.request("GET", f"{BASE}/api/attest-v2")
-            check(empty_get.status_code == 422, "bezahlt GET ohne Query -> 422",
+            check(empty_get.status_code == 200, "bezahlt GET ohne Query -> 200",
                   str(empty_get.status_code))
-            check("signature" not in empty_get.text, "leerer GET: keine Signatur")
+            empty_get_doc = empty_get.json()
+            check(empty_get_doc.get("subject", {}).get("source") == "payapi-reference",
+                  "leerer GET: signiertes Referenzbeispiel")
+            check(bool(empty_get_doc.get("signature", {}).get("value")),
+                  "leerer GET: Signatur vorhanden")
 
         asyncio.run(flow())
 
@@ -275,11 +303,17 @@ def main() -> int:
         check(ledger.exists(), "eigener Ledger existiert")
         if ledger.exists():
             rows = [json.loads(x) for x in ledger.read_text(encoding="utf-8").splitlines() if x]
-            check(len(rows) == 2, "eigener Ledger: nur echte Beobachtungen", str(len(rows)))
+            check(len(rows) == 4, "eigener Ledger: vier bezahlte Calls", str(len(rows)))
             check(all(r.get("service", "").endswith("(PayAPI)") for r in rows),
                   "eigener Ledger: PayAPI-Leistung")
-            check(all("payapi-reference" not in json.dumps(r) for r in rows),
-                  "eigener Ledger: keine Referenz-Rechnung")
+            refs = [r for r in rows if r.get("source") == "payapi-reference"]
+            check(len(refs) == 2, "eigener Ledger: Referenzen markiert", str(len(refs)))
+            numbers = [r.get("invoice_no", "") for r in rows]
+            check(len(set(numbers)) == len(numbers),
+                  "eigener Ledger: keine doppelten Rechnungsnummern", str(numbers))
+            expected_series = f"RE-{date.today().year}-V2-"
+            check(all(n.startswith(expected_series) for n in numbers),
+                  "eigener Ledger: globale V2-Serie", str(numbers))
 
         key_file = tmp / "issuer.ed25519"
         main_key = (ROOT / "attest" / "keys" / "issuer.ed25519").resolve()

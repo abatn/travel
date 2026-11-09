@@ -5,7 +5,7 @@
 enabled: true
 
 issuer:
-  did: "did:web:reise.example"
+  did: "did:web:travel.hanibal-ai.com"
   key_file: "attest/keys/issuer.ed25519"
   ttl_seconds: 300
 

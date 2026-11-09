@@ -11,8 +11,11 @@ Plausibilitätsprüfung. Kein Konto, kein API-Key, keine Buchung.
 ```
 POST /api/attest            → 402 + PAYMENT-REQUIRED (x402 v2)
                             → mit PAYMENT-SIGNATURE: 200 + signiertes Dokument
+GET  /api/attest            → bezahlt; Query oder signiertes Referenzbeispiel
+GET  /api/attest/sample     → kostenloses, signiertes Referenzbeispiel
 POST /api/attest/validate   → kostenlose Vorprüfung
-POST /api/attest/verify     → Signatur, Ablauf, Issuer und Key-ID prüfen (eigener Key)
+POST /api/attest/verify     → Signatur, Issuer, Key-ID und Frische getrennt prüfen
+                              (`valid`, `signature_valid`, `expired`, `fresh`)
 GET  /api/attest/key        → öffentlicher Ed25519-Schlüssel
 GET  /.well-known/agent-payments.json → Discovery (Preis, Netz, payTo, Facilitator)
 ```

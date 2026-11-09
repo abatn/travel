@@ -20,6 +20,7 @@ import base64
 import json
 import os
 import sys
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -29,7 +30,9 @@ DEFAULT_BASE = "http://127.0.0.1:8077"
 
 SAMPLE = {
     "route": "BER-FCO",
-    "travel_date": "2026-11-05",
+    # Dynamisch, damit der dokumentierte Testclient nicht nach einigen Tagen
+    # mit HTTP 422 (Reisedatum in der Vergangenheit) endet.
+    "travel_date": (date.today() + timedelta(days=7)).isoformat(),
     "price": "129.99",
     "currency": "EUR",
     "price_scope": "per_person",

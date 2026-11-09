@@ -101,8 +101,10 @@ def build_payment_middleware(
     if extra:
         accepts["extra"] = dict(extra)
 
-    def route_config() -> dict[str, Any]:
-        # Frisches Objekt pro Methode: Die Middleware kompiliert jede Route einzeln.
+    def route_config(method: str) -> dict[str, Any]:
+        # Frisches Objekt pro Methode: Die Middleware kompiliert jede Route
+        # einzeln, und die Bazaar-Deklaration muss die jeweilige HTTP-Methode
+        # nennen (sonst: bazaar.info.input.method.matches_request = false).
         config: dict[str, Any] = {
             "accepts": [dict(accepts)],
             "description": description,
@@ -111,14 +113,14 @@ def build_payment_middleware(
             "tags": tags or ["travel", "price", "attestation", "x402"],
         }
         if include_bazaar:
-            config["extensions"] = {"bazaar": bazaar_extension()}
+            config["extensions"] = {"bazaar": bazaar_extension(method)}
         return config
 
     # GET/HEAD gehören bewusst dazu: Verzeichnisse und Facilitator-Indexer
     # (CDP /v2/x402/validate, PayAI, gold-402) prüfen per HEAD/GET auf 402.
     # Ohne 402-Antwort wird die Ressource nicht katalogisiert (returns_402).
     routes: dict[str, Any] = {
-        f"{method} {path}": route_config()
+        f"{method} {path}": route_config(method)
         for method in ("POST", "GET", "HEAD")
     }
     return payment_middleware(

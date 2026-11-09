@@ -98,36 +98,92 @@ def verify_document(document: dict[str, Any], public_key_b64: str) -> bool:
         return False
 
 
+def verify_attestation_details(document: dict[str, Any], public_key_b64: str, *,
+                               expected_issuer: str | None = None,
+                               expected_key_id: str | None = None,
+                               now: datetime | None = None) -> dict[str, Any]:
+    """Prüft Signatur, Issuer, Key-ID und Frische getrennt.
+
+    ``valid`` bedeutet hier "kryptografisch und issuer-seitig gültig" und
+    ignoriert den Ablauf. Die Frische steht separat in ``expired`` /
+    ``expires_valid``. So bleibt ein archiviertes, korrekt signiertes Dokument
+    nachvollziehbar, ohne die TTL-Prüfung zu verstecken.
+    """
+    result: dict[str, Any] = {
+        "valid": False,
+        "signature_valid": False,
+        "key_id_valid": False,
+        "issuer_valid": False,
+        "expires_valid": False,
+        "expired": False,
+        "fresh": False,
+        "reason": "",
+    }
+    if not isinstance(document, dict):
+        result["reason"] = "document fehlt"
+        return result
+
+    signature = document.get("signature") or {}
+    result["signature_valid"] = verify_document(document, public_key_b64)
+    result["key_id_valid"] = (
+        not expected_key_id or signature.get("key_id") == expected_key_id
+    )
+    issuer = str((document.get("issuer") or {}).get("did") or "")
+    result["issuer_valid"] = not expected_issuer or issuer == expected_issuer
+
+    expires_at = document.get("expires_at")
+    if expires_at:
+        try:
+            expires = datetime.fromisoformat(str(expires_at).replace("Z", "+00:00"))
+            if expires.tzinfo is None:
+                expires = expires.replace(tzinfo=timezone.utc)
+            result["expires_valid"] = True
+            result["expired"] = (now or datetime.now(timezone.utc)) > expires
+        except Exception:
+            result["expires_valid"] = False
+            result["expired"] = False
+
+    result["valid"] = bool(
+        result["signature_valid"]
+        and result["key_id_valid"]
+        and result["issuer_valid"]
+    )
+    result["fresh"] = bool(result["expires_valid"] and not result["expired"])
+    if not result["signature_valid"]:
+        result["reason"] = "Signatur ungültig"
+    elif not result["key_id_valid"]:
+        result["reason"] = "key_id passt nicht zum Issuer"
+    elif not result["issuer_valid"]:
+        result["reason"] = "issuer.did passt nicht zum erwarteten Aussteller"
+    elif not result["expires_valid"]:
+        result["reason"] = "expires_at fehlt oder ist ungültig"
+    elif result["expired"]:
+        result["reason"] = "Attestierung ist abgelaufen"
+    else:
+        result["reason"] = "ok"
+    return result
+
+
 def verify_attestation(document: dict[str, Any], public_key_b64: str, *,
                        expected_issuer: str | None = None,
                        expected_key_id: str | None = None,
                        now: datetime | None = None) -> tuple[bool, str]:
-    """Prüft Signatur, Ablauf, Issuer und Key-ID.
+    """Strikte Gesamtprüfung (Signatur + Issuer + Key-ID + Ablauf).
 
     Der eigene Issuer-Key ist Pflicht; ein vom Aufrufer gelieferter Fremdschlüssel
     wird bewusst nicht akzeptiert.
     """
-    if not isinstance(document, dict):
-        return False, "document fehlt"
-    signature = document.get("signature") or {}
-    if not verify_document(document, public_key_b64):
-        return False, "Signatur ungültig"
-    if expected_key_id and signature.get("key_id") != expected_key_id:
-        return False, "key_id passt nicht zum Issuer"
-    issuer = str((document.get("issuer") or {}).get("did") or "")
-    if expected_issuer and issuer != expected_issuer:
-        return False, "issuer.did passt nicht zum erwarteten Aussteller"
-    expires_at = document.get("expires_at")
-    if not expires_at:
-        return False, "expires_at fehlt"
-    try:
-        expires = datetime.fromisoformat(str(expires_at).replace("Z", "+00:00"))
-        if expires.tzinfo is None:
-            expires = expires.replace(tzinfo=timezone.utc)
-    except Exception:
-        return False, "expires_at ist kein gültiger Zeitstempel"
-    current = now or datetime.now(timezone.utc)
-    if current > expires:
-        return False, "Attestierung ist abgelaufen"
-    return True, "ok"
+    details = verify_attestation_details(
+        document,
+        public_key_b64,
+        expected_issuer=expected_issuer,
+        expected_key_id=expected_key_id,
+        now=now,
+    )
+    ok = bool(
+        details["valid"]
+        and details["expires_valid"]
+        and not details["expired"]
+    )
+    return ok, str(details["reason"])
 

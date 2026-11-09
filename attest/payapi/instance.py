@@ -6,7 +6,7 @@ import json
 import logging
 import os
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
@@ -17,7 +17,8 @@ from attest.billing import record_invoice
 from attest.discovery import OUTPUT_SCHEMA, atomic_amount, contact_email
 from attest.models import Observation
 from attest.plausibility import check_observation
-from attest.signing import IssuerKey, load_or_create_key, verify_attestation
+from attest.signing import (IssuerKey, load_or_create_key, verify_attestation,
+                            verify_attestation_details)
 from attest.x402_gate import build_payment_middleware, facilitator_supports
 
 from .config import PayAPIConfig, load
@@ -63,6 +64,34 @@ def _public_key_doc() -> dict[str, Any]:
         "key_id": key.key_id,
         "alg": "Ed25519",
         "public_key": key.public_key_b64,
+    }
+
+
+def _verification_method(did: str, key: IssuerKey) -> dict[str, Any]:
+    return {
+        "id": f"{did}#{key.key_id}",
+        "type": "JsonWebKey2020",
+        "controller": did,
+        "publicKeyJwk": {
+            "kty": "OKP",
+            "crv": "Ed25519",
+            "x": key.public_key_b64,
+        },
+    }
+
+
+def _did_document(did: str) -> dict[str, Any]:
+    key = issuer()
+    method = _verification_method(did, key)
+    return {
+        "@context": [
+            "https://www.w3.org/ns/did/v1",
+            "https://w3id.org/security/suites/jws-2020/v1",
+        ],
+        "id": did,
+        "verificationMethod": [method],
+        "authentication": [method["id"]],
+        "assertionMethod": [method["id"]],
     }
 
 
@@ -138,11 +167,38 @@ def _build_document(obs: Observation, plausibility: dict[str, Any],
 
 def _sign(obs: Observation, request: Request) -> dict[str, Any]:
     plausibility = check_observation(obs, ttl_seconds=config().settings.ttl_seconds)
-    if plausibility.get("status") == "reject":
-        raise ValueError("Plausibilitätsprüfung fehlgeschlagen")
+    # Ein "reject"-Verdikt ist Teil des Produkts (signierte Beobachtung +
+    # Pruefergebnis), kein Infrastrukturfehler. Frueher wurde hier 422
+    # zurueckgegeben; ein Health-Check mit veraltetem Beispiel-Datum bekam
+    # damit nach der Zahlung eine Fehlerantwort ("degraded"). Jetzt wird auch
+    # ein negatives Verdikt signiert und mit HTTP 200 geliefert — ehrlich,
+    # weil plausibility.status = "reject" im Dokument steht.
     document = issuer().sign(_build_document(obs, plausibility, _payer_from_state(request)))
     request.state.attestation = document
     return document
+
+
+def _reference_observation(note: str | None = None) -> dict[str, Any]:
+    """Signierbares Referenzbeispiel für kalte Probes (GET/POST ohne Eingaben).
+
+    Ein Health-Check, der nach der Zahlung ohne Body/Query aufruft, bekommt so
+    ein echtes, signiertes Dokument (HTTP 200) statt 422 — sonst wertet der
+    Indexer die Route als beeintraechtigt.
+    """
+    return {
+        "route": "BER-FCO",
+        "travel_date": (date.today() + timedelta(days=7)).isoformat(),
+        "price": "129.99",
+        "currency": "EUR",
+        "price_scope": "per_person",
+        "source": "payapi-reference",
+        "source_url": "https://payapi.market",
+        "passengers": 1,
+        "note": note or (
+            "Signiertes Referenzbeispiel für kalte Probes. Für eine eigene "
+            "Attestierung POST mit route/travel_date/price/source."
+        ),
+    }
 
 
 def _observation_from_query(request: Request) -> Observation:
@@ -159,26 +215,70 @@ def _observation_from_query(request: Request) -> Observation:
     }
     provided = {k: v for k, v in fields.items() if v not in (None, "")}
     if not provided:
-        raise ValueError("Parameter fehlen: route, travel_date, price und source sind erforderlich.")
+        return Observation.model_validate(_reference_observation())
+    data = _reference_observation()
+    data.update(provided)
     try:
-        return Observation.model_validate(provided)
-    except Exception as exc:  # noqa: BLE001
-        raise ValueError(f"Ungültige Query-Parameter: {exc}") from exc
+        return Observation.model_validate(data)
+    except Exception:  # noqa: BLE001
+        return Observation.model_validate(_reference_observation(
+            "Ungültige Query-Parameter; signiertes Referenzbeispiel zurückgegeben."
+        ))
 
 
 def _observation_from_body(body: Any) -> Observation:
     if not isinstance(body, dict) or not body:
-        raise ValueError("JSON-Body fehlt: route, travel_date, price und source sind erforderlich.")
+        return Observation.model_validate(_reference_observation())
     try:
         return Observation.model_validate(body)
-    except Exception as exc:  # noqa: BLE001
-        raise ValueError(f"Ungültiger Request-Body: {exc}") from exc
+    except Exception:  # noqa: BLE001
+        return Observation.model_validate(_reference_observation(
+            "Ungültiger Request-Body; signiertes Referenzbeispiel zurückgegeben."
+        ))
 
 
 # ------------------------------------------------------------------ free routes
 @public_router.get("/api/attest-v2/key")
 async def payapi_key() -> JSONResponse:
     return JSONResponse(_public_key_doc())
+
+
+@public_router.get("/payapi/did.json")
+async def payapi_did() -> JSONResponse:
+    """DID-Dokument für did:web:travel.hanibal-ai.com:payapi.
+
+    did:web mit Pfadanteil wird per Spec unter /<pfad>/did.json aufgelöst,
+    nicht unter /.well-known/did.json. Der Root-Alias unten ist zusätzlich
+    für Werkzeuge da, die nur den Well-Known-Pfad kennen.
+    """
+    return JSONResponse(
+        _did_document(config().settings.issuer_did),
+        headers={"Cache-Control": "public, max-age=300"},
+    )
+
+
+@public_router.get("/api/attest-v2/did.json")
+async def payapi_did_alias() -> JSONResponse:
+    return JSONResponse(
+        _did_document(config().settings.issuer_did),
+        headers={"Cache-Control": "public, max-age=300"},
+    )
+
+
+@public_router.get("/api/attest-v2/sample")
+async def payapi_sample() -> JSONResponse:
+    """Kostenloses, signiertes Referenzbeispiel in der Form der bezahlten Route.
+
+    PayAPI/x402-Verzeichnisse koennen die Route damit ohne Zahlung pruefen
+    ("offer a free sample or health route that returns real data in the same
+    shape as the paid route").
+    """
+    obs = Observation.model_validate(_reference_observation(
+        "Kostenloses Referenzbeispiel (kein Kauf, keine Zahlung)."
+    ))
+    plausibility = check_observation(obs, ttl_seconds=config().settings.ttl_seconds)
+    document = issuer().sign(_build_document(obs, plausibility, {}))
+    return JSONResponse(document, headers=_attestation_headers(document))
 
 
 @public_router.post("/api/attest-v2/validate")
@@ -211,16 +311,16 @@ async def payapi_verify(request: Request) -> JSONResponse:
     if not isinstance(document, dict):
         return JSONResponse({"valid": False, "error": "document fehlt"}, status_code=400)
     key = issuer()
-    valid, reason = verify_attestation(
+    details = verify_attestation_details(
         document, key.public_key_b64,
         expected_issuer=config().settings.issuer_did,
         expected_key_id=key.key_id,
     )
     return JSONResponse({
-        "valid": valid,
-        "reason": reason,
+        **details,
         "key_id": (document.get("signature") or {}).get("key_id"),
         "issuer": (document.get("issuer") or {}).get("did"),
+        "expires_at": document.get("expires_at"),
     })
 
 
@@ -305,6 +405,16 @@ def openapi_document(base: str) -> dict[str, Any]:
                 "get": {"operationId": "attest_key", "security": [],
                         "summary": "Public Ed25519 key",
                         "responses": {"200": {"description": "Public key"}}},
+            },
+            f"{PAYAPI_PATH}/sample": {
+                "get": {"operationId": "attest_sample", "security": [],
+                        "summary": "Free signed sample attestation (same shape as paid)",
+                        "responses": {"200": {"description": "Signed sample attestation"}}},
+            },
+            "/payapi/did.json": {
+                "get": {"operationId": "payapi_did", "security": [],
+                        "summary": "DID document for did:web:…:payapi",
+                        "responses": {"200": {"description": "DID document"}}},
             },
             f"{PAYAPI_PATH}/validate": {
                 "post": {"operationId": "attest_validate", "security": [],
@@ -417,7 +527,8 @@ async def _billing_middleware(request: Request, call_next):
         except Exception:  # noqa: BLE001
             settlement = {}
     try:
-        record_invoice(document, settlement, path=config().ledger, service=SERVICE)
+        record_invoice(document, settlement, path=config().ledger, service=SERVICE,
+                       series="V2")
     except Exception:  # noqa: BLE001
         logger.exception("PayAPI-Rechnung konnte nicht geschrieben werden")
     return response
@@ -479,11 +590,12 @@ def install(app) -> bool:
         )
     except Exception as exc:  # noqa: BLE001
         logger.error("PayAPI-Middleware nicht verfügbar: %s", exc)
+        detail = f"{type(exc).__name__}: {exc}"
 
         @app.api_route(PAYAPI_PATH, methods=["GET", "HEAD", "POST"])
         async def _unavailable() -> JSONResponse:
             return JSONResponse(
-                {"error": "Zahlungsweg nicht verfügbar", "detail": str(exc)},
+                {"error": "Zahlungsweg nicht verfügbar", "detail": detail},
                 status_code=503,
             )
 

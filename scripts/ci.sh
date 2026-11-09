@@ -3,7 +3,15 @@
 # Voraussetzung: Abhängigkeiten installiert (pip install -r requirements-runtime.txt).
 set -euo pipefail
 
-PY="${PYTHON:-python3}"
+# Auf dem Produktionshost liegt die Laufzeit in .venv; in GitHub-CI nicht.
+# Deshalb automatisch die Projekt-Venv nehmen, wenn PYTHON nicht gesetzt ist.
+if [ -n "${PYTHON:-}" ]; then
+  PY="$PYTHON"
+elif [ -x ".venv/bin/python" ]; then
+  PY=".venv/bin/python"
+else
+  PY="python3"
+fi
 
 echo "== Compile =="
 $PY -m compileall -q ui providers seo resolver affiliate alerts bundling attest i18n

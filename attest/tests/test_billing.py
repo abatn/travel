@@ -33,28 +33,37 @@ class BillingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             ledger = Path(tmp) / "invoices.jsonl"
             first = record_invoice(_attestation(), {"transaction": "0xabc"}, path=ledger)
-            self.assertEqual(first["invoice_no"], "RE-2026-000001")
+            self.assertEqual(first["invoice_no"], "RE-2026-V1-000001")
+            self.assertEqual(first["invoice_series"], "V1")
             self.assertEqual(first["amount"], "0.01")
             self.assertEqual(first["currency"], "USDC")
             self.assertEqual(first["tx_hash"], "0xabc")
 
             # idempotent pro Attestierung
             again = record_invoice(_attestation(), {"transaction": "0xabc"}, path=ledger)
-            self.assertEqual(again["invoice_no"], "RE-2026-000001")
+            self.assertEqual(again["invoice_no"], "RE-2026-V1-000001")
             self.assertEqual(len(list_invoices(ledger)), 1)
 
             second = record_invoice(
                 _attestation("att_test_2", "2000"), {"transaction": "0xdef"}, path=ledger)
-            self.assertEqual(second["invoice_no"], "RE-2026-000002")
+            self.assertEqual(second["invoice_no"], "RE-2026-V1-000002")
             self.assertEqual(second["amount"], "0.002")
             self.assertEqual(len(list_invoices(ledger)), 2)
+
+            # zweite Serie darf nicht mit V1 kollidieren
+            v2 = record_invoice(
+                _attestation("att_test_v2", "10000"), {"transaction": "0xv2"},
+                path=ledger, series="V2")
+            self.assertEqual(v2["invoice_no"], "RE-2026-V2-000001")
+            self.assertEqual(v2["invoice_series"], "V2")
 
             out = export_csv(Path(tmp) / "export.csv", ledger)
             with out.open(encoding="utf-8") as fh:
                 rows = list(csv.DictReader(fh))
-            self.assertEqual(len(rows), 2)
-            self.assertEqual(rows[0]["invoice_no"], "RE-2026-000001")
+            self.assertEqual(len(rows), 3)
+            self.assertEqual(rows[0]["invoice_no"], "RE-2026-V1-000001")
             self.assertEqual(rows[1]["tx_hash"], "0xdef")
+            self.assertEqual(rows[2]["invoice_no"], "RE-2026-V2-000001")
             self.assertIn("supplier_tax_id", rows[0])
 
     def test_supplier_tax_id(self):
