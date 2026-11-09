@@ -3,6 +3,7 @@
 !/.gitignore
 !/README.md
 !/AGENTS.md
+!/pytest.ini
 !/.github/
 !/ui/
 !/providers/

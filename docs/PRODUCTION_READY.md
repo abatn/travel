@@ -39,6 +39,7 @@ Die frühere Host-Historie (`4435ada`) wird vor dem Reset als Git-Bundle unter
 | `ui/app.py` | Host-Version mit `/ready` (Registry, State, Attest, PayAPI) |
 | `ui/tests/test_ready.py` | vom Host übernommen |
 | `scripts/ci.sh` | erkennt `.venv/bin/python` automatisch; Host-CI und GitHub-CI nutzen denselben Ablauf |
+| `pytest.ini` | schließt den Fremd-Symlink `km-hr-agent` aus; `pytest -q` bleibt auf dem Host grün |
 
 **Deploy-Beweis:**
 
