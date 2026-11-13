@@ -52,6 +52,10 @@ from .x402_gate import ATTEST_PATH, build_payment_middleware, describe, facilita
 logger = logging.getLogger("attest")
 ROOT = Path(__file__).resolve().parents[1]
 
+# agent-tools.cloud: Token fuer den Whole-Host-Claim per Descriptor. Muss laut
+# https://agent-tools.cloud/docs/claim dauerhaft im oeffentlichen JSON stehen.
+AGENT_TOOLS_VERIFY_TOKEN = "atc_n2CUr_YdpmNqJs7XPtyG8aR_LcQHI4d1"
+
 public_router = APIRouter()
 paid_router = APIRouter()
 _settings: Settings | None = None
@@ -346,6 +350,9 @@ async def x402_manifest(request: Request) -> JSONResponse:
     res = doc["resources"][0]
     manifest = {
         "x402Version": 2,
+        # agent-tools.cloud, Whole-Host-Claim per Descriptor (siehe
+        # https://agent-tools.cloud/docs/claim): Top-Level-Feld im oeffentlichen JSON.
+        "agentToolsVerify": AGENT_TOOLS_VERIFY_TOKEN,
         "resources": [{
             "url": res["resource"],
             "description": res["description"],
