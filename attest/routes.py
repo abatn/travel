@@ -52,12 +52,6 @@ from .x402_gate import ATTEST_PATH, build_payment_middleware, describe, facilita
 logger = logging.getLogger("attest")
 ROOT = Path(__file__).resolve().parents[1]
 
-# agent-tools.cloud: Token fuer den Whole-Host-Claim per Descriptor. Laut
-# https://agent-tools.cloud/docs/claim muss er dauerhaft als Top-Level-Feld
-# im oeffentlichen JSON stehen. Bewusst nur im v1-Deskriptor; die v2-Instanz
-# (/.well-known/x402, attest/payapi) bleibt tokenfrei und wird nicht beruehrt.
-AGENT_TOOLS_VERIFY_TOKEN = "atc_9ysnbUQuetHjXvcoc1tKcH4HSJ4rPYg_"
-
 public_router = APIRouter()
 paid_router = APIRouter()
 _settings: Settings | None = None
@@ -352,9 +346,6 @@ async def x402_manifest(request: Request) -> JSONResponse:
     res = doc["resources"][0]
     manifest = {
         "x402Version": 2,
-        # agent-tools.cloud, Whole-Host-Claim per Descriptor: Top-Level-Feld,
-        # nicht innerhalb von resources[], sonst findet die Pruefung es nicht.
-        "agentToolsVerify": AGENT_TOOLS_VERIFY_TOKEN,
         "resources": [{
             "url": res["resource"],
             "description": res["description"],
