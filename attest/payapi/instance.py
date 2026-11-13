@@ -437,17 +437,10 @@ def openapi_document(base: str) -> dict[str, Any]:
     }
 
 
-# agent-tools.cloud, Whole-Host-Claim per Descriptor: laut
-# https://agent-tools.cloud/docs/claim wird der Token fuer x402 als
-# Top-Level-Feld agentToolsVerify in /.well-known/x402 erwartet.
-AGENT_TOOLS_VERIFY_TOKEN = "atc_n2CUr_YdpmNqJs7XPtyG8aR_LcQHI4d1"
-
-
 def _manifest(request: Request) -> dict[str, Any]:
     s = config().settings
     return {
         "x402Version": 2,
-        "agentToolsVerify": AGENT_TOOLS_VERIFY_TOKEN,
         "resources": [{
             "url": f"{_base_url(request)}{PAYAPI_PATH}",
             "description": DESCRIPTION,
