@@ -30,6 +30,11 @@ DESCRIPTION = (
     "Fähren, Kreuzfahrten) mit Plausibilitätsprüfung. Pay-per-Call über x402 v2 "
     "auf Base; die Beobachtung liefert der Käufer."
 )
+# agent-tools.cloud verlangt fuer den Whole-Host-Claim das Top-Level-Feld
+# agentToolsVerify in dem Deskriptor, der unter /.well-known/x402 ausgeliefert
+# wird. Der Token wird dort dauerhaft veroeffentlicht (Recheck alle 72 h).
+AGENT_TOOLS_VERIFY_TOKEN = "atc_iTKT_PV-6JwTrPPiyQ0thJ4YsXEKGh4i"
+
 logger = logging.getLogger("attest.payapi")
 
 public_router = APIRouter()
@@ -441,6 +446,9 @@ def _manifest(request: Request) -> dict[str, Any]:
     s = config().settings
     return {
         "x402Version": 2,
+        # agent-tools.cloud, Whole-Host-Claim per Descriptor: Top-Level-Feld,
+        # nicht innerhalb von resources[], sonst findet die Pruefung es nicht.
+        "agentToolsVerify": AGENT_TOOLS_VERIFY_TOKEN,
         "resources": [{
             "url": f"{_base_url(request)}{PAYAPI_PATH}",
             "description": DESCRIPTION,
