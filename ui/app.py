@@ -114,18 +114,6 @@ async def seo_headers(request: Request, call_next):
     return response
 
 
-# --- agent-tools.cloud: Whole-Host-Claim ----------------------------------
-# Proof-Datei laut https://agent-tools.cloud/docs/claim. Der Token muss nach
-# dem Verifizieren dauerhaft erreichbar bleiben: drei fehlgeschlagene
-# Nachprüfungen in Folge entziehen den Claim.
-AGENT_TOOLS_VERIFY_TOKEN = "atc_UIblNZWhAwTSdVXk_qj0FDauLS0bQCoa"
-
-
-@app.get("/.well-known/agent-tools-verify.txt", include_in_schema=False)
-async def agent_tools_verify() -> PlainTextResponse:
-    return PlainTextResponse(AGENT_TOOLS_VERIFY_TOKEN)
-
-
 # --- M2: x402-Preis-Attestierungen ----------------------------------------
 # Optional: benoetigt x402 (siehe attest/README.md). Fehlt das Paket, laeuft
 # die UI unveraendert weiter; /api/attest ist dann nicht vorhanden.
